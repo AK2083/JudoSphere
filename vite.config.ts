@@ -1,7 +1,7 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import process from "node:process";
-const host = process.env.TAURI_DEV_HOST;
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import process from 'node:process'
+const host = process.env.TAURI_DEV_HOST
 
 export default defineConfig(() => ({
   plugins: [vue()],
@@ -10,7 +10,7 @@ export default defineConfig(() => ({
   server: {
     port: 1420,
     strictPort: true,
-    host: host || "0.0.0.0",
-    allowedHosts: true as const,
-  },
-}));
+    host: host || '0.0.0.0',
+    allowedHosts: true as const
+  }
+}))
