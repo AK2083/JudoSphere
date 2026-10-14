@@ -151,6 +151,7 @@ graph LR
 ```
 
 **API layering rules:**
+
 - Generic client access lives in `shared/api/` (IPC bridge, future Supabase).
 - Each slice gets its own `api/` folder with **use-case-specific** functions that call `shared/api` and handle errors at slice level.
 - `model/` and `service/` import **only** from the slice's own `api/`, never directly from `@shared/api`.
@@ -162,13 +163,13 @@ graph LR
 
 No feature or page logic. Features and widgets import only the public API — never the SDK directly.
 
-| Segment                             | Level      | Content                                               |
-| ----------------------------------- | ---------- | ----------------------------------------------------- |
-| `api/`                              | Low-level  | IPC bridge client, future Supabase client             |
-| `lib/browser/` `lib/validation/` `lib/pinia/` `lib/i18n/` | Low-level | Technical helpers, validation, store utilities |
-| `lib/logging/`                      | High-level | Error logging via `logError` (the only logging API)   |
-| `ui/`                               | —          | Reusable Vue components without feature affiliation   |
-| `model/` `store/` `types/` `errors/`| —          | Shared domain types, stores, error classes            |
+| Segment                                                   | Level      | Content                                             |
+| --------------------------------------------------------- | ---------- | --------------------------------------------------- |
+| `api/`                                                    | Low-level  | IPC bridge client, future Supabase client           |
+| `lib/browser/` `lib/validation/` `lib/pinia/` `lib/i18n/` | Low-level  | Technical helpers, validation, store utilities      |
+| `lib/logging/`                                            | High-level | Error logging via `logError` (the only logging API) |
+| `ui/`                                                     | —          | Reusable Vue components without feature affiliation |
+| `model/` `store/` `types/` `errors/`                      | —          | Shared domain types, stores, error classes          |
 
 - `shared` imports **no** features, pages, widgets, or `app`.
 - Vue components without feature affiliation → `shared/ui/`, not in features.
@@ -178,12 +179,12 @@ No feature or page logic. Features and widgets import only the public API — ne
 
 ## `app` vs. `shared` — Decision Guide
 
-| Question                                                             | → `app` | → `shared` |
-| -------------------------------------------------------------------- | ------- | ---------- |
-| Part of the **composition root** (start app, register plugins)?      | Yes     | No         |
-| **Swappable / mockable** without rewriting features?                 | No      | Yes        |
-| Should features **not import this SDK directly**?                    | —       | Yes        |
-| Switching mainly requires wiring changes in `main.ts` / `providers/`?| Yes     | No         |
+| Question                                                              | → `app` | → `shared` |
+| --------------------------------------------------------------------- | ------- | ---------- |
+| Part of the **composition root** (start app, register plugins)?       | Yes     | No         |
+| **Swappable / mockable** without rewriting features?                  | No      | Yes        |
+| Should features **not import this SDK directly**?                     | —       | Yes        |
+| Switching mainly requires wiring changes in `main.ts` / `providers/`? | Yes     | No         |
 
 **Split pattern:** A dependency can be both — instance/wiring in `app/providers/`, usage API in `shared/lib/` (e.g. plugin registered in `app`, composable consumed via `shared`).
 
@@ -193,13 +194,13 @@ No feature or page logic. Features and widgets import only the public API — ne
 
 Always use path aliases — never use relative paths across layer boundaries.
 
-| Alias          | Maps to          |
-| -------------- | ---------------- |
-| `@app/*`       | `src/app/*`      |
-| `@pages/*`     | `src/pages/*`    |
-| `@widgets/*`   | `src/widgets/*`  |
-| `@features/*`  | `src/features/*` |
-| `@shared/*`    | `src/shared/*`   |
+| Alias         | Maps to          |
+| ------------- | ---------------- |
+| `@app/*`      | `src/app/*`      |
+| `@pages/*`    | `src/pages/*`    |
+| `@widgets/*`  | `src/widgets/*`  |
+| `@features/*` | `src/features/*` |
+| `@shared/*`   | `src/shared/*`   |
 
 ---
 

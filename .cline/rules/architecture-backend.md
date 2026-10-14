@@ -118,13 +118,13 @@ graph LR
     style SHARED fill:#d97706,color:#fff,stroke:#d97706
 ```
 
-| File             | Responsibility                                                           |
-| ---------------- | ------------------------------------------------------------------------ |
-| `commands.rs`    | `#[tauri::command]` functions only — no logic, no DB access, delegate immediately to `service.rs` |
-| `service.rs`     | Business logic, validation, orchestration — calls `repository.rs`        |
-| `repository.rs`  | DB queries exclusively — no domain branching, no business logic          |
-| `models.rs`      | Domain models, DTOs (`serde`), optional mapping functions                |
-| `mod.rs`         | Exports `pub fn register(builder) -> builder` — registers the slice's commands |
+| File            | Responsibility                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| `commands.rs`   | `#[tauri::command]` functions only — no logic, no DB access, delegate immediately to `service.rs` |
+| `service.rs`    | Business logic, validation, orchestration — calls `repository.rs`                                 |
+| `repository.rs` | DB queries exclusively — no domain branching, no business logic                                   |
+| `models.rs`     | Domain models, DTOs (`serde`), optional mapping functions                                         |
+| `mod.rs`        | Exports `pub fn register(builder) -> builder` — registers the slice's commands                    |
 
 ---
 
@@ -210,11 +210,11 @@ sqlite   = ["dep:rusqlite"]    # or tauri-plugin-sql
 
 ### Crate Candidates
 
-| Module (now)                      | Future crate            | Content                                                    |
-| --------------------------------- | ----------------------- | ---------------------------------------------------------- |
-| `src-tauri/src/infrastructure/db` | `judosphere-sqlite`     | SQLite abstraction, connection pool, migration helper      |
-| `src-tauri/src/shared/`           | `judosphere-core`       | Shared error types, `Result` alias, value objects          |
-| *(future)*                        | `judosphere-supabase`   | Supabase client wrapper, auth, realtime                    |
+| Module (now)                      | Future crate          | Content                                               |
+| --------------------------------- | --------------------- | ----------------------------------------------------- |
+| `src-tauri/src/infrastructure/db` | `judosphere-sqlite`   | SQLite abstraction, connection pool, migration helper |
+| `src-tauri/src/shared/`           | `judosphere-core`     | Shared error types, `Result` alias, value objects     |
+| _(future)_                        | `judosphere-supabase` | Supabase client wrapper, auth, realtime               |
 
 ### Migration Plan
 
