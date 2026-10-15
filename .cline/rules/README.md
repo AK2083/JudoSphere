@@ -8,38 +8,38 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 
 ### 📐 Architecture
 
-| File | Purpose | Applies To |
-|------|---------|-----------|
-| **[`architecture.md`](./architecture.md)** | High-level system overview | All files |
+| File                                                         | Purpose                             | Applies To                    |
+| ------------------------------------------------------------ | ----------------------------------- | ----------------------------- |
+| **[`architecture.md`](./architecture.md)**                   | High-level system overview          | All files                     |
 | **[`architecture-frontend.md`](./architecture-frontend.md)** | Vue 3 + Feature-Sliced Design (FSD) | `src/**/*.ts`, `src/**/*.vue` |
-| **[`architecture-backend.md`](./architecture-backend.md)** | Tauri + Vertical Slices | `src-tauri/src/**/*.rs` |
+| **[`architecture-backend.md`](./architecture-backend.md)**   | Tauri + Vertical Slices             | `src-tauri/src/**/*.rs`       |
 
 ### 🎨 Frontend Development
 
-| File | Purpose | Applies To |
-|------|---------|-----------|
+| File                                       | Purpose                                                                    | Applies To                    |
+| ------------------------------------------ | -------------------------------------------------------------------------- | ----------------------------- |
 | **[`vue-frontend.md`](./vue-frontend.md)** | Vue 3 components, Tailwind CSS, Storybook, Playwright, i18n, accessibility | `src/**/*.vue`, `src/**/*.ts` |
 
 ### 🛡️ Security & Compliance
 
-| File | Purpose | Applies To |
-|------|---------|-----------|
+| File                                               | Purpose                                                                         | Applies To                             |
+| -------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------- |
 | **[`security-privacy.md`](./security-privacy.md)** | Tauri IPC boundary, secrets management, SQLite, Supabase, LocalStorage security | `src/**/*.ts`, `src-tauri/src/**/*.rs` |
-| **[`legal.md`](./legal.md)** | GDPR, data retention, responsible disclosure, licensing, accessibility (WCAG) | All files |
+| **[`legal.md`](./legal.md)**                       | GDPR, data retention, responsible disclosure, licensing, accessibility (WCAG)   | All files                              |
 
 ### 📋 Project & Process
 
-| File | Purpose | Applies To |
-|------|---------|-----------|
-| **[`project-overview.md`](./project-overview.md)** | Tech stack, development workflow, deployment strategy, roadmap | All files |
+| File                                               | Purpose                                                        | Applies To |
+| -------------------------------------------------- | -------------------------------------------------------------- | ---------- |
+| **[`project-overview.md`](./project-overview.md)** | Tech stack, development workflow, deployment strategy, roadmap | All files  |
 
 ### 🔗 External References
 
-| File | Purpose |
-|------|---------|
-| **[`SECURITY.md`](../../SECURITY.md)** (repo root) | Responsible disclosure policy, security advisories |
-| **[`LICENSE`](../../LICENSE)** (repo root) | MIT license |
-| **[`CHANGELOG.md`](../../CHANGELOG.md)** (repo root) | Release notes, version history |
+| File                                                 | Purpose                                            |
+| ---------------------------------------------------- | -------------------------------------------------- |
+| **[`SECURITY.md`](../../SECURITY.md)** (repo root)   | Responsible disclosure policy, security advisories |
+| **[`LICENSE`](../../LICENSE)** (repo root)           | MIT license                                        |
+| **[`CHANGELOG.md`](../../CHANGELOG.md)** (repo root) | Release notes, version history                     |
 
 ---
 
@@ -48,6 +48,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 ### Frontend (Vue 3)
 
 ✅ **DO:**
+
 - Use `<script setup lang="ts">` (Composition API)
 - Write UI logic in **composables** (`use-*.ts`) — not in templates
 - Style with **Tailwind CSS utilities** exclusively
@@ -58,6 +59,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 - Implement **WCAG 2.1 AA** accessibility standards (ARIA, keyboard nav, color contrast)
 
 ❌ **DON'T:**
+
 - Use Options API or class components
 - Put business logic in templates
 - Write custom CSS (use Tailwind utilities)
@@ -69,6 +71,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 ### Backend (Rust + Tauri)
 
 ✅ **DO:**
+
 - Organize code as **Vertical Slices** (one slice per domain: `athlete`, `competition`, `belt`, …)
 - Keep **commands thin** (deserialize → delegate to service)
 - Put **business logic in `service.rs`** (validation, orchestration)
@@ -79,6 +82,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 - Enable **foreign key constraints** in SQLite
 
 ❌ **DON'T:**
+
 - Import across slices (no `crate::athlete::` from `crate::competition::`)
 - Put business logic in `commands.rs`
 - Put DB branching logic in `repository.rs`
@@ -89,6 +93,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 ### IPC Bridge (Tauri ↔ Vue)
 
 ✅ **DO:**
+
 - Call `invoke()` **only from `src/shared/api/`** (never directly in features)
 - Use **wrapper functions** in `src/shared/api/` to handle error mapping
 - Return **`Result<T, String>`** from Rust commands (Tauri-compatible)
@@ -96,6 +101,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 - Keep **shared DTOs in sync** (`src/shared/types/` ↔ `src-tauri/src/shared/types.rs`)
 
 ❌ **DON'T:**
+
 - Call `window.__TAURI__` directly in features (violates architecture)
 - Return custom Rust error types from commands (must be `String`)
 - Forget to add matching TypeScript DTO when adding Rust DTO
@@ -103,6 +109,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 ### Security
 
 ✅ **DO:**
+
 - Store **sensitive secrets in OS keychain** or environment variables (never in SQLite)
 - Validate **all user inputs** (forms, IPC payloads, file uploads)
 - Use **parameterized SQL queries** (no string interpolation)
@@ -112,6 +119,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 - Use **window-label-based access control** in Tauri commands (least privilege)
 
 ❌ **DON'T:**
+
 - Commit passwords, API keys, or credentials to git
 - Concatenate user input into SQL queries
 - Store sensitive data in LocalStorage (use OS keychain)
@@ -121,6 +129,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 ### Accessibility (WCAG 2.1 AA)
 
 ✅ **DO:**
+
 - Use **semantic HTML** (`<button>`, `<label>`, `<form>`, `<section>`, `<nav>`)
 - Add **`aria-label` or `aria-labelledby`** to interactive elements
 - Make all interactive elements **keyboard-reachable** (Tab, Enter, Space, Arrow keys)
@@ -130,6 +139,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 - Add **`aria-hidden="true"` to decorative icons**
 
 ❌ **DON'T:**
+
 - Use `<div>` styled as a `<button>` (use semantic `<button>`)
 - Rely on color alone to convey meaning (pair with text or icons)
 - Remove `:focus` styles (CSS reset antipattern)
@@ -139,6 +149,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 ### i18n (Internationalization)
 
 ✅ **DO:**
+
 - Support **German (de) and English (en)**
 - Define **`keys.ts`** with type-safe translation key paths
 - Create **one `de.ts` and one `en.ts`** per slice (not language subfolders)
@@ -147,6 +158,7 @@ This directory contains comprehensive coding guidelines, architectural patterns,
 - Nest objects in i18n files for logical grouping (flat structure preferred)
 
 ❌ **DON'T:**
+
 - Hardcode UI text (all text must be translated)
 - Create language-specific folders (`de/`, `en/`) — use flat `de.ts`, `en.ts` structure
 - Forget ARIA labels in translations

@@ -1,6 +1,6 @@
 ---
 description: Legal and compliance framework for JudoSphere — GDPR, data retention, responsible disclosure, and licensing
-globs: "**/*.{ts,vue,rs,md}"
+globs: '**/*.{ts,vue,rs,md}'
 alwaysApply: false
 ---
 
@@ -48,14 +48,14 @@ Define how long data is kept and when it is deleted.
 
 ### Retention Periods
 
-| Data Type                              | Retention Period | Rationale |
-| -------------------------------------- | ---------------- | --------- |
-| **Athlete profile** (name, DOB, contact) | Until account deletion | Core to tournament admin |
-| **Competition results** (matches, scores) | 3 years | Legal/audit trail; allows tournament history queries |
-| **Belt progression history** | Until account deletion | Audit trail for grading records |
-| **User login logs** | 90 days | Security audit |
-| **API audit logs** (create/update/delete) | 1 year | Compliance and debugging |
-| **Deleted account data** | 30 days (soft delete) | Allow recovery window; then hard delete |
+| Data Type                                 | Retention Period       | Rationale                                            |
+| ----------------------------------------- | ---------------------- | ---------------------------------------------------- |
+| **Athlete profile** (name, DOB, contact)  | Until account deletion | Core to tournament admin                             |
+| **Competition results** (matches, scores) | 3 years                | Legal/audit trail; allows tournament history queries |
+| **Belt progression history**              | Until account deletion | Audit trail for grading records                      |
+| **User login logs**                       | 90 days                | Security audit                                       |
+| **API audit logs** (create/update/delete) | 1 year                 | Compliance and debugging                             |
+| **Deleted account data**                  | 30 days (soft delete)  | Allow recovery window; then hard delete              |
 
 ### Automatic Deletion
 
@@ -71,6 +71,7 @@ Define how long data is kept and when it is deleted.
 See [`SECURITY.md`](../../SECURITY.md) for the full responsible disclosure policy and contact procedures.
 
 **Quick summary:**
+
 - Security issues reported to `security@judosphere.dev` (or equivalent) **before public disclosure**.
 - Response time: **48 hours** acknowledgment, **30 days** remediation target.
 - CVE assignment for critical vulnerabilities.
@@ -129,6 +130,7 @@ JudoSphere serves young athletes (under 18 in many cases). Comply with child pro
 ### COPPA (US) / GDPR (EU) — Children's Data
 
 If users under 13 (COPPA) or 16 (GDPR) can sign up:
+
 - Parental consent is **required** (not just from the child).
 - Opt-out from marketing emails/push notifications by default.
 - **Do not sell** or share child data with third parties.

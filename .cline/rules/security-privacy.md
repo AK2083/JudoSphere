@@ -40,6 +40,7 @@ graph LR
 ```
 
 **Rules:**
+
 - Any code in the WebView (`src/`) has **no** direct access to system resources, the file system, or SQLite.
 - All privileged operations cross the IPC boundary via `invoke()` — exclusively through `src/shared/api/`.
 - The Rust core re-validates every request: frontend checks are UI convenience only, never a security boundary.
@@ -52,6 +53,7 @@ graph LR
 Tauri 2 uses a **capabilities system** to define which commands and APIs the WebView is allowed to call. This is the primary access control layer on the Tauri side.
 
 **Rules (per official Tauri 2 docs):**
+
 - Every exposed command must be explicitly listed in a capability file under `src-tauri/capabilities/`.
 - Grant only the minimum required permissions — never use broad wildcard grants in production.
 - Use separate capability files per window label and per platform (`desktop.json`, `mobile.json`) when access needs differ.
@@ -66,10 +68,7 @@ Tauri 2 uses a **capabilities system** to define which commands and APIs the Web
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop-capability",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "opener:default"
-  ]
+  "permissions": ["core:default", "opener:default"]
 }
 ```
 
@@ -80,6 +79,7 @@ Tauri 2 uses a **capabilities system** to define which commands and APIs the Web
 CSP is the primary defense against XSS in the WebView. It must be explicitly configured — `"csp": null` is **never** acceptable in a release build.
 
 **Rules (per official Tauri 2 docs):**
+
 - Set a strict CSP in `tauri.conf.json` under `app.security.csp`. Tauri automatically appends nonces and hashes for bundled assets at compile time.
 - Never load remote scripts (CDN, external URLs) in the WebView — they introduce uncontrolled attack vectors.
 - `default-src` must be `'self' asset: http://asset.localhost` — no wildcard origins.
@@ -107,6 +107,7 @@ CSP is the primary defense against XSS in the WebView. It must be explicitly con
 Every `#[tauri::command]` in `commands.rs` is a potential entry point from the WebView. Treat each one like a public API endpoint.
 
 **Rules:**
+
 - Commands are thin — they validate input, check permissions, then delegate to `service.rs`. No business logic or DB access in commands.
 - Every privileged command must verify the caller's session and role at the **Rust layer** before executing. Frontend role checks are UI-only.
 - Commands return `Result<T, String>` — never leak internal error details, stack traces, or Rust type names in the error string sent to the frontend.
@@ -120,6 +121,7 @@ Every `#[tauri::command]` in `commands.rs` is a potential entry point from the W
 SQLite is the primary data store, accessed exclusively from the Rust core.
 
 **Rules:**
+
 - SQLite is accessed **only** from the Rust backend (`src-tauri/src/`). The WebView never opens or queries the database directly.
 - The database file must be stored in the Tauri app data directory (`app.path().app_data_dir()`) — never in a world-readable path like `Desktop` or `Downloads`.
 - Use **parameterized queries** for all user-supplied values. SQL injection via IPC input is a real threat if raw strings are interpolated.
@@ -136,6 +138,7 @@ SQLite is the primary data store, accessed exclusively from the Rust core.
 LocalStorage in the WebView is used exclusively for **UI preferences and non-sensitive settings** (e.g. selected language, theme, last-visited view).
 
 **Rules:**
+
 - LocalStorage must **never** contain secrets, tokens, passwords, API keys, or personal data of athletes.
 - Session tokens and Supabase credentials must **never** be written to LocalStorage manually. The Supabase JS SDK handles token storage internally — do not override or duplicate this.
 - Only store UI state that is safe to be read by any code in the WebView and safe to lose on a data wipe.
@@ -168,6 +171,7 @@ graph TD
 ```
 
 **Rules:**
+
 - The **Supabase `anon` key** is public by design and safe to ship in the frontend. It is constrained by RLS and rate-limiting — it is not a secret.
 - The **Supabase `service_role` key** bypasses RLS entirely. It must **never** appear in the frontend, in SQLite, in logs, or in source code. Not under any circumstances.
 - User session JWTs issued by Supabase Auth are managed by the Supabase JS SDK. Never extract, store, or log them manually.
@@ -183,6 +187,7 @@ Supabase is an **optional** cloud backend. When configured, these rules apply wi
 ### Authentication
 
 **Rules (per Supabase Auth docs):**
+
 - Use the **PKCE flow** for desktop/native clients — never the implicit flow, which exposes tokens in URLs.
 - Every Supabase request from the frontend is authenticated via the JWT issued by Supabase Auth. The SDK attaches it automatically — do not replicate this manually.
 - Session refresh is handled by the Supabase JS SDK. Do not implement manual token refresh logic.
@@ -192,6 +197,7 @@ Supabase is an **optional** cloud backend. When configured, these rules apply wi
 ### Row Level Security (RLS)
 
 **Rules (per official Supabase / Postgres RLS docs):**
+
 - RLS must be **enabled on every table** in the public schema exposed via the Supabase API — no exceptions.
 - A table without RLS is readable and writable by any authenticated or even anonymous user. This is never acceptable for athlete or tournament data.
 - After enabling RLS, verify that default grants to `anon` and `authenticated` roles are not overly broad — revoke unnecessary grants explicitly.
@@ -217,6 +223,7 @@ using (
 ### Sync
 
 **Rules:**
+
 - Sync must **not** overwrite local SQLite data without conflict detection. Last-write-wins without conflict resolution is not acceptable.
 - Log only sync metadata (e.g. `synced N records`) — never log the record payloads.
 - Document each sync operation as a data transfer in the operator guide (Art. 28 GDPR — see `legal.md`).
@@ -226,6 +233,7 @@ using (
 ## Personal Data & Logging
 
 **Rules:**
+
 - Logs (`app.log`, Tauri tracing output) must **never** contain full personal records, athlete names, session IDs, tokens, or sensitive fields.
 - Use anonymized identifiers in log lines (e.g. `athlete_id=42`) — never names, DOBs, or contact details.
 - Error messages returned to the frontend via `Result<T, String>` must be generic user-facing strings — never raw Rust error details with internal state.
@@ -235,15 +243,15 @@ using (
 
 ## Quick-Reference: Security Triggers
 
-| Trigger | Required action |
-| ------- | --------------- |
-| New `#[tauri::command]` | Add to capability file; validate input in `service.rs`; return generic errors |
-| New SQL query | Parameterized statements only; no string interpolation |
-| New LocalStorage key | UI state only; namespace `judosphere.<feature>.<key>`; no personal data |
-| Supabase table added | Enable RLS immediately; define all policies; test with `supabase test db` |
-| Secret / API key needed | Anon key → env var; session → Supabase SDK; service role → never in frontend |
-| New log statement | No personal data, tokens, or internal error details |
-| CSP change | No `'unsafe-inline'` on `script-src`; no CDN script sources |
-| Release build | Verify CSP is not `null`; verify no dev-only capabilities are active |
-| User sign-out | `supabase.auth.signOut()` + clear all `judosphere.*` LocalStorage entries |
-| New Supabase sync feature | Document as data transfer in operator guide (Art. 28 GDPR, see `legal.md`) |
+| Trigger                   | Required action                                                               |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| New `#[tauri::command]`   | Add to capability file; validate input in `service.rs`; return generic errors |
+| New SQL query             | Parameterized statements only; no string interpolation                        |
+| New LocalStorage key      | UI state only; namespace `judosphere.<feature>.<key>`; no personal data       |
+| Supabase table added      | Enable RLS immediately; define all policies; test with `supabase test db`     |
+| Secret / API key needed   | Anon key → env var; session → Supabase SDK; service role → never in frontend  |
+| New log statement         | No personal data, tokens, or internal error details                           |
+| CSP change                | No `'unsafe-inline'` on `script-src`; no CDN script sources                   |
+| Release build             | Verify CSP is not `null`; verify no dev-only capabilities are active          |
+| User sign-out             | `supabase.auth.signOut()` + clear all `judosphere.*` LocalStorage entries     |
+| New Supabase sync feature | Document as data transfer in operator guide (Art. 28 GDPR, see `legal.md`)    |

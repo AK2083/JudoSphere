@@ -1,6 +1,6 @@
 ---
 description: JudoSphere project overview — tech stack, architecture, development workflow, and deployment strategy
-globs: "**/*.{ts,vue,rs,md}"
+globs: '**/*.{ts,vue,rs,md}'
 alwaysApply: false
 ---
 
@@ -13,6 +13,7 @@ JudoSphere is a **desktop application** for managing judo tournaments, athletes,
 ## Tech Stack
 
 ### Frontend
+
 - **Framework:** Vue 3 (`@vitejs/plugin-vue`)
 - **Language:** TypeScript (strict mode)
 - **Styling:** Tailwind CSS (utility-first)
@@ -24,6 +25,7 @@ JudoSphere is a **desktop application** for managing judo tournaments, athletes,
 - **IPC Bridge:** Tauri `@tauri-apps/api` (via `src/shared/api/`)
 
 ### Backend
+
 - **Runtime:** Tauri 2 (v2.0+)
 - **Language:** Rust (2021 edition)
 - **Database:** SQLite (with WAL mode for sync-friendly operations)
@@ -32,6 +34,7 @@ JudoSphere is a **desktop application** for managing judo tournaments, athletes,
 - **Logging:** `tracing` crate (structured logging)
 
 ### DevOps & Infrastructure
+
 - **VCS:** Git (GitHub)
 - **Package Manager:** npm (frontend) + Cargo (backend)
 - **CI/CD:** GitHub Actions (planned: linting, testing, artifact builds)
@@ -81,28 +84,33 @@ src-tauri/src/
 ## Key Features & Workflows
 
 ### 1. Athlete Management
+
 - **Create:** Register new athlete (name, DOB, belt rank, contact).
 - **Edit:** Update athlete profile.
 - **Delete:** Remove athlete and cascade-delete associated records (matches, grading history).
 - **List:** View all athletes with filtering/sorting (by name, belt, DOB).
 
 ### 2. Tournament Management
+
 - **Create:** Set up tournament (name, date, location, rules).
 - **Schedule:** Define rounds, bracket pairings.
 - **Record Results:** Log match outcomes (winner, score, time).
 - **Publish:** Generate reports (results, standings, belt promotions).
 
 ### 3. Belt Progression
+
 - **Track:** Record belt grading events (test date, result, feedback).
 - **Validate:** Prevent retroactive promotions (e.g. can't promote to black-belt after already being black-belt).
 - **History:** View grading timeline per athlete.
 
 ### 4. Data Persistence
+
 - **SQLite Database:** Stored in app data directory (`~/.judosphere/` or equivalent).
 - **WAL Mode:** Enables faster writes and concurrent reads (useful for multi-client sync).
 - **Migrations:** Version-controlled schema changes (see `src-tauri/migrations/`).
 
 ### 5. Desktop Sync (Future)
+
 - **Local Network:** Use mDNS to discover other JudoSphere instances on the same network.
 - **Sync Protocol:** (TBD) Supabase Realtime or custom WebSocket protocol.
 - **Conflict Resolution:** Last-write-wins or per-record versioning.
@@ -114,18 +122,21 @@ src-tauri/src/
 ### Local Setup
 
 1. **Clone repo:**
+
    ```bash
    git clone https://github.com/AK2083/JudoSphere.git
    cd JudoSphere
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    cargo build  # (Rust backend)
    ```
 
 3. **Start dev environment:**
+
    ```bash
    npm run dev
    # or separate terminals:
@@ -134,6 +145,7 @@ src-tauri/src/
    ```
 
 4. **Run tests:**
+
    ```bash
    npm run test:storybook    # Storybook UI components
    npm run test:e2e          # Playwright end-to-end
@@ -240,6 +252,7 @@ JudoSphere/
 ## Roadmap (Planned Phases)
 
 ### Phase 1: MVP (v0.1–v0.5)
+
 - ✅ Athlete CRUD
 - ✅ Belt progression tracking
 - ✅ Basic competition management
@@ -248,12 +261,14 @@ JudoSphere/
 - ✅ Security & legal compliance
 
 ### Phase 2: Multi-User (v1.0)
+
 - Supabase integration (multi-client, auth)
 - LAN sync protocol
 - Real-time updates (Supabase Realtime or WebSocket)
 - User roles (admin, coach, referee)
 
 ### Phase 3: Advanced (v1.5+)
+
 - Tournament bracket generation (Swiss, round-robin)
 - PDF export (results, certificates)
 - Video match replay integration
@@ -276,14 +291,17 @@ JudoSphere/
 ### Common Issues
 
 **"Cannot connect to backend"**
+
 - Ensure `npm run dev` is running (launches Tauri backend in debug mode).
 - Check Tauri dev window for error messages.
 
 **"Database locked"**
+
 - Ensure only one Tauri instance is running per computer.
 - SQLite WAL mode should allow concurrent reads; if issue persists, check for stuck transactions.
 
 **"Tests fail locally but pass in CI"**
+
 - Timezone differences: ensure tests mock dates/times consistently.
 - File permissions: run `npm run test:e2e` with elevated permissions if needed.
 

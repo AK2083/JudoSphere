@@ -13,6 +13,7 @@ This rule applies to all Vue components in `src/` (frontend). It covers structur
 ## Components & Script Setup
 
 **Rules:**
+
 - All components must use `<script setup lang="ts">` — no Options API or class-based components.
 - No business logic in templates — use the component for UI binding only. Logic belongs in **composables** (`model/use-*.ts`), **services** (`service/`), or **API wrappers** (`api/`).
 - Keep components focused and small. Complex UIs should be split into smaller presentational components.
@@ -53,10 +54,7 @@ const handleSave = async () => {
   <div class="space-y-4">
     <!-- Template binds state and events only; no logic -->
     <p>{{ athlete?.name }}</p>
-    <button
-      :disabled="!canEdit"
-      @click="handleSave"
-    >
+    <button :disabled="!canEdit" @click="handleSave">
       {{ t('save') }}
     </button>
   </div>
@@ -68,6 +66,7 @@ const handleSave = async () => {
 ## Styling with Tailwind CSS
 
 **Rules (per Tailwind utility-first philosophy):**
+
 - Use Tailwind utility classes exclusively — no custom CSS in `<style>` blocks unless scoped component-specific behavior is absolutely necessary.
 - Build layouts with `flex` and `grid` utilities: `flex flex-col gap-4`, `grid grid-cols-3 gap-6`.
 - Responsive classes use Tailwind breakpoints: `flex-col md:flex-row lg:flex-row xl:flex-row`.
@@ -104,6 +103,7 @@ const handleSave = async () => {
 ```
 
 **Dark mode** (if Tailwind dark mode is enabled):
+
 - Use `dark:` prefix for dark-mode variants: `bg-white dark:bg-gray-900`, `text-gray-900 dark:text-white`.
 - Test both light and dark modes in Storybook and Playwright.
 
@@ -124,6 +124,7 @@ i18n/
 ```
 
 **Rules:**
+
 - One `de.ts` and one `en.ts` per slice — not language-specific folders (`de/`, `en/`).
 - Nested objects within `de.ts`/`en.ts` are fine for logical grouping, but keep structure flat where possible (match parent feature i18n paths).
 - `keys.ts` exports paths as constants — use in components for type-safe access:
@@ -177,6 +178,7 @@ export const athleteFeatureDe = {
 ## Responsive Design
 
 **Rules:**
+
 - Use Tailwind breakpoints: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px), `2xl` (1536px).
 - Build mobile-first: start with base (mobile) classes, add breakpoint variants for larger screens.
 - Test on actual devices or emulated viewports: mobile (320–480px), tablet (768px), desktop (1280px+).
@@ -219,12 +221,7 @@ Accessibility is not optional. Every component must meet **WCAG 2.1 Level AA** s
 <input id="athleteName" type="text" />
 
 <!-- ✅ Field with description -->
-<input
-  id="birthDate"
-  type="date"
-  aria-describedby="birthDateHint"
-  required
-/>
+<input id="birthDate" type="date" aria-describedby="birthDateHint" required />
 <span id="birthDateHint" class="text-sm text-gray-500">
   {{ t('keys.dateFormat') }}
 </span>
@@ -289,6 +286,7 @@ Accessibility is not optional. Every component must meet **WCAG 2.1 Level AA** s
 Every UI component must have a `.stories.ts` file showing all interactive states and variants.
 
 **File structure:**
+
 - `ui/<ComponentName>.vue`
 - `ui/<ComponentName>.stories.ts`
 - `ui/<ComponentName>.e2e.spec.ts`
@@ -360,6 +358,7 @@ export const Loaded: Story = {
 ```
 
 **Story guidelines:**
+
 - `title` path: `Features/Athlete/AthleteCard`, `Pages/Dashboard/Dashboard`, `Shared/UI/Badge`, `Widgets/Navigation/Navigation`.
 - Create stories for **all** component states: default, loading, error, empty, disabled, focused.
 - Use `parameters: { viewport: { defaultViewport: 'mobile1' } }` for mobile variants.
@@ -373,6 +372,7 @@ export const Loaded: Story = {
 Every UI component must have a `.e2e.spec.ts` file testing critical user interactions.
 
 **File structure:** (same as Storybook)
+
 - `ui/<ComponentName>.e2e.spec.ts`
 
 **Playwright test conventions:**
@@ -386,15 +386,11 @@ test.describe('AthleteCard', { tag: '@regression' }, () => {
     await page.goto('/athletes')
   })
 
-  test(
-    'renders athlete name and belt rank',
-    { tag: ['@smoke', '@critical'] },
-    async ({ page }) => {
-      const card = page.locator('[data-testid="athlete-card-1"]')
-      await expect(card).toBeVisible()
-      await expect(card.locator('text=John Doe')).toBeVisible()
-    }
-  )
+  test('renders athlete name and belt rank', { tag: ['@smoke', '@critical'] }, async ({ page }) => {
+    const card = page.locator('[data-testid="athlete-card-1"]')
+    await expect(card).toBeVisible()
+    await expect(card.locator('text=John Doe')).toBeVisible()
+  })
 
   test('edit button is disabled when not editable', async ({ page }) => {
     const card = page.locator('[data-testid="athlete-card-1"]')
@@ -417,6 +413,7 @@ test.describe('AthleteCard', { tag: '@regression' }, () => {
 ```
 
 **Playwright best practices:**
+
 - Use **built-in locators** over CSS selectors: `getByRole('button')`, `getByLabel('Name')`, `getByTestId('athlete-card')`.
 - Avoid testing implementation details — test **user-visible behavior** only.
 - Use `data-testid` for elements where role/label/text locators are insufficient.
@@ -425,13 +422,14 @@ test.describe('AthleteCard', { tag: '@regression' }, () => {
 
 **Test tags:**
 
-| Tag           | When to use |
-|---------------|------------|
+| Tag           | When to use                                                                    |
+| ------------- | ------------------------------------------------------------------------------ |
 | `@smoke`      | Quick "still renders" checks — route loads, component mounts, basic UI visible |
-| `@critical`   | Must-not-break flows — auth, core navigation, tournament data forms |
-| `@regression` | Full coverage — every E2E test **must** have this tag |
+| `@critical`   | Must-not-break flows — auth, core navigation, tournament data forms            |
+| `@regression` | Full coverage — every E2E test **must** have this tag                          |
 
 Run by tag:
+
 ```bash
 npm run test:e2e              # Run all (@regression)
 npm run test:e2e:smoke       # Run @smoke only
@@ -495,7 +493,7 @@ import { formKeys } from '../i18n/keys'
 
 const { t } = useTranslation()
 const name = ref('')
-const error = computed(() => !name.value ? t(formKeys.errors.nameRequired) : '')
+const error = computed(() => (!name.value ? t(formKeys.errors.nameRequired) : ''))
 </script>
 
 <template>

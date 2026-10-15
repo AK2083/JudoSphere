@@ -6,10 +6,10 @@ This document describes the security practices and responsible disclosure proces
 
 ## Supported Versions
 
-| Version | Supported          | End of Life |
-| ------- | ------------------ | ----------- |
-| 0.x     | ✅ Yes (current)   | TBD         |
-| < 0.1   | ❌ No              | 2026-10-14  |
+| Version | Supported        | End of Life |
+| ------- | ---------------- | ----------- |
+| 0.x     | ✅ Yes (current) | TBD         |
+| < 0.1   | ❌ No            | 2026-10-14  |
 
 ---
 
