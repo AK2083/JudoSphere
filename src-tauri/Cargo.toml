@@ -1,7 +1,7 @@
 [package]
 name = "judosphere"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Offline-first judo competition software for small clubs"
 authors = ["you"]
 edition = "2024"
 

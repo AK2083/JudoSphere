@@ -1,0 +1,33 @@
+---
+description: JudoSphere product context, offline-first, and host/client model
+alwaysApply: true
+---
+
+# JudoSphere
+
+Offline-first software for smaller judo competitions and small clubs.
+
+## Operating model
+
+- The **main application** starts on one machine and acts as a **local server**.
+- **Scoring judges** and **organizers** only open the website served by that host.
+- **Spectators** and **participants** are not target users of this software.
+- No cloud requirement: local use must work without internet.
+
+## Architecture boundaries
+
+- `src/` = Vue frontend (Feature-Sliced Design)
+- `src-tauri/` = Tauri/Rust backend (vertical slices)
+- Keep frontend and Tauri separated: do not put backend domain logic in Vue
+- Tailwind and a design system are planned under `src/shared/ui`
+
+## Conventions
+
+- README and JSDoc comments are written in **English**
+- JSDoc only on **exported** functions or variables
+- Public APIs use **barrel files** (`index.ts`)
+- Runtime dependencies are accessed only via facades in `src/shared/api`
+
+## Domain language
+
+Competition, club, match, score, scoring judge, organizer
