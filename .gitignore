@@ -1,3 +1,8 @@
+supabase
+supabase/.branches
+supabase/.temp
+supabase/snippets
+
 # Logs
 logs
 *.log
@@ -9,12 +14,16 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-electron
 dist-ssr
+coverage
 *.local
 
+# Local secrets (copy from .env.example)
+.env.development
+.env.development.local
+
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -22,3 +31,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+
+*storybook.log
+storybook-static

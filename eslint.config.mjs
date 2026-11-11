@@ -43,6 +43,14 @@ export default defineConfig([
     }
   },
   {
+    files: ['src/**/*.{test,spec}.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.vitest
+      }
+    }
+  },
+  {
     files: ['*.config.{js,mjs,cjs,ts}', 'vite.config.ts'],
     plugins: { security },
     languageOptions: {
