@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 import process from 'node:process'
+
+import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue'
 
 const host = process.env.TAURI_DEV_HOST
 
@@ -29,6 +30,18 @@ export default defineConfig(() => ({
       : undefined,
     watch: {
       ignored: ['**/src-tauri/**']
+    }
+  },
+
+  test: {
+    environment: 'happy-dom',
+    globals: true,
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    coverage: {
+      provider: 'v8' as const,
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{ts,vue}'],
+      exclude: ['src/**/*.{test,spec}.{ts,tsx}', 'src/**/*.d.ts', 'src/main.ts', 'src/**/index.ts']
     }
   }
 }))
