@@ -1,0 +1,108 @@
+name: Feature
+description: Propose a new feature or improvement
+title: "Feature: "
+type: feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the feature clearly so it can be triaged and estimated.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and precise description of the feature to be implemented.
+      placeholder: e.g. Implement user authentication with OAuth
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefit
+    attributes:
+      label: Benefit
+      description: Why is this feature useful? What value does it bring to users?
+      placeholder: e.g. Users can log in with their social accounts
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List all criteria that must be fulfilled for the feature to be considered complete.
+      placeholder: |
+        - [ ] Description of functionality
+        - [ ] Test cases or scenarios
+      value: |
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: ai_planning
+    attributes:
+      label: AI Implementation Plan (Markdown)
+      description: Paste the Markdown plan for how AI should implement this feature. You can also drag and drop a .md/.txt file into this field.
+      placeholder: |
+        ## Goal
+        ...
+        ## Approach
+        ...
+        ## Files to change
+        ...
+
+  - type: upload
+    id: planning_attachments
+    attributes:
+      label: Planning / Design Attachments
+      description: Optional file upload. GitHub accepts .txt/.zip (wrap .md if needed), images, and PDFs. Native .fig files are not supported — use a Figma link below or export PNG/PDF.
+    validations:
+      required: false
+      accept: ".txt,.zip,.pdf,.png,.jpg,.jpeg,.svg,.webp"
+
+  - type: input
+    id: figma_link
+    attributes:
+      label: Figma Link
+      description: Optional link to the Figma file or frame for this feature.
+      placeholder: https://www.figma.com/design/...
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Dependencies on other features, APIs, or tasks (optional).
+      placeholder: e.g. Requires backend API endpoint
+
+  - type: textarea
+    id: effort_estimation
+    attributes:
+      label: Effort Estimation
+      description: Rough estimate for implementation (optional).
+      placeholder: e.g. 3 days
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+      default: 1
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: delivery_scope
+    attributes:
+      label: Delivery Scope
+      description: Mark areas that are expected to be part of this feature (optional planning aid).
+      options:
+        - label: E2E Tests
+        - label: Performance Tests
+        - label: Storybook Components
+        - label: Migrations
+        - label: Mutation Tests
+        - label: API Tests

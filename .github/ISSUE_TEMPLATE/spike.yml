@@ -1,0 +1,74 @@
+name: Spike
+description: Time-boxed research for unclear requirements
+title: "Spike: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use spikes for time-boxed investigation. Capture the question, expected outcome, and decision criteria up front.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What exactly do we want to find out?
+      placeholder: e.g. Determine if a Dev Container is useful for our setup
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Questions
+      description: Which specific questions should this spike answer?
+      placeholder: e.g. Is a Dev Container useful for our setup? What are the trade-offs?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_result
+    attributes:
+      label: Expected Result
+      description: What should we have at the end of the spike?
+      placeholder: e.g. A clear recommendation with pros and cons
+    validations:
+      required: true
+
+  - type: textarea
+    id: evaluation_criteria
+    attributes:
+      label: Evaluation Criteria
+      description: How do we decide the spike was successful?
+      placeholder: e.g. Clear recommendation, documented pros and cons
+    validations:
+      required: true
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline
+      description: Time box and milestones.
+      placeholder: e.g. 2 days with a review after 1 day
+    validations:
+      required: true
+
+  - type: textarea
+    id: effort
+    attributes:
+      label: Effort
+      description: Expected effort for this spike.
+      placeholder: e.g. 2 days of work
+
+  - type: textarea
+    id: documentation
+    attributes:
+      label: References
+      description: Relevant links or documents (optional).
+      placeholder: e.g. Links to docs, RFCs, prior spikes
+
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Fill in after the spike is complete.
+      placeholder: e.g. Findings and recommendation

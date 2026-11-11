@@ -1,0 +1,95 @@
+name: Refactor
+description: Propose refactoring of existing code
+title: "Refactor: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Refactors should improve maintainability or performance without changing intended behavior unless explicitly stated.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem should this refactor solve?
+      placeholder: e.g. The current implementation has performance issues
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_state
+    attributes:
+      label: Current State
+      description: What is the current state of the code or system?
+      placeholder: e.g. Code is not optimized for the hot path
+    validations:
+      required: true
+
+  - type: textarea
+    id: target_state
+    attributes:
+      label: Target State
+      description: What state do we want to achieve?
+      placeholder: e.g. Clearer structure and improved performance
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What changes will be made?
+      placeholder: e.g. Extract shared logic and simplify the algorithm
+    validations:
+      required: true
+
+  - type: textarea
+    id: impacts
+    attributes:
+      label: Impacts
+      description: Expected impact on functionality, performance, quality, and dependencies.
+      value: |
+        - Functionality:
+        - Performance:
+        - Code quality:
+        - Dependencies:
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: evaluation_criteria
+    attributes:
+      label: Evaluation Criteria
+      description: How do we know the refactor succeeded?
+      placeholder: e.g. Performance metrics improved by 30%, existing tests still pass
+    validations:
+      required: true
+
+  - type: textarea
+    id: test_plan
+    attributes:
+      label: Test Plan
+      description: Which tests verify behavior is preserved?
+      placeholder: e.g. Unit tests, integration tests, manual smoke check
+    validations:
+      required: true
+
+  - type: textarea
+    id: effort
+    attributes:
+      label: Effort
+      description: Expected effort (optional).
+      placeholder: e.g. 2 days of work
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+      default: 1
+    validations:
+      required: true
