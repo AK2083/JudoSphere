@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+# Add real destinations when available, e.g.:
+# contact_links:
+#   - name: Project documentation
+#     url: https://github.com/ORG/REPO/wiki
+#     about: Read the project docs before opening an issue
