@@ -1,6 +1,6 @@
 name: Refactor
 description: Propose refactoring of existing code
-title: "Refactor: "
+title: 'Refactor: '
 body:
   - type: markdown
     attributes:

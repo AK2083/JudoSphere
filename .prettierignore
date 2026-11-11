@@ -1,0 +1,10 @@
+dist
+dist-ssr
+coverage
+src-tauri
+node_modules
+package-lock.json
+*.min.js
+build
+docs
+storybook-static
