@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use spikes for time-boxed investigation. Capture the question, expected outcome, and decision criteria up front.
+        Use spikes for time-boxed investigation. Capture the question and expected outcome up front.
 
   - type: textarea
     id: objective
@@ -35,15 +35,6 @@ body:
       required: true
 
   - type: textarea
-    id: evaluation_criteria
-    attributes:
-      label: Evaluation Criteria
-      description: How do we decide the spike was successful?
-      placeholder: e.g. Clear recommendation, documented pros and cons
-    validations:
-      required: true
-
-  - type: textarea
     id: timeline
     attributes:
       label: Timeline
@@ -51,13 +42,6 @@ body:
       placeholder: e.g. 2 days with a review after 1 day
     validations:
       required: true
-
-  - type: textarea
-    id: effort
-    attributes:
-      label: Effort
-      description: Expected effort for this spike.
-      placeholder: e.g. 2 days of work
 
   - type: textarea
     id: documentation
