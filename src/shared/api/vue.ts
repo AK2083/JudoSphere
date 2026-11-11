@@ -1,5 +1,4 @@
-import { createApp as createVueApp, ref as createRef } from 'vue'
-import type { App, Ref } from 'vue'
+import { type App, createApp as createVueApp, type Ref, ref as createRef } from 'vue'
 
 /**
  * Creates a Vue application instance.
