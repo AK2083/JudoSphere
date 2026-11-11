@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Describe the feature clearly so it can be triaged and estimated.
+        Describe the feature clearly so it can be triaged.
 
   - type: textarea
     id: description
@@ -74,25 +74,6 @@ body:
       label: Dependencies
       description: Dependencies on other features, APIs, or tasks (optional).
       placeholder: e.g. Requires backend API endpoint
-
-  - type: textarea
-    id: effort_estimation
-    attributes:
-      label: Effort Estimation
-      description: Rough estimate for implementation (optional).
-      placeholder: e.g. 3 days
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      options:
-        - Low
-        - Medium
-        - High
-      default: 1
-    validations:
-      required: true
 
   - type: checkboxes
     id: delivery_scope

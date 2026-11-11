@@ -65,31 +65,3 @@ body:
       label: Dependencies
       description: Prerequisites, tooling, or access rights (optional).
       placeholder: e.g. Required secrets and environment access
-
-  - type: textarea
-    id: evaluation_criteria
-    attributes:
-      label: Evaluation Criteria
-      description: How do we measure success?
-      placeholder: e.g. Deployment time reduced by 50%
-    validations:
-      required: true
-
-  - type: textarea
-    id: effort
-    attributes:
-      label: Effort
-      description: Expected effort (optional).
-      placeholder: e.g. 3 days of work
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      options:
-        - Low
-        - Medium
-        - High
-      default: 1
-    validations:
-      required: true
