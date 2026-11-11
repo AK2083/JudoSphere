@@ -1,0 +1,45 @@
+---
+description: Vue Feature-Sliced Design conventions
+globs: src/**/*.{vue,ts}
+alwaysApply: false
+---
+
+# Vue – Feature-Sliced Design
+
+Layers (top → bottom):
+
+`app` → `pages` → `widgets` → `features` → `entities` → `shared`
+
+## Import rules
+
+- A layer may import only lower layers
+- No upward imports; no cross-feature imports without a public API
+- Expose each slice only through its barrel `index.ts`
+- Do not import runtime dependencies from `node_modules` outside `shared/api`
+
+## Folders
+
+- `app/` – app shell, providers, global setup
+- `pages/` – route/page composition
+- `widgets/` – composite UI blocks
+- `features/` – user actions (e.g. record a score)
+- `entities/` – domain entities (match, athlete, club)
+- `shared/` – technical building blocks; UI kit in `shared/ui`
+
+## Examples
+
+```ts
+// ✅ Feature uses entity + shared barrels
+import { MatchCard } from "@/entities/match";
+import { Button } from "@/shared/ui";
+import { ref, greet } from "@/shared/api";
+
+// ❌ Direct dependency import
+import { invoke } from "@tauri-apps/api/core";
+import { ref } from "vue";
+
+// ❌ Entity imports a feature
+import { submitScore } from "@/features/scoring";
+```
+
+Path alias: `@/` → `src/`
