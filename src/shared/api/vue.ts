@@ -1,14 +1,14 @@
-import { createApp as createVueApp, ref as createRef } from "vue";
-import type { App, Ref } from "vue";
+import { createApp as createVueApp, ref as createRef } from 'vue'
+import type { App, Ref } from 'vue'
 
 /**
  * Creates a Vue application instance.
  */
-export const createApp = createVueApp;
+export const createApp = createVueApp
 
 /**
  * Creates a reactive reference.
  */
-export const ref = createRef;
+export const ref = createRef
 
-export type { App, Ref };
+export type { App, Ref }

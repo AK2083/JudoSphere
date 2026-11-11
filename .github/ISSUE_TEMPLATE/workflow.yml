@@ -1,6 +1,6 @@
 name: Workflow
 description: Propose an improvement to the development process
-title: "Workflow: "
+title: 'Workflow: '
 body:
   - type: markdown
     attributes:

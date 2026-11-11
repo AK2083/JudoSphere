@@ -18,11 +18,11 @@ JudoSphere is the application used to organize and score a competition locally. 
 
 ## Architecture
 
-| Area | Technology | Organization |
-| --- | --- | --- |
-| Frontend | Vue 3 + TypeScript | Feature-Sliced Design (`src/`) |
-| Desktop / backend | Tauri 2 + Rust | Vertical slices (`src-tauri/src/slices/`) |
-| UI foundation | Tailwind planned | Design system in `src/shared/ui` |
+| Area              | Technology         | Organization                              |
+| ----------------- | ------------------ | ----------------------------------------- |
+| Frontend          | Vue 3 + TypeScript | Feature-Sliced Design (`src/`)            |
+| Desktop / backend | Tauri 2 + Rust     | Vertical slices (`src-tauri/src/slices/`) |
+| UI foundation     | Tailwind planned   | Design system in `src/shared/ui`          |
 
 Keep Vue and Tauri separated: presentation in Vue, domain and host logic in Rust slices.
 

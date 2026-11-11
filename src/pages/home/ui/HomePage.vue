@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { GreetForm } from "@/features/greet";
+import { GreetForm } from '@/features/greet'
 </script>
 
 <template>
   <main class="home">
     <h1>JudoSphere</h1>
     <p>
-      Offline-first software for smaller judo competitions and clubs. The host
-      application serves the UI on the local network.
+      Offline-first software for smaller judo competitions and clubs. The host application serves
+      the UI on the local network.
     </p>
     <GreetForm />
   </main>

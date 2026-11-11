@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, greet } from "@/shared/api";
+import { ref, greet } from '@/shared/api'
 
-const greetMsg = ref("");
-const name = ref("");
+const greetMsg = ref('')
+const name = ref('')
 
 async function onSubmit() {
-  greetMsg.value = await greet(name.value);
+  greetMsg.value = await greet(name.value)
 }
 </script>
 

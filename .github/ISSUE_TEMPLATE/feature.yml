@@ -1,6 +1,6 @@
 name: Feature
 description: Propose a new feature or improvement
-title: "Feature: "
+title: 'Feature: '
 type: feature
 body:
   - type: markdown
@@ -59,7 +59,7 @@ body:
       description: Optional file upload. GitHub accepts .txt/.zip (wrap .md if needed), images, and PDFs. Native .fig files are not supported — use a Figma link below or export PNG/PDF.
     validations:
       required: false
-      accept: ".txt,.zip,.pdf,.png,.jpg,.jpeg,.svg,.webp"
+      accept: '.txt,.zip,.pdf,.png,.jpg,.jpeg,.svg,.webp'
 
   - type: input
     id: figma_link

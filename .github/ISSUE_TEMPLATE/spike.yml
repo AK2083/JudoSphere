@@ -1,6 +1,6 @@
 name: Spike
 description: Time-boxed research for unclear requirements
-title: "Spike: "
+title: 'Spike: '
 body:
   - type: markdown
     attributes:
