@@ -4,17 +4,17 @@ globs: src/**/*.{vue,ts}
 alwaysApply: false
 ---
 
-# shared/api – Dependency Facades
+# shared/api — Dependency Facades
 
 All production runtime dependencies are wrapped as facades under `src/shared/api`.
-Every access from app code goes through the barrel `@/shared/api`.
+Every access from app code goes through `@shared/api`.
 
 ## Rules
 
 - Add one facade module per dependency (e.g. `vue.ts`, `tauri.ts`)
 - Re-export or wrap only what the app needs
 - Put JSDoc on exported facade functions/variables
-- Import facades only via `src/shared/api/index.ts`
+- Import facades only via `@shared/api` (barrel)
 - Never import `@tauri-apps/*`, `vue`, or other runtime deps directly from features/pages/widgets/entities/app
 
 ## Example
@@ -24,10 +24,6 @@ Every access from app code goes through the barrel `@/shared/api`.
 /** Invokes the Tauri greet command. */
 export async function greet(name: string): Promise<string> { /* … */ }
 
-// shared/api/index.ts
-export { createApp, ref } from "./vue";
-export { greet } from "./tauri";
-
 // feature
-import { ref, greet } from "@/shared/api";
+import { ref, greet } from '@shared/api'
 ```

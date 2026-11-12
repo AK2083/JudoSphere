@@ -1,45 +1,56 @@
 ---
-description: Vue Feature-Sliced Design conventions
+description: Feature-Sliced Design — layers, import rules, and aliases for src/
 globs: src/**/*.{vue,ts}
 alwaysApply: false
 ---
 
-# Vue – Feature-Sliced Design
+# Feature-Sliced Design (FSD)
 
-Layers (top → bottom):
+Frontend code lives under `src/` in six layers. Imports may only point **downward**.
 
-`app` → `pages` → `widgets` → `features` → `entities` → `shared`
-
-## Import rules
-
-- A layer may import only lower layers
-- No upward imports; no cross-feature imports without a public API
-- Expose each slice only through its barrel `index.ts`
-- Do not import runtime dependencies from `node_modules` outside `shared/api`
-
-## Folders
-
-- `app/` – app shell, providers, global setup
-- `pages/` – route/page composition
-- `widgets/` – composite UI blocks
-- `features/` – user actions (e.g. record a score)
-- `entities/` – domain entities (match, athlete, club)
-- `shared/` – technical building blocks; UI kit in `shared/ui`
-
-## Examples
-
-```ts
-// ✅ Feature uses entity + shared barrels
-import { MatchCard } from "@/entities/match";
-import { Button } from "@/shared/ui";
-import { ref, greet } from "@/shared/api";
-
-// ❌ Direct dependency import
-import { invoke } from "@tauri-apps/api/core";
-import { ref } from "vue";
-
-// ❌ Entity imports a feature
-import { submitScore } from "@/features/scoring";
+```
+app → pages → widgets → features → entities → shared
 ```
 
-Path alias: `@/` → `src/`
+## Layers
+
+| Layer | Path | Responsibility |
+| --- | --- | --- |
+| `app` | `src/app/` | Composition root, providers, global styles |
+| `pages` | `src/pages/` | Route-level composition only |
+| `widgets` | `src/widgets/` | Composed UI blocks |
+| `features` | `src/features/` | User-facing use cases |
+| `entities` | `src/entities/` | Domain entities |
+| `shared` | `src/shared/` | Swappable infrastructure and UI primitives |
+
+## Import aliases
+
+Always import via aliases — never relative paths across layer boundaries:
+
+`@app`, `@pages`, `@widgets`, `@features`, `@entities`, `@shared`
+
+```ts
+// ✅
+import { MatchCard } from '@entities/match'
+import { Button } from '@shared/ui'
+import { ref, greet } from '@shared/api'
+
+// ❌ Direct dependency import
+import { invoke } from '@tauri-apps/api/core'
+import { ref } from 'vue'
+
+// ❌ Entity imports a feature
+import { submitScore } from '@features/scoring'
+```
+
+## shared/api
+
+All production runtime dependencies are wrapped as facades under `src/shared/api`. Features/pages/widgets/entities/app import only `@shared/api`.
+
+## Checklist
+
+1. Correct layer chosen?
+2. Import direction downward only?
+3. Public API exported via `index.ts`?
+4. Runtime deps go through `@shared/api`?
+5. New UI under `ui/` gets a colocated Storybook story when applicable?

@@ -1,0 +1,6 @@
+{
+  "host": "127.0.0.1",
+  "devServerPort": 1420,
+  "storybookPort": 6006,
+  "vitestStorybookBrowserPort": 42123
+}

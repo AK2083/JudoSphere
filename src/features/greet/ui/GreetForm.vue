@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { greet, ref } from '@/shared/api'
+import { greet, ref } from '@shared/api'
 
 const greetMsg = ref('')
 const name = ref('')

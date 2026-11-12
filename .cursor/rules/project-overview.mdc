@@ -3,30 +3,31 @@ description: JudoSphere product context, offline-first, and host/client model
 alwaysApply: true
 ---
 
-# JudoSphere
+# JudoSphere — Project Overview
 
-Offline-first software for smaller judo competitions and small clubs.
+Offline-first Tauri application for organizing **smaller judo competitions** and **small clubs**. Target audience: volunteer organizers without commercial tournament software.
 
-## Operating model
+## Vision and user roles
 
-- The **main application** starts on one machine and acts as a **local server**.
-- **Scoring judges** and **organizers** only open the website served by that host.
-- **Spectators** and **participants** are not target users of this software.
-- No cloud requirement: local use must work without internet.
+| Role | Device | Responsibility |
+| --- | --- | --- |
+| **Organizer / tournament director** | Host computer (Tauri) | Starts the app, manages the tournament, serves the LAN UI |
+| **Scoring judge** | Separate computer/browser | Opens the host-provided website on the intranet |
+| **Audience / participants** | — | Out of scope for this software |
+
+## Technical guidelines
+
+- **Frontend:** Vue 3 + TypeScript, Feature-Sliced Design under `src/`
+- **Desktop / host:** Tauri 2 + Rust vertical slices under `src-tauri/src/slices/`
+- **Offline-first:** local use must work without cloud or internet
+- **Dependency access:** runtime deps only via `@shared/api` facades
+- **Docs/comments:** English; JSDoc only on exported functions/variables; barrel `index.ts` public APIs
 
 ## Architecture boundaries
 
-- `src/` = Vue frontend (Feature-Sliced Design)
-- `src-tauri/` = Tauri/Rust backend (vertical slices)
-- Keep frontend and Tauri separated: do not put backend domain logic in Vue
-- Tailwind and a design system are planned under `src/shared/ui`
-
-## Conventions
-
-- README and JSDoc comments are written in **English**
-- JSDoc only on **exported** functions or variables
-- Public APIs use **barrel files** (`index.ts`)
-- Runtime dependencies are accessed only via facades in `src/shared/api`
+- Do not put host domain logic in Vue
+- Do not import `@tauri-apps/*` or `vue` outside `src/shared/api`
+- Use FSD aliases (`@app`, `@pages`, `@widgets`, `@features`, `@entities`, `@shared`) — not `@/`
 
 ## Domain language
 
