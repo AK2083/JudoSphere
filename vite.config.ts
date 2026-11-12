@@ -1,9 +1,12 @@
-import { fileURLToPath, URL } from 'node:url'
+import path from 'node:path'
 import process from 'node:process'
 
-import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
 
+import { DEV_SERVER_PORT } from './config/dev.js'
+
+const dirname = import.meta.dirname
 const host = process.env.TAURI_DEV_HOST
 
 // https://vite.dev/config/
@@ -11,14 +14,17 @@ export default defineConfig(() => ({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@shared': path.resolve(dirname, 'src/shared'),
+      '@app': path.resolve(dirname, 'src/app'),
+      '@features': path.resolve(dirname, 'src/features'),
+      '@widgets': path.resolve(dirname, 'src/widgets'),
+      '@pages': path.resolve(dirname, 'src/pages'),
+      '@entities': path.resolve(dirname, 'src/entities')
     }
   },
-
-  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   clearScreen: false,
   server: {
-    port: 1420,
+    port: DEV_SERVER_PORT,
     strictPort: true,
     host: host || false,
     hmr: host
@@ -30,18 +36,6 @@ export default defineConfig(() => ({
       : undefined,
     watch: {
       ignored: ['**/src-tauri/**']
-    }
-  },
-
-  test: {
-    environment: 'happy-dom',
-    globals: true,
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    coverage: {
-      provider: 'v8' as const,
-      reporter: ['text', 'html'],
-      include: ['src/**/*.{ts,vue}'],
-      exclude: ['src/**/*.{test,spec}.{ts,tsx}', 'src/**/*.d.ts', 'src/main.ts', 'src/**/index.ts']
     }
   }
 }))

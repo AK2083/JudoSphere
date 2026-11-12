@@ -1,0 +1,38 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "lib": ["ESNext", "DOM"],
+    "jsx": "preserve",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "ignoreDeprecations": "6.0",
+
+    "baseUrl": ".",
+    "paths": {
+      "@shared": ["./src/shared"],
+      "@shared/*": ["./src/shared/*"],
+      "@app": ["./src/app"],
+      "@app/*": ["./src/app/*"],
+      "@features": ["./src/features"],
+      "@features/*": ["./src/features/*"],
+      "@widgets": ["./src/widgets"],
+      "@widgets/*": ["./src/widgets/*"],
+      "@pages": ["./src/pages"],
+      "@pages/*": ["./src/pages/*"],
+      "@entities": ["./src/entities"],
+      "@entities/*": ["./src/entities/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.d.ts"]
+}

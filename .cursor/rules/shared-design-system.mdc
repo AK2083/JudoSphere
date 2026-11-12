@@ -11,6 +11,7 @@ alwaysApply: false
 - No feature or entity dependencies inside `shared/ui`
 - Goal: extract into a package later without FSD restructuring
 - Export the public UI API through the barrel `index.ts`
+- Import runtime helpers only from `@shared/api`
 
 ## Allowed
 
@@ -19,4 +20,4 @@ alwaysApply: false
 ## Not allowed
 
 - Competition/club business logic
-- Direct dependency imports (use `@/shared/api` instead)
+- Direct dependency imports (`vue`, `@tauri-apps/*`, …)

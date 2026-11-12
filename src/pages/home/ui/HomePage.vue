@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GreetForm } from '@/features/greet'
+import { GreetForm } from '@features/greet'
 </script>
 
 <template>

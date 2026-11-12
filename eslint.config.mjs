@@ -1,3 +1,4 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import storybook from 'eslint-plugin-storybook'
 
 import js from '@eslint/js'
@@ -11,6 +12,31 @@ import unusedImports from 'eslint-plugin-unused-imports'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import jsdoc from 'eslint-plugin-jsdoc'
 
+const jsdocPublicApi = {
+  'jsdoc/require-jsdoc': [
+    'error',
+    {
+      publicOnly: true,
+      require: {
+        FunctionDeclaration: true,
+        MethodDefinition: true,
+        ClassDeclaration: true
+      },
+      contexts: [
+        'ExportNamedDeclaration > TSInterfaceDeclaration',
+        'ExportNamedDeclaration > TSTypeAliasDeclaration',
+        'ExportNamedDeclaration > VariableDeclaration',
+        'ExportDefaultDeclaration > VariableDeclaration',
+        'ExportDefaultDeclaration > FunctionDeclaration'
+      ]
+    }
+  ],
+  'jsdoc/require-param': 'error',
+  'jsdoc/require-returns': 'error',
+  'jsdoc/require-returns-check': 'warn',
+  'jsdoc/check-types': 'error'
+}
+
 export default defineConfig([
   {
     ignores: [
@@ -23,10 +49,12 @@ export default defineConfig([
       '.vscode',
       '*.min.js',
       'storybook-static',
+      // Rust/Tauri host — not linted by ESLint (maps to Electron main in DojoSphere)
       'src-tauri'
     ]
   },
   {
+    // Vue frontend (DojoSphere: src/renderer)
     files: ['src/**/*.{js,mjs,cjs}'],
     ...js.configs.recommended,
     languageOptions: {
@@ -51,7 +79,8 @@ export default defineConfig([
     }
   },
   {
-    files: ['*.config.{js,mjs,cjs,ts}', 'vite.config.ts'],
+    // Node tooling / host-adjacent TS (DojoSphere: src/main)
+    files: ['*.config.{js,mjs,cjs,ts}', 'vite.config.ts', 'vitest.config.ts', 'config/**/*.ts'],
     plugins: { security },
     languageOptions: {
       sourceType: 'module',
@@ -64,32 +93,9 @@ export default defineConfig([
     }
   },
   {
-    files: ['*.config.{js,mjs,cjs,ts}', 'vite.config.ts'],
+    files: ['*.config.{js,mjs,cjs,ts}', 'vite.config.ts', 'vitest.config.ts', 'config/**/*.ts'],
     plugins: { jsdoc },
-    rules: {
-      'jsdoc/require-jsdoc': [
-        'error',
-        {
-          publicOnly: true,
-          require: {
-            FunctionDeclaration: true,
-            MethodDefinition: true,
-            ClassDeclaration: true
-          },
-          contexts: [
-            'ExportNamedDeclaration > TSInterfaceDeclaration',
-            'ExportNamedDeclaration > TSTypeAliasDeclaration',
-            'ExportNamedDeclaration > VariableDeclaration',
-            'ExportDefaultDeclaration > VariableDeclaration',
-            'ExportDefaultDeclaration > FunctionDeclaration'
-          ]
-        }
-      ],
-      'jsdoc/require-param': 'error',
-      'jsdoc/require-returns': 'error',
-      'jsdoc/require-returns-check': 'warn',
-      'jsdoc/check-types': 'error'
-    }
+    rules: jsdocPublicApi
   },
   ...pluginVue.configs['flat/strongly-recommended'].map((config) => ({
     ...config,
@@ -132,7 +138,14 @@ export default defineConfig([
       'simple-import-sort/imports': [
         'warn',
         {
-          groups: [['^node:'], ['^vue', '^@?\\w'], ['^@/'], ['^\\.'], ['^.+\\.?(css|scss)$']]
+          groups: [
+            ['^node:'],
+            ['^vue', '^@?\\w'],
+            // FSD aliases (DojoSphere still used ^@/ for renderer)
+            ['^@(?:app|pages|widgets|features|entities|shared)(/|$)'],
+            ['^\\.'],
+            ['^.+\\.?(css|scss)$']
+          ]
         }
       ],
       'simple-import-sort/exports': 'warn'

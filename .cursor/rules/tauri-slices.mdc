@@ -1,33 +1,37 @@
 ---
-description: Tauri/Rust vertical-slice architecture
+description: Tauri/Rust vertical-slice architecture (replaces Electron main/preload)
 globs: src-tauri/**/*.rs
 alwaysApply: false
 ---
 
-# Tauri – Vertical Slices
+# Tauri — Vertical Slices
 
-Business logic lives in `src-tauri/src/slices/<slice>/`.
+Host/domain logic lives in `src-tauri/src/slices/<slice>/`. This replaces an Electron main/preload process.
 
-## Slice contents
+## Layout
 
-Typical per slice:
-
-- `mod.rs` – public slice API
-- `commands.rs` – Tauri commands
-- Keep slice domain/persistence code local to the slice
+```
+src-tauri/src/
+  lib.rs              # wiring only
+  main.rs             # entry
+  slices/
+    <slice>/
+      mod.rs          # public slice API
+      commands.rs     # Tauri commands
+```
 
 ## Rules
 
 - `lib.rs` only wires plugins, state, and command registration
 - No cross-slice domain logic in `lib.rs`
 - Slices communicate through clear APIs, not internals
-- Host/local network serving is its own slice (e.g. `network`), not frontend code
-- Frontend must call Tauri only through `src/shared/api` facades
+- Host/LAN serving is its own slice (e.g. `network`), not frontend code
+- Frontend must call Tauri only through `@shared/api` facades
 
 ## Example
 
 ```rust
-// lib.rs – wiring only
+// lib.rs — wiring only
 .invoke_handler(tauri::generate_handler![
     slices::greet::commands::greet,
 ])
