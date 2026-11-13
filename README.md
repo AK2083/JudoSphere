@@ -14,7 +14,7 @@ Offline-first [Tauri](https://tauri.app/) application for managing **smaller jud
 - **Desktop / host runtime:** [Tauri 2](https://tauri.app/) + Rust (vertical slices)
 - **Build tooling:** [Vite](https://vite.dev/), [Vue TSC](https://www.npmjs.com/package/vue-tsc)
 - **Testing:** [Vitest](https://vitest.dev/), [Storybook](https://storybook.js.org/)
-- **Code quality:** [ESLint](https://eslint.org/), [Prettier](https://prettier.io/)
+- **Code quality:** [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/lint-staged/lint-staged)
 - **UI foundation:** Tailwind and a design system planned under `src/shared/ui`
 
 ## Operating model
@@ -33,7 +33,16 @@ npm install
 npm run tauri dev
 ```
 
-Other common commands: `npm run storybook`, `npm run type:check`, `npm run test:unit`.
+`npm install` also enables Husky via the `prepare` script. Other common commands: `npm run storybook`, `npm run typecheck`, `npm run test`.
+
+### Git hooks (Husky)
+
+| Hook | What it does |
+| --- | --- |
+| **pre-commit** | [lint-staged](https://github.com/lint-staged/lint-staged) on ESLint-covered paths: ESLint `--fix`, then Prettier |
+| **pre-push** | Intended: `npm run prepush` (typecheck + Vitest unit coverage). Currently commented out until app code and tests exist — re-enable in `.husky/pre-push` before feature work |
+
+Details: [Contributing](CONTRIBUTING.md).
 
 ## Documentation
 
