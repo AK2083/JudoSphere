@@ -21,12 +21,12 @@ shared → internal only
 
 Classify new dependencies by **role**, not technology:
 
-| Question | → `app` | → `shared` |
-| --- | --- | --- |
-| Part of the **composition root** (start app, register plugins)? | Yes | No |
-| **Swappable/mockable** without rewriting features? | No | Yes |
-| Features should **not import SDKs directly**? | — | Yes |
-| Switching mainly requires **wiring changes** in `main.ts`/`providers/`? | Yes | No |
+| Question                                                                | → `app` | → `shared` |
+| ----------------------------------------------------------------------- | ------- | ---------- |
+| Part of the **composition root** (start app, register plugins)?         | Yes     | No         |
+| **Swappable/mockable** without rewriting features?                      | No      | Yes        |
+| Features should **not import SDKs directly**?                           | —       | Yes        |
+| Switching mainly requires **wiring changes** in `main.ts`/`providers/`? | Yes     | No         |
 
 **Rules of thumb:**
 
@@ -96,13 +96,13 @@ Domain entities (match, athlete, club, …) without use-case orchestration.
 
 Abstraction of **swappable** dependencies. No feature or page logic. Features/widgets import only the public API — never the SDK directly.
 
-| Segment | Level | Content |
-| --- | --- | --- |
-| `api/` | Low-level | Dependency facades (Vue, Tauri invoke, …) |
-| `lib/` | Low-level | Technical helpers |
-| `ui/` | — | Tailwind design-system primitives |
-| `config/` | — | Frontend configuration |
-| `model/`, `types/`, `errors/` | — | Shared types/errors when needed |
+| Segment                       | Level     | Content                                   |
+| ----------------------------- | --------- | ----------------------------------------- |
+| `api/`                        | Low-level | Dependency facades (Vue, Tauri invoke, …) |
+| `lib/`                        | Low-level | Technical helpers                         |
+| `ui/`                         | —         | Tailwind design-system primitives         |
+| `config/`                     | —         | Frontend configuration                    |
+| `model/`, `types/`, `errors/` | —         | Shared types/errors when needed           |
 
 - Vue/Tauri/runtime SDKs are imported **only** inside `shared/api`.
 - Design-system components without feature affiliation → `shared/ui/` (Tailwind).

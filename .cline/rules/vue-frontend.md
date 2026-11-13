@@ -64,10 +64,10 @@ i18n/
 
 When adding a **new** `.vue` file under any `ui/` folder (`features/`, `pages/`, `widgets/`, `shared/ui/`, `entities/`), add Storybook in the **same change**:
 
-| File | Purpose |
-| --- | --- |
-| `<Name>.stories.ts` | Storybook — isolated display, variants |
-| `<Name>.e2e.spec.ts` | Playwright — when E2E is introduced |
+| File                 | Purpose                                |
+| -------------------- | -------------------------------------- |
+| `<Name>.stories.ts`  | Storybook — isolated display, variants |
+| `<Name>.e2e.spec.ts` | Playwright — when E2E is introduced    |
 
 **Storybook convention:**
 
