@@ -24,6 +24,15 @@ Offline-first Tauri application for organizing **smaller judo competitions** and
 
 When building new features, consider these roles: organizer = host app; scoring judge = browser client on the LAN.
 
+## Milestones and issues
+
+Milestones are the **product roadmap** for judo competition day roles above (organizer / tournament director, scoring judge / list keeper, weigh-in staff as needed). Audience and participants stay out of scope.
+
+- Structure: Goal, Audience, Roadmap, Out of scope, Deferred — no architecture essays or rule restatements.
+- Roadmap: numbered items in build order; **one item ≈ one GitHub issue**.
+- **Formulate meaningfully:** each milestone roadmap item and each issue must spell out *who* benefits, *what* happens on competition day, and *why* it matters — full sentences, not keyword dumps. Issues then add concrete acceptance criteria and implementation notes on top of that.
+- Do not teach FSD, host slices, facades, lint, or other rules already covered here inside milestones or issue fluff.
+
 ## Technical guidelines
 
 - **Frontend:** Vue 3 + TypeScript, Feature-Sliced Design under `src/`
