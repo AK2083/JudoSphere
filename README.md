@@ -33,14 +33,16 @@ npm install
 npm run tauri dev
 ```
 
-`npm install` also enables Husky via the `prepare` script. Other common commands: `npm run storybook`, `npm run typecheck`, `npm run test`.
+After install (once per clone), enable hooks: `npx husky`. Other common commands: `npm run storybook`, `npm run typecheck`, `npm run test`.
 
 ### Git hooks (Husky)
 
+Hook scripts live under `.husky/` (not as npm scripts).
+
 | Hook | What it does |
 | --- | --- |
-| **pre-commit** | [lint-staged](https://github.com/lint-staged/lint-staged) on ESLint-covered paths: ESLint `--fix`, then Prettier |
-| **pre-push** | Intended: `npm run prepush` (typecheck + Vitest unit coverage). Currently commented out until app code and tests exist — re-enable in `.husky/pre-push` before feature work |
+| **pre-commit** | Runs `lint-staged` on ESLint-covered paths: ESLint `--fix`, then Prettier |
+| **pre-push** | Intended: `npm run typecheck` then `npm run test:coverage`. Currently commented out in `.husky/pre-push` until app code and tests exist |
 
 Details: [Contributing](CONTRIBUTING.md).
 

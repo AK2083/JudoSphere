@@ -23,11 +23,11 @@ lib.rs → slices
 slices → other slices only via clear public APIs
 ```
 
-| Layer | Path | Responsibility |
-| --- | --- | --- |
-| **Wiring** | `src-tauri/src/lib.rs` | Plugins, state, command registration |
+| Layer      | Path                            | Responsibility                           |
+| ---------- | ------------------------------- | ---------------------------------------- |
+| **Wiring** | `src-tauri/src/lib.rs`          | Plugins, state, command registration     |
 | **Slices** | `src-tauri/src/slices/<slice>/` | One use case / bounded context per slice |
-| **Entry** | `src-tauri/src/main.rs` | Thin binary entry calling `lib::run()` |
+| **Entry**  | `src-tauri/src/main.rs`         | Thin binary entry calling `lib::run()`   |
 
 ## Slice layout
 
@@ -42,11 +42,11 @@ src-tauri/src/slices/<slice>/
 
 **Layering within a slice:**
 
-| File / folder | Role |
-| --- | --- |
-| `commands.rs` | Input validation, delegation — no heavy domain orchestration inline |
-| domain/service | Use-case orchestration (optional) |
-| repository | Persistence access (optional; keep DB details out of commands) |
+| File / folder  | Role                                                                |
+| -------------- | ------------------------------------------------------------------- |
+| `commands.rs`  | Input validation, delegation — no heavy domain orchestration inline |
+| domain/service | Use-case orchestration (optional)                                   |
+| repository     | Persistence access (optional; keep DB details out of commands)      |
 
 - Add new functionality as a new slice; do not mix into existing slices.
 - Register the module in `slices/mod.rs` and wire commands in `lib.rs` only.
@@ -71,13 +71,13 @@ src-tauri/src/slices/<slice>/
 
 ## Frontend (FSD) vs. host (VSA)
 
-| Aspect | Frontend (`src/`) | Host (`src-tauri/`) |
-| --- | --- | --- |
-| Architecture | Feature-Sliced Design | Vertical Slices |
-| UI | Vue + Tailwind design system | No UI |
-| Host access | `@shared/api` → Tauri commands | Rust commands/domain |
-| Auth decisions | Never alone in Vue | In Tauri host |
-| Public API | `index.ts` per slice | `mod.rs` / commands + TS facade |
+| Aspect         | Frontend (`src/`)              | Host (`src-tauri/`)             |
+| -------------- | ------------------------------ | ------------------------------- |
+| Architecture   | Feature-Sliced Design          | Vertical Slices                 |
+| UI             | Vue + Tailwind design system   | No UI                           |
+| Host access    | `@shared/api` → Tauri commands | Rust commands/domain            |
+| Auth decisions | Never alone in Vue             | In Tauri host                   |
+| Public API     | `index.ts` per slice           | `mod.rs` / commands + TS facade |
 
 ## Checklist for new host slices
 

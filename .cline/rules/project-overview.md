@@ -9,11 +9,11 @@ Offline-first Tauri application for organizing **smaller judo competitions** and
 
 ## Vision and user roles
 
-| Role | Device | Responsibility |
-| --- | --- | --- |
-| **Organizer / tournament director** | Host computer (Tauri) | Starts the app, manages the tournament, serves the LAN UI |
-| **Scoring judge** | Separate computer/browser | Opens the host-provided website on the intranet |
-| **Audience / participants** | — | Out of scope for this software |
+| Role                                | Device                    | Responsibility                                            |
+| ----------------------------------- | ------------------------- | --------------------------------------------------------- |
+| **Organizer / tournament director** | Host computer (Tauri)     | Starts the app, manages the tournament, serves the LAN UI |
+| **Scoring judge**                   | Separate computer/browser | Opens the host-provided website on the intranet           |
+| **Audience / participants**         | —                         | Out of scope for this software                            |
 
 ### Planned flow (prospective)
 
@@ -30,7 +30,7 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 
 - Structure: Goal, Audience, Roadmap, Out of scope, Deferred — no architecture essays or rule restatements.
 - Roadmap: numbered items in build order; **one item ≈ one GitHub issue**.
-- **Formulate meaningfully:** each milestone roadmap item and each issue must spell out *who* benefits, *what* happens on competition day, and *why* it matters — full sentences, not keyword dumps. Issues then add concrete acceptance criteria and implementation notes on top of that.
+- **Formulate meaningfully:** each milestone roadmap item and each issue must spell out _who_ benefits, _what_ happens on competition day, and _why_ it matters — full sentences, not keyword dumps. Issues then add concrete acceptance criteria and implementation notes on top of that.
 - Do not teach FSD, host slices, facades, lint, or other rules already covered here inside milestones or issue fluff.
 
 ## Technical guidelines

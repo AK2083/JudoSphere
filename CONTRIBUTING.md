@@ -32,16 +32,15 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 - `npm run typecheck` — TypeScript project references check
 - `npm run test` — Vitest unit suite (once)
 - `npm run test:coverage` — unit tests + coverage thresholds
-- `npm run prepush` — typecheck + coverage (intended Husky pre-push gate)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
 
 ## Git hooks
 
-Husky hooks (active after `npm install` via `prepare`):
+After `npm install`, run **`npx husky`** once per clone so Git uses `.husky/`. Hook commands live in the hook files — not as npm scripts.
 
-- **pre-commit** — **lint-staged** on ESLint paths (`src/**/*.{js,mjs,cjs,ts,vue}`, `*.config.{js,mjs,cjs,ts}`, `config/**/*.ts`): ESLint `--fix`, then Prettier (respects `.prettierignore`)
-- **pre-push** — currently **commented out** so config-only pushes work; when re-enabled, runs `npm run prepush` (typecheck + unit coverage). Storybook stays opt-in.
+- **pre-commit** (`.husky/pre-commit`) — `lint-staged` on ESLint paths (`src/**/*.{js,mjs,cjs,ts,vue}`, `*.config.{js,mjs,cjs,ts}`, `config/**/*.ts`): ESLint `--fix`, then Prettier
+- **pre-push** (`.husky/pre-push`) — currently commented out; when enabled: `npm run typecheck` then `npm run test:coverage`. Storybook stays opt-in.
 
 To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify` (avoid for normal work).
 

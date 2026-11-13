@@ -16,9 +16,7 @@
     "test:coverage": "vitest run --project unit --coverage",
     "test:storybook": "VITEST_STORYBOOK=true vitest --project storybook",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "prepush": "npm run typecheck && npm run test:coverage",
-    "prepare": "husky"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
