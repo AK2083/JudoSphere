@@ -27,23 +27,29 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 - `npm run tauri` / `npm run tauri dev` — Tauri CLI / full host app
 - `npm run build` — typecheck + frontend production build
 - `npm run preview` — preview the frontend production build
-- `npm run lint:check` — ESLint checks
-- `npm run lint:fix` — auto-fix supported ESLint issues
-- `npm run type:check` — TypeScript project references check (`tsconfig.app` + `tsconfig.node`)
-- `npm run format:check` — Prettier formatting check
-- `npm run format:fix` — format files with Prettier
-- `npm run test` — Vitest (unit project by default; Storybook gated)
-- `npm run test:unit` — unit tests only
-- `npm run test:coverage` — unit coverage report
-- `npm run test:storybook` — Storybook browser tests (`VITEST_STORYBOOK=true`)
-- `npm run storybook` — Storybook UI catalog
-- `npm run build-storybook` — static Storybook build
+- `npm run lint` — ESLint
+- `npm run format` — Prettier write
+- `npm run typecheck` — TypeScript project references check
+- `npm run test` — Vitest unit suite (once)
+- `npm run test:coverage` — unit tests + coverage thresholds
+- `npm run prepush` — typecheck + coverage (intended Husky pre-push gate)
+- `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
+- `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
+
+## Git hooks
+
+Husky hooks (active after `npm install` via `prepare`):
+
+- **pre-commit** — **lint-staged** on ESLint paths (`src/**/*.{js,mjs,cjs,ts,vue}`, `*.config.{js,mjs,cjs,ts}`, `config/**/*.ts`): ESLint `--fix`, then Prettier (respects `.prettierignore`)
+- **pre-push** — currently **commented out** so config-only pushes work; when re-enabled, runs `npm run prepush` (typecheck + unit coverage). Storybook stays opt-in.
+
+To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify` (avoid for normal work).
 
 ## Best practices
 
 - Keep changes small and focused by feature or fix
-- Run `lint:check`, `type:check`, and relevant tests before every commit
-- Cover new business logic with unit tests
+- Let pre-commit fix format/lint on staged files; re-enable pre-push before feature work so types + coverage gate pushes
+- Cover new business logic with unit tests so coverage thresholds stay green
 - Add Storybook stories for new UI under `ui/` folders
 - README / docs / JSDoc are written in English; JSDoc only on exported APIs
 - Public module APIs use barrel files (`index.ts`)

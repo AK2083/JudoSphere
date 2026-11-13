@@ -87,9 +87,9 @@ New and changed UI should meet Lighthouse requirements, especially Accessibility
 
 After UI work, run and fix errors:
 
-1. `npm run lint:fix`
-2. `npm run type:check`
-3. `npm run format:fix`
+1. `npx eslint . --fix`
+2. `npm run typecheck`
+3. `npm run format`
 4. `npm run test:coverage` (affected unit tests)
 5. Storybook for new/changed `.stories.ts`
 6. Playwright for new/changed `.e2e.spec.ts` when E2E exists
