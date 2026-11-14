@@ -38,6 +38,7 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 - **Frontend:** Vue 3 + TypeScript, Feature-Sliced Design under `src/`
 - **UI:** Tailwind CSS; design system built under `src/shared/ui` (no Vuetify)
 - **Desktop / host:** Tauri 2 + Rust vertical slices under `src-tauri/src/slices/`
+- **Design:** follow **SOLID** for all feature and host work ([solid-principles.md](./solid-principles.md))
 - **Offline-first:** local use must work without cloud or internet
 - **Dependency access:** runtime deps only via `@shared/api` facades
 - **Docs/comments:** English; JSDoc only on exported functions/variables; barrel `index.ts` public APIs
