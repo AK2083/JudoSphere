@@ -31,7 +31,8 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 - `npm run format` — Prettier write
 - `npm run typecheck` — TypeScript project references check
 - `npm run test` — Vitest unit suite (once)
-- `npm run test:coverage` — unit tests + coverage thresholds
+- `npm run test:coverage` — unit tests + coverage (80% thresholds)
+- `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
 
@@ -43,6 +44,15 @@ After `npm install`, run **`npx husky`** once per clone so Git uses `.husky/`. H
 - **pre-push** (`.husky/pre-push`) — currently commented out; when enabled: `npm run typecheck` then `npm run test:coverage`. Storybook stays opt-in.
 
 To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify` (avoid for normal work).
+
+## Continuous integration
+
+GitHub Actions workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
+
+1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%)
+2. Frontend build + Playwright e2e (Chromium); HTML report uploaded as the `playwright-report` artifact
+
+No repository secrets are required for this workflow.
 
 ## Best practices
 

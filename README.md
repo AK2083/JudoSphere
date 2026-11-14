@@ -13,8 +13,8 @@ Offline-first [Tauri](https://tauri.app/) application for managing **smaller jud
 - **Frontend:** [Vue 3](https://vuejs.org/) + TypeScript (Feature-Sliced Design)
 - **Desktop / host runtime:** [Tauri 2](https://tauri.app/) + Rust (vertical slices)
 - **Build tooling:** [Vite](https://vite.dev/), [Vue TSC](https://www.npmjs.com/package/vue-tsc)
-- **Testing:** [Vitest](https://vitest.dev/), [Storybook](https://storybook.js.org/)
-- **Code quality:** [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/lint-staged/lint-staged)
+- **Testing:** [Vitest](https://vitest.dev/), [Playwright](https://playwright.dev/), [Storybook](https://storybook.js.org/)
+- **Code quality:** [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/lint-staged/lint-staged); CI via GitHub Actions
 - **UI foundation:** [Tailwind CSS](https://tailwindcss.com/) v4 (`@tailwindcss/vite`); design system planned under `src/shared/ui`
 
 ## Operating model
@@ -39,16 +39,20 @@ After install (once per clone), enable hooks: `npx husky`. Other common commands
 
 Hook scripts live under `.husky/` (not as npm scripts).
 
-| Hook | What it does |
-| --- | --- |
-| **pre-commit** | Runs `lint-staged` on ESLint-covered paths: ESLint `--fix`, then Prettier |
-| **pre-push** | Intended: `npm run typecheck` then `npm run test:coverage`. Currently commented out in `.husky/pre-push` until app code and tests exist |
+| Hook           | What it does                                                                                                                            |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **pre-commit** | Runs `lint-staged` on ESLint-covered paths: ESLint `--fix`, then Prettier                                                               |
+| **pre-push**   | Intended: `npm run typecheck` then `npm run test:coverage`. Currently commented out in `.husky/pre-push` until app code and tests exist |
 
 Details: [Contributing](CONTRIBUTING.md).
 
+### CI (GitHub Actions)
+
+On push/PR, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs ESLint, Prettier, typecheck, Vitest coverage (80%), then Playwright e2e. The Playwright HTML report is uploaded as artifact `playwright-report`.
+
 ## Documentation
 
-- [Contributing](CONTRIBUTING.md) — development workflow, scripts, quality checks
+- [Contributing](CONTRIBUTING.md) — development workflow, scripts, quality checks, CI
 - [Architecture](docs/architecture.md) — FSD frontend, vertical slices in Tauri
 
 ## License

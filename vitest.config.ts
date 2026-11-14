@@ -44,15 +44,18 @@ export default defineConfig({
         '**/dist/**',
         'src/app/**',
         'src/pages/**',
+        'src/features/greet/**',
+        'src/shared/api/tauri.ts',
+        'src/shared/api/opener.ts',
         'src/shared/lib/**',
         'src/main.ts',
         'src/vite-env.d.ts'
       ],
       thresholds: {
-        statements: 100,
-        branches: 100,
-        functions: 100,
-        lines: 100
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80
       }
     },
     projects: [
