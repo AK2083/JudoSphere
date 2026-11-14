@@ -8,6 +8,7 @@ import defaults from './dev.json' with { type: 'json' }
  * | --- | --- | --- |
  * | `VITE_DEV_SERVER_HOST` / `DEV_HOST` | Host for Vite and tooling | `127.0.0.1` |
  * | `VITE_DEV_SERVER_PORT` | Vite/Tauri frontend port | `1420` |
+ * | `E2E_SERVER_PORT` | Playwright preview server port | `4173` |
  * | `STORYBOOK_PORT` | Storybook UI catalog | `6006` |
  * | `VITEST_STORYBOOK_BROWSER_PORT` | Vitest browser runner for Storybook | `42123` |
  */
@@ -41,6 +42,11 @@ export const DEV_HOST = process.env.VITE_DEV_SERVER_HOST ?? process.env.DEV_HOST
 export const DEV_SERVER_PORT = readPort('VITE_DEV_SERVER_PORT', defaults.devServerPort)
 
 /**
+ * Playwright e2e preview server port.
+ */
+export const E2E_SERVER_PORT = readPort('E2E_SERVER_PORT', defaults.e2eServerPort)
+
+/**
  * Storybook development server port.
  */
 export const STORYBOOK_PORT = readPort('STORYBOOK_PORT', defaults.storybookPort)
@@ -62,6 +68,11 @@ export const VITEST_STORYBOOK_BROWSER_PORT = readPort(
 export function localUrl(port: number, host: string = DEV_HOST) {
   return `http://${host}:${port}`
 }
+
+/**
+ * Base URL for Playwright e2e tests.
+ */
+export const E2E_BASE_URL = process.env.E2E_BASE_URL ?? localUrl(E2E_SERVER_PORT)
 
 /**
  * Default Vite/Tauri development server URL.
