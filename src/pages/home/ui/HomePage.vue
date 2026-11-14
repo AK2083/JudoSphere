@@ -4,7 +4,7 @@ import { GreetForm } from '@features/greet'
 
 <template>
   <main class="home">
-    <h1>JudoSphere</h1>
+    <h1 class="text-3xl font-bold underline">JudoSphere</h1>
     <p>
       Offline-first software for smaller judo competitions and clubs. The host application serves
       the UI on the local network.
