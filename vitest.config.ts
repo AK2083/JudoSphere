@@ -1,6 +1,7 @@
 import path from 'node:path'
 import process from 'node:process'
 
+import tailwindcss from '@tailwindcss/vite'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import vue from '@vitejs/plugin-vue'
 import { playwright } from '@vitest/browser-playwright'
@@ -12,7 +13,7 @@ const dirname = import.meta.dirname
 const includeStorybookProject = process.env.VITEST_STORYBOOK === 'true'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
       '@shared': path.resolve(dirname, 'src/shared'),

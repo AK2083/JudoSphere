@@ -15,7 +15,7 @@ Offline-first [Tauri](https://tauri.app/) application for managing **smaller jud
 - **Build tooling:** [Vite](https://vite.dev/), [Vue TSC](https://www.npmjs.com/package/vue-tsc)
 - **Testing:** [Vitest](https://vitest.dev/), [Storybook](https://storybook.js.org/)
 - **Code quality:** [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/lint-staged/lint-staged)
-- **UI foundation:** Tailwind and a design system planned under `src/shared/ui`
+- **UI foundation:** [Tailwind CSS](https://tailwindcss.com/) v4 (`@tailwindcss/vite`); design system planned under `src/shared/ui`
 
 ## Operating model
 
