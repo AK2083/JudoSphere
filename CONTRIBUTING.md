@@ -91,5 +91,27 @@ The Vue frontend follows [Feature-Sliced Design](https://feature-sliced.design/)
 
 ## IDE
 
-- VS Code / Cursor + Vue - Official + Tauri + rust-analyzer + ESLint + Prettier + Storybook
+- VS Code / Cursor + Vue - Official + Tauri + rust-analyzer + **CodeLLDB** + ESLint + Prettier + Storybook
 - Project rules live under `.cursor/rules/`
+
+### Debugging (Cursor / VS Code)
+
+Configs live in `.vscode/launch.json` and `.vscode/tasks.json`. Install recommended extensions when prompted (especially **CodeLLDB**).
+
+| Configuration | What it debugs |
+| --- | --- |
+| **Tauri: Debug Rust (dev)** | Rust host + Vite; window is WebKit |
+| **Vue/TS: Cursor breakpoints (Chrome + Vite)** | Vue/TS breakpoints **inside Cursor** (needs Chromium) |
+| **Vue/TS: Open in Safari only** | Opens Safari — **no** Cursor breakpoints |
+| **Vitest: Debug current file** | Unit test of the open file |
+
+**Why Safari ≠ Cursor breakpoints:** Cursor’s JS debugger speaks Chrome DevTools Protocol. Safari/WebKit does not. `Open in Safari only` just runs `open -a Safari …`.
+
+**Vue breakpoints with Safari (recommended on your Mac):**
+
+1. Start **Tauri: Debug Rust (dev)** or `npm run tauri dev` / `npm run dev`.
+2. Safari → Settings → Advanced → enable **Show features for web developers**.
+3. **Develop → [your Mac] →** the Vite page or **judosphere** WebView.
+4. In Web Inspector → **Sources**: open your `.vue` / `.ts` and set breakpoints there.
+
+**Vue breakpoints inside Cursor:** use **Vue/TS: Cursor breakpoints (Chrome + Vite)** (Chrome/Chromium must be installed). That session has no Tauri `invoke` unless you debug the Tauri WebView via Safari Inspector instead.

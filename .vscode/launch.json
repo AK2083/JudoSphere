@@ -1,0 +1,85 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Tauri: Debug Rust (dev)",
+      "cargo": {
+        "args": [
+          "build",
+          "--manifest-path=${workspaceFolder}/src-tauri/Cargo.toml",
+          "--no-default-features"
+        ],
+        "filter": {
+          "name": "judosphere",
+          "kind": "bin"
+        }
+      },
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "ui:dev"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Tauri: Debug Rust (release)",
+      "cargo": {
+        "args": [
+          "build",
+          "--release",
+          "--manifest-path=${workspaceFolder}/src-tauri/Cargo.toml"
+        ],
+        "filter": {
+          "name": "judosphere",
+          "kind": "bin"
+        }
+      },
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "ui:build"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Vue/TS: Cursor breakpoints (Chrome + Vite)",
+      "url": "http://127.0.0.1:1420/",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "preLaunchTask": "ui:dev",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "/*",
+        "/src/*": "${webRoot}/src/*",
+        "webpack:///./*": "${webRoot}/*",
+        "webpack:///src/*": "${webRoot}/src/*"
+      }
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Vue/TS: Open in Safari only (no Cursor breakpoints)",
+      "command": "open -a Safari 'http://127.0.0.1:1420/'",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "ui:dev"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Vitest: Debug current file",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "--project", "unit", "${relativeFile}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Tauri: Rust + WebKit window",
+      "configurations": ["Tauri: Debug Rust (dev)"],
+      "stopAll": true,
+      "presentation": {
+        "order": 1,
+        "group": "full-stack"
+      }
+    }
+  ]
+}
