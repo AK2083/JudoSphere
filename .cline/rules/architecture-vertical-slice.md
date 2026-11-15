@@ -57,12 +57,21 @@ src-tauri/src/slices/<slice>/
 - Frontend calls host capabilities only through `@shared/api` facades (wrapping `@tauri-apps/*`).
 - New host capability = Tauri command(s) + matching `@shared/api` facade in the same change when the UI needs it.
 
+## Local SQLite (host-owned)
+
+Use **`rusqlite`** (bundled) in the Tauri host — **not** `tauri-plugin-sql` and not SQL from Vue.
+
+- DB file: App Data (`judosphere.db`); connection and migrations live under `slices/database/`
+- Schema changes: versioned SQL under `slices/database/migrations/`, applied on host startup
+- Frontend: only Tauri commands via `@shared/api` (e.g. `getAppValue` / `setAppValue`) — **no** raw SQL, **no** DB SDK in features/pages
+- Why: persistence, auth, and later LAN HTTP APIs stay on the host; the webview must not own the schema or execute arbitrary SQL
+
 ## Security
 
 - Authorization and privileged decisions belong in the Tauri host, not in Vue alone ([auth-security.md](./auth-security.md), [security-privacy.md](./security-privacy.md))
 - Do not expose secrets to the frontend or browser clients on the LAN
 - Persist sensitive tokens as hashes only — never plaintext
-- Local DB access (when introduced) stays in Rust slices, not in Vue
+- Local DB access stays in Rust slices (`rusqlite`), not in Vue
 
 ## Documentation
 
@@ -86,4 +95,4 @@ src-tauri/src/slices/<slice>/
 3. Commands registered in `lib.rs`?
 4. Matching `@shared/api` facade added/updated when frontend needs it?
 5. Privileged operations secured in the host?
-6. Persistence/schema changes kept inside the host slice (or shared host infra)?
+6. Persistence/schema via host `rusqlite` + migrations — no SQL plugin / no SQL from Vue?

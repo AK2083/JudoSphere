@@ -35,6 +35,7 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
+- `npm run docs` — generate API docs from JSDoc comments (`docs/api/`, see `jsdoc.json`)
 
 ## Git hooks
 
@@ -82,6 +83,11 @@ The Vue frontend follows [Feature-Sliced Design](https://feature-sliced.design/)
 2. Register the module in `slices/mod.rs`.
 3. Wire commands in `lib.rs` only.
 4. Expose a matching facade in `src/shared/api` for frontend use.
+
+### Local SQLite
+
+- Host DB: `rusqlite` (bundled) file `judosphere.db` in the app data directory; migrations under `src-tauri/src/slices/database/migrations/`.
+- Frontend: only `@shared/api` helpers (`getAppValue` / `setAppValue` / `deleteAppValue`) which call Tauri commands — no SQL and no DB SDK in Vue.
 
 ## IDE
 

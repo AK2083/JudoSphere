@@ -49,6 +49,7 @@ export default defineConfig([
       '.vscode',
       '*.min.js',
       'storybook-static',
+      'docs/api',
       // Rust/Tauri host — not linted by ESLint (maps to Electron main in DojoSphere)
       'src-tauri'
     ]

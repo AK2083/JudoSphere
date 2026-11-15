@@ -45,7 +45,8 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 
 ## Data storage and sync
 
-- **Primary:** local data on the host (Tauri app data / future local DB in Rust slices)
+- **Primary:** local SQLite on the Tauri host via **`rusqlite`** (bundled), not cloud and not `tauri-plugin-sql`
+- Vue never runs SQL; it calls host commands through `@shared/api` only (see [architecture-vertical-slice.md](./architecture-vertical-slice.md))
 - Offline/local-first behavior takes precedence: the app must work without cloud
 - Optional cloud sync (if introduced later) belongs in dedicated feature/host slices — not scattered in UI components
 

@@ -41,3 +41,6 @@ playwright/.auth/
 
 *storybook.log
 storybook-static
+
+# Generated API docs (npm run docs)
+docs/api/

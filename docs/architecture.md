@@ -57,7 +57,9 @@ src-tauri/src/
 ```
 
 - `lib.rs` registers plugins, state, and commands only
-- Each product capability is a slice (`greet` today; later `competition`, `scoring`, `network`, …)
+- Each product capability is a slice (`greet`, `database`, …; later `competition`, `scoring`, `network`, …)
+- Local SQLite is owned by the host via **`rusqlite`** (bundled) under App Data (`judosphere.db`); schema changes live in `slices/database/migrations/` and run on startup
+- Frontend reads/writes only through Tauri commands wrapped by `@shared/api` (`getAppValue` / `setAppValue` / `deleteAppValue`) — no raw SQL from Vue
 - Host/LAN serving belongs in a dedicated slice (e.g. `network`), not in Vue
 - Frontend calls host capabilities only via `@shared/api`
 

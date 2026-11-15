@@ -1,0 +1,6 @@
+-- Generic key/value store for host-owned application data.
+CREATE TABLE IF NOT EXISTS app_kv (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

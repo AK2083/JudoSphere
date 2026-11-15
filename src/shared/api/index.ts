@@ -1,3 +1,4 @@
+export { deleteAppValue, getAppValue, setAppValue } from './db'
 export { openUrl } from './opener'
 export { greet } from './tauri'
 export type { App, Ref } from './vue'
