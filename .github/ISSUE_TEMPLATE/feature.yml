@@ -6,23 +6,19 @@ body:
   - type: markdown
     attributes:
       value: |
-        Describe the feature clearly so it can be triaged.
+        Describe the feature as a **user story** and name the **target audience** in the "As a …" clause.
+        The story covers who, what, and why — add acceptance criteria and optional planning artifacts below.
 
   - type: textarea
-    id: description
+    id: user_story
     attributes:
-      label: Description
-      description: A clear and precise description of the feature to be implemented.
-      placeholder: e.g. Implement user authentication with OAuth
-    validations:
-      required: true
-
-  - type: textarea
-    id: benefit
-    attributes:
-      label: Benefit
-      description: Why is this feature useful? What value does it bring to users?
-      placeholder: e.g. Users can log in with their social accounts
+      label: User Story
+      description: Who needs this, what they want, and why. Always include the target audience.
+      value: |
+        As a [target audience, e.g. tournament organizer / scoring judge / club admin],
+        I want [capability],
+        so that [benefit].
+      render: markdown
     validations:
       required: true
 
@@ -30,7 +26,7 @@ body:
     id: acceptance_criteria
     attributes:
       label: Acceptance Criteria
-      description: List all criteria that must be fulfilled for the feature to be considered complete.
+      description: Checklist for "done" — concrete outcomes not already stated in the user story.
       placeholder: |
         - [ ] Description of functionality
         - [ ] Test cases or scenarios
@@ -43,7 +39,7 @@ body:
     id: ai_planning
     attributes:
       label: AI Implementation Plan (Markdown)
-      description: Paste the Markdown plan for how AI should implement this feature. You can also drag and drop a .md/.txt file into this field.
+      description: Optional Markdown plan for how AI should implement this feature. You can also drag and drop a .md/.txt file into this field.
       placeholder: |
         ## Goal
         ...

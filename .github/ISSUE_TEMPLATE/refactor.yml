@@ -6,13 +6,19 @@ body:
     attributes:
       value: |
         Refactors should improve maintainability or performance without changing intended behavior unless explicitly stated.
+        Write the request as a **user story** and name the **target audience** in the "As a …" clause.
+        The story covers who, what, and why — use the fields below for today's code shape, the change, and impact.
 
   - type: textarea
-    id: problem
+    id: user_story
     attributes:
-      label: Problem
-      description: What problem should this refactor solve?
-      placeholder: e.g. The current implementation has performance issues
+      label: User Story
+      description: Who benefits, what they need, and why. Always include the target audience.
+      value: |
+        As a [target audience, e.g. contributor / maintainer],
+        I want [clearer / safer / faster code area],
+        so that [benefit].
+      render: markdown
     validations:
       required: true
 
@@ -20,17 +26,8 @@ body:
     id: current_state
     attributes:
       label: Current State
-      description: What is the current state of the code or system?
-      placeholder: e.g. Code is not optimized for the hot path
-    validations:
-      required: true
-
-  - type: textarea
-    id: target_state
-    attributes:
-      label: Target State
-      description: What state do we want to achieve?
-      placeholder: e.g. Clearer structure and improved performance
+      description: What the code or system looks like today (facts, not restating the story).
+      placeholder: e.g. Shared scoring logic is duplicated across three slices
     validations:
       required: true
 
@@ -38,8 +35,8 @@ body:
     id: proposal
     attributes:
       label: Proposal
-      description: What changes will be made?
-      placeholder: e.g. Extract shared logic and simplify the algorithm
+      description: What concrete changes will be made?
+      placeholder: e.g. Extract shared logic into a common module and simplify the hot path
     validations:
       required: true
 

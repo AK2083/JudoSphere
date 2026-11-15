@@ -5,14 +5,20 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use spikes for time-boxed investigation. Capture the question and expected outcome up front.
+        Use spikes for time-boxed investigation.
+        Write the spike as a **user story** and name the **target audience** in the "As a …" clause.
+        The story covers who needs the answer and why — use the fields below for concrete questions, time box, and results.
 
   - type: textarea
-    id: objective
+    id: user_story
     attributes:
-      label: Objective
-      description: What exactly do we want to find out?
-      placeholder: e.g. Determine if a Dev Container is useful for our setup
+      label: User Story
+      description: Who needs the answer, what they want to learn, and why. Always include the target audience.
+      value: |
+        As a [target audience, e.g. maintainer / product owner / contributor],
+        I want [knowledge / recommendation from this spike],
+        so that [decision or next step is unblocked].
+      render: markdown
     validations:
       required: true
 
@@ -20,17 +26,8 @@ body:
     id: question
     attributes:
       label: Questions
-      description: Which specific questions should this spike answer?
-      placeholder: e.g. Is a Dev Container useful for our setup? What are the trade-offs?
-    validations:
-      required: true
-
-  - type: textarea
-    id: expected_result
-    attributes:
-      label: Expected Result
-      description: What should we have at the end of the spike?
-      placeholder: e.g. A clear recommendation with pros and cons
+      description: Specific questions this spike must answer (more concrete than the user story).
+      placeholder: e.g. Is a Dev Container useful for our setup? What are the trade-offs vs. local toolchains?
     validations:
       required: true
 

@@ -6,13 +6,19 @@ body:
     attributes:
       value: |
         Use this template for process, tooling, and CI/CD improvements.
+        Write the request as a **user story** and name the **target audience** in the "As a …" clause.
+        The story covers who, what, and why — use the fields below only for current state and how to change it.
 
   - type: textarea
-    id: problem
+    id: user_story
     attributes:
-      label: Problem
-      description: What is painful or inefficient in the current development process?
-      placeholder: e.g. The deployment process is slow and error-prone
+      label: User Story
+      description: Who benefits, what they need, and why. Always include the target audience.
+      value: |
+        As a [target audience, e.g. maintainer / contributor],
+        I want [workflow improvement],
+        so that [benefit].
+      render: markdown
     validations:
       required: true
 
@@ -20,17 +26,8 @@ body:
     id: current_state
     attributes:
       label: Current State
-      description: How does the current workflow look?
-      placeholder: e.g. Manual deployment steps are required
-    validations:
-      required: true
-
-  - type: textarea
-    id: goal
-    attributes:
-      label: Goal
-      description: What should this improvement achieve?
-      placeholder: e.g. Automate the deployment process
+      description: How the process or tooling works today (facts, not restating the story).
+      placeholder: e.g. Manual deployment steps are required; Action pins are updated ad hoc
     validations:
       required: true
 
@@ -38,26 +35,10 @@ body:
     id: proposal
     attributes:
       label: Proposal
-      description: What concrete improvements are proposed?
-      placeholder: e.g. Implement a CI/CD pipeline with GitHub Actions
+      description: Concrete changes to make (steps, files, or approach).
+      placeholder: e.g. Add a report-only ncu job and refresh SHA-pinned Actions in ci.yml
     validations:
       required: true
-
-  - type: textarea
-    id: benefits
-    attributes:
-      label: Benefits
-      description: What benefits does this improvement bring?
-      placeholder: e.g. Faster deployments, fewer manual errors
-    validations:
-      required: true
-
-  - type: textarea
-    id: implementation
-    attributes:
-      label: Implementation
-      description: How should the improvement be implemented? (optional)
-      placeholder: e.g. Set up GitHub Actions workflow and environments
 
   - type: textarea
     id: dependencies

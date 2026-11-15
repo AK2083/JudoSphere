@@ -7,13 +7,28 @@ body:
     attributes:
       value: |
         Thanks for reporting a bug.
+        Write the report as a **user story** and name the **target audience** in the "As a …" clause.
+        Put the expected behavior in "I want …"; use the fields below for what goes wrong and how to reproduce it.
 
   - type: textarea
-    id: description
+    id: user_story
     attributes:
-      label: Description
-      description: Clear and precise description of the bug.
-      placeholder: e.g. The login button does not respond when clicked
+      label: User Story
+      description: Who is affected, what should work, and why. Always include the target audience.
+      value: |
+        As a [target audience, e.g. scoring judge / tournament organizer / club admin],
+        I want [expected working behavior],
+        so that [benefit / outcome].
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What happens instead of the expected behavior in the user story?
+      placeholder: e.g. Nothing happens when clicking the login button
     validations:
       required: true
 
@@ -31,24 +46,6 @@ body:
       required: true
 
   - type: textarea
-    id: expected_behavior
-    attributes:
-      label: Expected Behavior
-      description: What should happen?
-      placeholder: e.g. The user should be logged in
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual_behavior
-    attributes:
-      label: Actual Behavior
-      description: What happens instead?
-      placeholder: e.g. Nothing happens when clicking the login button
-    validations:
-      required: true
-
-  - type: textarea
     id: environment
     attributes:
       label: Environment
@@ -60,13 +57,6 @@ body:
       render: markdown
     validations:
       required: true
-
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: Screenshots / Logs
-      description: Attach screenshots or paste relevant log output. Tip - drag and drop files into this field.
-      placeholder: Attach files or paste logs here
 
   - type: dropdown
     id: severity
@@ -83,8 +73,15 @@ body:
       required: true
 
   - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Logs
+      description: Attach screenshots or paste relevant log output (optional). Tip - drag and drop files into this field.
+      placeholder: Attach files or paste logs here
+
+  - type: textarea
     id: additional_information
     attributes:
       label: Additional Information
-      description: Related issues, context, or anything else that might help.
+      description: Related issues, context, or anything else that might help (optional).
       placeholder: e.g. Related to #123
