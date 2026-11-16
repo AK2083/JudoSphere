@@ -18,7 +18,8 @@
     "test:storybook": "VITEST_STORYBOOK=true vitest --project storybook",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "docs": "jsdoc -c jsdoc.json"
+    "docs": "jsdoc -c jsdoc.json",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -79,6 +80,7 @@
     "config/**/*.ts": [
       "eslint --fix",
       "prettier --write"
-    ]
+    ],
+    "*.{md,json,jsonc}": "prettier --write"
   }
 }

@@ -39,9 +39,11 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 
 ## Git hooks
 
-After `npm install`, run **`npx husky`** once per clone so Git uses `.husky/`. Hook commands live in the hook files — not as npm scripts.
+`npm install` runs `prepare` → `husky` so Git uses `.husky/`. Hook commands live in the hook files — not as npm scripts.
 
-- **pre-commit** (`.husky/pre-commit`) — `lint-staged` on ESLint paths (`src/**/*.{js,mjs,cjs,ts,vue}`, `*.config.{js,mjs,cjs,ts}`, `config/**/*.ts`): ESLint `--fix`, then Prettier
+- **pre-commit** (`.husky/pre-commit`) — `lint-staged`:
+  - ESLint paths (`src/**/*.{js,mjs,cjs,ts,vue}`, `*.config.{js,mjs,cjs,ts}`, `config/**/*.ts`): ESLint `--fix`, then Prettier
+  - Markdown / JSON (`*.{md,json,jsonc}`): Prettier only
 - **pre-push** (`.husky/pre-push`) — currently commented out; when enabled: `npm run typecheck` then `npm run test:coverage`. Storybook stays opt-in.
 
 To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify` (avoid for normal work).
@@ -98,12 +100,12 @@ The Vue frontend follows [Feature-Sliced Design](https://feature-sliced.design/)
 
 Configs live in `.vscode/launch.json` and `.vscode/tasks.json`. Install recommended extensions when prompted (especially **CodeLLDB**).
 
-| Configuration | What it debugs |
-| --- | --- |
-| **Tauri: Debug Rust (dev)** | Rust host + Vite; window is WebKit |
+| Configuration                                  | What it debugs                                        |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| **Tauri: Debug Rust (dev)**                    | Rust host + Vite; window is WebKit                    |
 | **Vue/TS: Cursor breakpoints (Chrome + Vite)** | Vue/TS breakpoints **inside Cursor** (needs Chromium) |
-| **Vue/TS: Open in Safari only** | Opens Safari — **no** Cursor breakpoints |
-| **Vitest: Debug current file** | Unit test of the open file |
+| **Vue/TS: Open in Safari only**                | Opens Safari — **no** Cursor breakpoints              |
+| **Vitest: Debug current file**                 | Unit test of the open file                            |
 
 **Why Safari ≠ Cursor breakpoints:** Cursor’s JS debugger speaks Chrome DevTools Protocol. Safari/WebKit does not. `Open in Safari only` just runs `open -a Safari …`.
 

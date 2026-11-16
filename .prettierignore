@@ -6,5 +6,5 @@ node_modules
 package-lock.json
 *.min.js
 build
-docs
+docs/api
 storybook-static

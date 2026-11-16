@@ -24,11 +24,7 @@
       "request": "launch",
       "name": "Tauri: Debug Rust (release)",
       "cargo": {
-        "args": [
-          "build",
-          "--release",
-          "--manifest-path=${workspaceFolder}/src-tauri/Cargo.toml"
-        ],
+        "args": ["build", "--release", "--manifest-path=${workspaceFolder}/src-tauri/Cargo.toml"],
         "filter": {
           "name": "judosphere",
           "kind": "bin"

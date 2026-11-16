@@ -4,10 +4,10 @@ JudoSphere uses two complementary architectures: **Feature-Sliced Design (FSD)**
 
 ## Overview
 
-| Area | Architecture | Location |
-| --- | --- | --- |
-| **Frontend** | [Feature-Sliced Design](https://feature-sliced.design/) | `src/app/`, `pages/`, `widgets/`, `features/`, `entities/`, `shared/` |
-| **Host / backend** | Vertical slices | `src-tauri/src/slices/<slice>/` |
+| Area               | Architecture                                            | Location                                                              |
+| ------------------ | ------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Frontend**       | [Feature-Sliced Design](https://feature-sliced.design/) | `src/app/`, `pages/`, `widgets/`, `features/`, `entities/`, `shared/` |
+| **Host / backend** | Vertical slices                                         | `src-tauri/src/slices/<slice>/`                                       |
 
 There is no Electron main/preload bridge. Privileged host logic lives in Rust and is exposed to the frontend through Tauri commands, always wrapped by facades in `@shared/api`.
 
@@ -26,14 +26,14 @@ app → pages → widgets → features → entities → shared
 
 ### Import aliases
 
-| Alias | Path |
-| --- | --- |
-| `@app` / `@app/*` | `src/app` |
-| `@pages` / `@pages/*` | `src/pages` |
-| `@widgets` / `@widgets/*` | `src/widgets` |
+| Alias                       | Path           |
+| --------------------------- | -------------- |
+| `@app` / `@app/*`           | `src/app`      |
+| `@pages` / `@pages/*`       | `src/pages`    |
+| `@widgets` / `@widgets/*`   | `src/widgets`  |
 | `@features` / `@features/*` | `src/features` |
 | `@entities` / `@entities/*` | `src/entities` |
-| `@shared` / `@shared/*` | `src/shared` |
+| `@shared` / `@shared/*`     | `src/shared`   |
 
 Rules:
 
