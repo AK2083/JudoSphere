@@ -12,7 +12,8 @@ alwaysApply: false
 - **No business logic in templates** — no calculations, API calls, or complex conditions. Templates bind state and events from script/composable.
 - Logic belongs in **composables** (`model/use-*.ts`) or `service/` — UI components in `ui/` stay presentation-focused.
 - UI primitives come from the Tailwind-based design system in `@shared/ui` (no Vuetify).
-- Import Vue/Tauri only via `@shared/api`.
+- Import Vue/Tauri/Pinia only via `@shared/api` (`defineStore`, `storeToRefs`, …).
+- Pinia stores belong in feature or entity `model/`; host calls still go through the slice `api/`.
 - Layer assignment per [`architecture-fsd.md`](architecture-fsd.md).
 
 ```vue

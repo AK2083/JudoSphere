@@ -1,5 +1,7 @@
 export { deleteAppValue, getAppValue, setAppValue } from './db'
 export { openUrl } from './opener'
+export type { Pinia, Store, StoreDefinition } from './pinia'
+export { createPinia, defineStore, storeToRefs } from './pinia'
 export { greet } from './tauri'
 export type { App, Ref } from './vue'
 export { computed, createApp, ref } from './vue'

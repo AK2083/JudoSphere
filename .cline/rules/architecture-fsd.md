@@ -104,7 +104,8 @@ Abstraction of **swappable** dependencies. No feature or page logic. Features/wi
 | `config/`                     | —         | Frontend configuration                    |
 | `model/`, `types/`, `errors/` | —         | Shared types/errors when needed           |
 
-- Vue/Tauri/runtime SDKs are imported **only** inside `shared/api`.
+- Vue/Pinia/Tauri/runtime SDKs are imported **only** inside `shared/api`.
+- Pinia wiring lives in `app/providers/`; stores are defined in feature/entity `model/` via `defineStore` from `@shared/api`.
 - Design-system components without feature affiliation → `shared/ui/` (Tailwind).
 - Each component in `shared/ui/` requires colocated `<Name>.stories.ts`.
 - `shared` imports **no** features, entities, pages, widgets, or `app`.

@@ -40,7 +40,8 @@ Rules:
 - Imports may only point **downward**
 - Public APIs are exported via barrel `index.ts` files
 - Runtime dependencies are accessed only through `@shared/api` facades
-- Never import `@tauri-apps/*` or `vue` directly outside `src/shared/api`
+- Never import `@tauri-apps/*`, `vue`, or `pinia` directly outside `src/shared/api`
+- Pinia is wired in `app/providers/`; stores live in feature/entity `model/` and use `defineStore` / `storeToRefs` from `@shared/api`
 
 Details: `.cursor/rules/vue-fsd.mdc`, `.cursor/rules/shared-api.mdc`
 
