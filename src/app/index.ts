@@ -1,2 +1,2 @@
 export { default as App } from './App.vue'
-export { setupPinia } from './providers'
+export { appTranslationKeys, i18n, setupI18n, setupPinia } from './providers'

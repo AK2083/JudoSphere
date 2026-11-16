@@ -24,7 +24,8 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "pinia": "^4.1.0",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-i18n": "^11.4.20"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.1",

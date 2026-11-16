@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { greet, ref } from '@shared/api'
+import { greet, ref, useTranslation } from '@shared/api'
 
+import translationKeys from '../i18n/keys'
+
+const { t } = useTranslation()
 const greetMsg = ref('')
 const name = ref('')
 
@@ -11,8 +14,10 @@ async function onSubmit() {
 
 <template>
   <form class="greet" @submit.prevent="onSubmit">
-    <input v-model="name" placeholder="Name…" />
-    <button type="submit">Greet</button>
+    <input v-model="name" :placeholder="t(translationKeys.namePlaceholder)" />
+    <button type="submit">
+      {{ t(translationKeys.submit) }}
+    </button>
   </form>
   <p v-if="greetMsg">{{ greetMsg }}</p>
 </template>

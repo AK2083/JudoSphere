@@ -29,10 +29,12 @@ src/features/<feature>/<slice>/
 2. Add `index.ts` as the **only** public export surface.
 3. Put presentation in `ui/` with `<script setup lang="ts">`.
 4. Put composables in `model/use-*.ts` — no business logic in templates.
-5. Put host/client calls in slice `api/` that wrap `@shared/api` (never import `vue` / `@tauri-apps/*` directly in features).
-6. Use Tailwind design-system components from `@shared/ui` instead of inventing one-off controls.
-7. Add colocated `<Name>.stories.ts` for each new `ui/` component in the same change.
-8. Import the slice elsewhere only via `@features/<feature>/<slice>` (or the feature barrel).
+5. Put host/client calls in slice `api/` that wrap `@shared/api` (never import `vue` / `@tauri-apps/*` / `vue-i18n` directly in features).
+6. Add slice `i18n/` with `keys.ts`, `de.ts`, `en.ts`, and `index.ts`; UI uses `useTranslation()` from `@shared/api` plus the key object.
+7. Use Tailwind design-system components from `@shared/ui` instead of inventing one-off controls.
+8. Add colocated `<Name>.stories.ts` for each new `ui/` component in the same change.
+9. Import the slice elsewhere only via `@features/<feature>/<slice>` (or the feature barrel).
+10. Register new message bundles in `app/providers/i18n` (feature rollup like DojoSphere `authentication` when nested).
 
 ## Guardrails
 

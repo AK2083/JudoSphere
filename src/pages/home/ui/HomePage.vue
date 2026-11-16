@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { GreetForm } from '@features/greet'
+import { useTranslation } from '@shared/api'
+
+import translationKeys from '../i18n/keys'
+
+const { t } = useTranslation()
 </script>
 
 <template>
   <main class="home">
-    <h1 class="text-3xl font-bold underline">JudoSphere</h1>
+    <h1 class="text-3xl font-bold underline">
+      {{ t(translationKeys.title) }}
+    </h1>
     <p>
-      Offline-first software for smaller judo competitions and clubs. The host application serves
-      the UI on the local network.
+      {{ t(translationKeys.description) }}
     </p>
     <GreetForm />
   </main>
