@@ -1,0 +1,26 @@
+{
+  "_comments": {
+    "ownerRepo": "GitHub owner/name for issue API calls. null = detect from `git remote get-url origin`. Override with env FEATURE_TASK_OWNER_REPO if needed.",
+    "issueTypeFeature": "GitHub issue type name used for parent Feature issues.",
+    "issueTypeTask": "GitHub issue type name used for child Task sub-issues.",
+    "taskTitlePrefix": "Fallback Task detection when issue type is missing: titles starting with this prefix count as Tasks.",
+    "defaultAssignee": "GitHub login assigned on every new Task. null = use `gh api user` (authenticated login).",
+    "projectTitle": "GitHub Projects V2 title to add each new Task to. null = do not add to a project.",
+    "doneStatusId": "Optional GitHub planning-status node ID for Done. null = close the Task with reason completed only.",
+    "closeTaskOnDone": "If true, close the Task issue after a successful commit (always used when doneStatusId is unset).",
+    "requireCommitApproval": "If true, agents cannot commit alone: Cursor asks for approval; Cline blocks until the user confirms commit intent.",
+    "stateFile": "Runtime path for the active Feature/Task (local, feature-specific, should be gitignored).",
+    "logFile": "Optional workflow log path (local; should be gitignored)."
+  },
+  "ownerRepo": null,
+  "issueTypeFeature": "Feature",
+  "issueTypeTask": "Task",
+  "taskTitlePrefix": "Task:",
+  "defaultAssignee": null,
+  "projectTitle": null,
+  "doneStatusId": null,
+  "closeTaskOnDone": true,
+  "requireCommitApproval": true,
+  "stateFile": ".workflow/feature-task/state.json",
+  "logFile": ".workflow/feature-task/workflow.log"
+}

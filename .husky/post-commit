@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Generic Feature → Task: mark active Task done after a successful commit.
+python3 .workflow/feature-task/engine.py mark-done || true

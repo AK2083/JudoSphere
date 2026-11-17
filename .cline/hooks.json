@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".workflow/feature-task/integrations/cursor/session.sh"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".workflow/feature-task/integrations/cursor/before-prompt.sh"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": ".workflow/feature-task/integrations/cursor/post-tool.sh"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".workflow/feature-task/integrations/cursor/before-shell.sh",
+        "matcher": "git\\s+commit",
+        "failClosed": false
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": ".workflow/feature-task/integrations/cursor/after-shell.sh",
+        "matcher": "git\\s+commit"
+      }
+    ]
+  }
+}

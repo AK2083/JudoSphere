@@ -1,0 +1,13 @@
+{
+  "ownerRepo": null,
+  "issueTypeFeature": "Feature",
+  "issueTypeTask": "Task",
+  "taskTitlePrefix": "Task:",
+  "defaultAssignee": "AK2083",
+  "projectTitle": "Judosphere Planning",
+  "doneStatusId": null,
+  "closeTaskOnDone": true,
+  "requireCommitApproval": true,
+  "stateFile": ".workflow/feature-task/state.json",
+  "logFile": ".workflow/feature-task/workflow.log"
+}

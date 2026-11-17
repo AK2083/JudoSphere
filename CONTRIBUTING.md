@@ -44,9 +44,37 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 - **pre-commit** (`.husky/pre-commit`) — `lint-staged`:
   - ESLint paths (`src/**/*.{js,mjs,cjs,ts,vue}`, `*.config.{js,mjs,cjs,ts}`, `config/**/*.ts`): ESLint `--fix`, then Prettier
   - Markdown / JSON (`*.{md,json,jsonc}`): Prettier only
+- **post-commit** (`.husky/post-commit`) — marks the active Feature **Task** as Done after a successful commit (see agent workflow below)
 - **pre-push** (`.husky/pre-push`) — currently commented out; when enabled: `npm run typecheck` then `npm run test:coverage`. Storybook stays opt-in.
 
 To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify` (avoid for normal work).
+
+## Agent Feature / Task workflow (Cursor & Cline)
+
+Generic reusable workflow for GitHub **Feature** issues with ordered **Task** sub-issues:
+
+1. If the Feature has no Tasks yet, create them first (skill `create-feature-tasks`)
+2. Tasks in ascending issue-number order (one Task at a time)
+3. Agents stop for review and must not commit alone
+4. After you approve/create the commit (include `Refs #<task>`), the Task is marked Done
+
+Shared engine: [`.workflow/feature-task/`](.workflow/feature-task/) (`engine.py`, `config.json`; field notes in `config.example.json`).  
+Runtime active Feature/Task state is **local/feature-specific** (gitignored): `.workflow/feature-task/state.json`.
+
+**Hooks** = when (policy). **Skill** `create-feature-tasks` = how to create Task issues.
+
+Wiring:
+
+- Cursor: `.cline/hooks.json` (`.cursor` → `.cline`) → `.workflow/feature-task/integrations/cursor/`
+- Cline: `.clinerules/hooks/*` → `.workflow/feature-task/integrations/cline/` (enable Hooks in Cline settings)
+- Git: `.husky/post-commit` → `engine.py mark-done`
+- Rule: `.cline/rules/feature-task-workflow.md`
+- Skill: `.cline/skills/create-feature-tasks/SKILL.md`
+
+```bash
+python3 .workflow/feature-task/engine.py set-feature <feature-issue-number>
+python3 .workflow/feature-task/engine.py next-context
+```
 
 ## Continuous integration
 

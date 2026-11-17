@@ -44,3 +44,9 @@ storybook-static
 
 # Generated API docs (npm run docs)
 docs/api/
+# Feature/Task agent workflow (local)
+
+# Feature/Task workflow runtime (local; feature-specific)
+.workflow/feature-task/state.json
+.workflow/feature-task/workflow.log
+.cline/feature-task-state.json
