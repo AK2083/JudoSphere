@@ -23,9 +23,14 @@ CONFIG_PATH = WORKFLOW_ROOT / "config.json"
 
 WORKFLOW_CONTEXT = """## Feature / Task workflow (mandatory)
 
-When the user names a **Feature** issue to implement:
+Work Features on a git branch named **`feature/<issueNumber>-<short-description>`**
+(example: `feature/7-app-shell-navigation`). The Feature issue id for Task creation and
+implementation comes **from that branch** (hooks/skills parse it). Do not invent a different
+branch shape for Feature work.
 
-0. **Ensure Tasks exist** for that Feature (GitHub Task sub-issues in build order). If none exist yet, **create them first** before writing product code — follow the project skill `create-feature-tasks` (hook = when/why; skill = how).
+When implementing that Feature:
+
+0. **Ensure Tasks exist** for the Feature id from the branch (GitHub Task sub-issues in build order). If none exist yet, **create them first** before writing product code — follow the project skill `create-feature-tasks` (hook = when/why; skill = how).
 1. Load the Feature and its Task sub-issues (order = ascending issue number).
 2. Work on **exactly one** Task at a time: the first open / not-done Task.
 3. Implement only that Task’s acceptance criteria. Do not start the next Task in the same turn.
@@ -59,6 +64,7 @@ def load_config() -> dict[str, Any]:
         "taskTitlePrefix": "Task:",
         "defaultAssignee": None,
         "projectTitle": None,
+        "branchPattern": r"^feature/(?P<number>\d+)-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$",
         "doneStatusId": None,
         "closeTaskOnDone": True,
         "requireCommitApproval": True,
@@ -324,19 +330,28 @@ def set_feature_context(feature_number: int) -> dict[str, Any]:
 
 
 def build_next_task_context(feature_number: int | None = None) -> str:
-    state = load_state()
-    feature = feature_number or state.get("featureIssue")
+    branch = current_branch()
+    feature = resolve_feature_number(feature_number, bind=True)
     lines = [WORKFLOW_CONTEXT.strip(), ""]
+    lines.append(f"Current branch: `{branch or '(unknown)'}`")
+    if branch and parse_feature_from_branch(branch) is None and not branch.startswith(
+        ("main", "master", "develop", "release/")
+    ):
+        lines.append(
+            "Branch does **not** match `feature/<issueNumber>-<short-description>`. "
+            "For Feature work, create/switch to e.g. `feature/7-app-shell-navigation` "
+            "so hooks/skills can read the Feature id."
+        )
     if not feature:
         lines.append(
-            "No active Feature in runtime state. Bind one with "
-            "`python3 .workflow/feature-task/engine.py set-feature <number>` "
-            "or include a Feature issue reference in the user prompt "
-            "(feature-specific tooling may set state later)."
+            "No Feature id resolved. Use branch `feature/<issueNumber>-<slug>`, or "
+            "`python3 .workflow/feature-task/engine.py set-feature <number>`, or mention "
+            "`Feature #<n>` / `feature/<n>-…` in the prompt."
         )
         return "\n".join(lines)
 
     feature = int(feature)
+    lines.append(f"Feature id source: branch/state → **#{feature}**")
     tasks = fetch_feature_tasks(feature)
     open_tasks = [t for t in tasks if task_is_open(t)]
     lines.append(f"Active Feature: #{feature}")
@@ -386,17 +401,98 @@ def build_next_task_context(feature_number: int | None = None) -> str:
     return "\n".join(lines)
 
 
+def current_branch() -> str:
+    proc = run_git(["rev-parse", "--abbrev-ref", "HEAD"])
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout.strip()
+
+
+def branch_pattern(cfg: dict[str, Any] | None = None) -> str:
+    cfg = cfg or load_config()
+    return str(
+        cfg.get("branchPattern")
+        or r"^feature/(?P<number>\d+)-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$"
+    )
+
+
+def parse_feature_from_branch(branch: str | None = None, cfg: dict[str, Any] | None = None) -> int | None:
+    """Extract Feature issue number from `feature/<number>-<slug>` branches."""
+    name = (branch if branch is not None else current_branch()).strip()
+    if not name or name == "HEAD":
+        return None
+    # Drop remote prefix if present (e.g. origin/feature/7-foo)
+    if name.count("/") >= 2 and not name.startswith("feature/"):
+        parts = name.split("/", 1)
+        name = parts[1]
+    match = re.match(branch_pattern(cfg), name)
+    if not match:
+        return None
+    try:
+        return int(match.group("number"))
+    except (IndexError, ValueError):
+        return None
+
+
 def detect_feature_from_text(text: str) -> int | None:
     patterns = [
         r"Feature:\s*.*?#(\d+)",
         r"\bfeature\s+#(\d+)\b",
         r"github\.com/[^/\s]+/[^/\s]+/issues/(\d+)",
+        r"\bfeature/(\d+)-[a-z0-9-]+\b",
     ]
     for pat in patterns:
         match = re.search(pat, text, flags=re.I)
         if match:
             return int(match.group(1))
     return None
+
+
+def resolve_feature_number(
+    explicit: int | None = None,
+    text: str | None = None,
+    *,
+    bind: bool = False,
+) -> int | None:
+    """Resolve Feature id: explicit → branch → prompt/text → runtime state."""
+    if explicit is not None:
+        feature = int(explicit)
+    else:
+        feature = parse_feature_from_branch()
+        if feature is None and text:
+            feature = detect_feature_from_text(text)
+        if feature is None:
+            state = load_state()
+            raw = state.get("featureIssue")
+            if isinstance(raw, int):
+                feature = raw
+            elif isinstance(raw, str) and raw.isdigit():
+                feature = int(raw)
+    if feature is not None and bind:
+        set_feature_context(feature)
+    return feature
+
+
+def extract_new_branch_name(command: str) -> str | None:
+    """Return branch name from `git checkout -b` / `git switch -c` commands."""
+    patterns = [
+        r"\bgit\s+checkout\s+(?:-[^\s]*b[^\s]*\s+|-[^\s]*\s+)*-b\s+(\S+)",
+        r"\bgit\s+switch\s+(?:-[^\s]*c[^\s]*\s+|-[^\s]*\s+)*-c\s+(\S+)",
+        r"\bgit\s+branch\s+(\S+)",
+    ]
+    for pat in patterns:
+        match = re.search(pat, command)
+        if match:
+            name = match.group(1).strip().strip("'\"")
+            # Ignore flags mistaken as names
+            if name.startswith("-"):
+                continue
+            return name
+    return None
+
+
+def is_valid_feature_branch(name: str, cfg: dict[str, Any] | None = None) -> bool:
+    return parse_feature_from_branch(name, cfg) is not None
 
 
 def mark_task_done(task_number: int, commit_sha: str | None = None) -> dict[str, Any]:
@@ -519,9 +615,26 @@ def cursor_session_start(_payload: dict[str, Any]) -> dict[str, Any]:
 
 def cursor_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
     command = str(payload.get("command") or "")
+    cfg = load_config()
+    new_branch = extract_new_branch_name(command)
+    if new_branch and not is_valid_feature_branch(new_branch, cfg):
+        return {
+            "permission": "ask",
+            "user_message": (
+                f"Branch `{new_branch}` is not `feature/<issueNumber>-<short-description>`. "
+                "Approve only if this is intentional (non-Feature work)."
+            ),
+            "agent_message": (
+                "Feature work must use branches like `feature/7-app-shell-navigation`. "
+                "Rename/recreate the branch so hooks/skills can parse the Feature issue id."
+            ),
+        }
+    if new_branch and is_valid_feature_branch(new_branch, cfg):
+        feature = parse_feature_from_branch(new_branch, cfg)
+        if feature is not None:
+            set_feature_context(feature)
     if not is_git_commit_command(command):
         return {"permission": "allow"}
-    cfg = load_config()
     if not cfg.get("requireCommitApproval", True):
         return {"permission": "allow"}
     return {
@@ -569,7 +682,7 @@ def cursor_after_shell(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def cursor_before_prompt(payload: dict[str, Any]) -> dict[str, Any]:
-    """Bind Feature from the prompt when present.
+    """Bind Feature from branch (preferred) or prompt.
 
     Cursor `beforeSubmitPrompt` cannot inject `additional_context` (only continue/deny).
     We set `injectWorkflowContext` so the next `postToolUse` hook injects the same
@@ -577,16 +690,15 @@ def cursor_before_prompt(payload: dict[str, Any]) -> dict[str, Any]:
     “create Tasks first” via skill `create-feature-tasks`).
     """
     prompt = str(payload.get("prompt") or "")
-    feature = detect_feature_from_text(prompt)
     workflowish = bool(
         re.search(
-            r"\b(implement|umsetzen|feature|task|tasks?\s+anlegen|create\s+tasks?)\b",
+            r"\b(implement|umsetzen|feature|task|tasks?\s+anlegen|create\s+tasks?|branch)\b",
             prompt,
             flags=re.I,
         )
     )
-    if feature and workflowish:
-        set_feature_context(feature)
+    feature = resolve_feature_number(text=prompt, bind=bool(workflowish or parse_feature_from_branch()))
+    if feature is not None:
         build_next_task_context(feature)
     if feature or workflowish or load_state().get("featureIssue"):
         state = load_state()
@@ -619,9 +731,7 @@ def cline_context_payload(payload: dict[str, Any] | None = None) -> dict[str, An
     payload = payload or {}
     prompt = str(((payload.get("userPromptSubmit") or {}).get("prompt")) or "")
     allow_commit = prompt_requests_commit(prompt)
-    feature = detect_feature_from_text(prompt)
-    if feature and re.search(r"\b(implement|umsetzen|feature|task)\b", prompt, flags=re.I):
-        set_feature_context(feature)
+    resolve_feature_number(text=prompt, bind=True)
     context = build_next_task_context()
     if allow_commit:
         state = load_state()
@@ -639,6 +749,20 @@ def cline_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
     if isinstance(params, dict):
         command = str(params.get("command") or params.get("cmd") or "")
     if "command" in tool_name.lower() or tool_name in {"execute_command", "Bash", "Shell"}:
+        new_branch = extract_new_branch_name(command)
+        if new_branch and not is_valid_feature_branch(new_branch, cfg):
+            return {
+                "cancel": True,
+                "errorMessage": (
+                    f"Branch `{new_branch}` must be `feature/<issueNumber>-<short-description>` "
+                    "(e.g. `feature/7-app-shell-navigation`) so the Feature id is available for Task creation."
+                ),
+                "contextModification": build_next_task_context(),
+            }
+        if new_branch and is_valid_feature_branch(new_branch, cfg):
+            feature = parse_feature_from_branch(new_branch, cfg)
+            if feature is not None:
+                set_feature_context(feature)
         if is_git_commit_command(command):
             if not cfg.get("requireCommitApproval", True):
                 return {"cancel": False}
@@ -702,6 +826,15 @@ def main(argv: list[str]) -> int:
         print(json.dumps(state, indent=2))
         return 0
 
+    if len(argv) >= 2 and argv[1] == "from-branch":
+        branch = current_branch()
+        feature = parse_feature_from_branch(branch)
+        result = {"branch": branch, "featureIssue": feature}
+        if feature is not None:
+            result.update(set_feature_context(feature))
+        print(json.dumps(result, indent=2))
+        return 0 if feature is not None else 1
+
     if len(argv) >= 2 and argv[1] == "next-context":
         feature = int(argv[2]) if len(argv) >= 3 else None
         print(build_next_task_context(feature))
@@ -743,7 +876,7 @@ def main(argv: list[str]) -> int:
         return 0
 
     print(
-        "usage: engine.py [mark-done|set-feature <n>|next-context [n]|cursor <mode>|cline <mode>]",
+        "usage: engine.py [mark-done|set-feature <n>|from-branch|next-context [n]|cursor <mode>|cline <mode>]",
         file=sys.stderr,
     )
     return 2

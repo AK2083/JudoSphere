@@ -19,7 +19,7 @@
     "beforeShellExecution": [
       {
         "command": ".workflow/feature-task/integrations/cursor/before-shell.sh",
-        "matcher": "git\\s+commit",
+        "matcher": "git\\s+(commit|checkout|switch|branch)",
         "failClosed": false
       }
     ],

@@ -4,11 +4,12 @@ Reusable agent/git workflow for GitHub **Feature** issues with ordered **Task** 
 
 ## Policy (generic)
 
-0. If the Feature has no Task sub-issues yet, **create them first** (skill `create-feature-tasks`).
-1. Work Tasks in ascending issue-number order (one at a time).
-2. Do not commit alone — stop for human review.
-3. After an approved/successful commit, mark that Task done.
-4. Start the next Task only when asked.
+0. Feature work uses branch **`feature/<issueNumber>-<short-description>`**; Feature id for Task creation comes from the branch.
+1. If the Feature has no Task sub-issues yet, **create them first** (skill `create-feature-tasks`).
+2. Work Tasks in ascending issue-number order (one at a time).
+3. Do not commit alone — stop for human review.
+4. After an approved/successful commit, mark that Task done.
+5. Start the next Task only when asked.
 
 ### Hook vs skill
 
@@ -33,9 +34,11 @@ Cursor `beforeSubmitPrompt` can only continue/deny (no context injection) — it
 ## Setup
 
 ```bash
-# optional: bind the Feature the team is implementing
-python3 .workflow/feature-task/engine.py set-feature <feature-issue-number>
+git switch -c feature/7-app-shell-navigation
+python3 .workflow/feature-task/engine.py from-branch
 python3 .workflow/feature-task/engine.py next-context
+# fallback if needed:
+# python3 .workflow/feature-task/engine.py set-feature <feature-issue-number>
 ```
 
 `ownerRepo` in `config.json` may stay `null` — the engine resolves `owner/name` from `git remote get-url origin`.

@@ -31,9 +31,25 @@ Do not put long drafting instructions into hooks. Hooks stay short and generic; 
 
 ## Inputs
 
-- Feature issue number or URL
+- **Preferred:** current git branch `feature/<issueNumber>-<short-description>` (Feature id parsed from the branch)
+- Feature issue number or URL (fallback if not on a Feature branch yet)
 - Feature body (user story, acceptance criteria, roadmap / dependencies)
 - Repo workflow config: `.workflow/feature-task/config.json`
+
+### Branch (required for Feature work)
+
+Before creating Tasks / implementing, ensure the branch matches config `branchPattern` (default):
+
+`feature/<issueNumber>-<short-description>`
+
+Example: `feature/7-app-shell-navigation`
+
+```bash
+git switch -c feature/7-app-shell-navigation
+python3 .workflow/feature-task/engine.py from-branch
+```
+
+Hooks and this skill use that number as the Feature parent id.
 
 ## Required GitHub fields (every Task)
 
@@ -63,30 +79,32 @@ Then retry adding the created Tasks to the project. Do not skip parent/type/assi
 ## Procedure
 
 1. Read config: `.workflow/feature-task/config.json`.
-2. Read the Feature issue (`gh issue view <n> --json title,body,issueType,url,milestone,labels,assignees`).
-3. Confirm type is Feature (or treat as Feature if the user said so).
-4. List existing sub-issues. If Task children already cover the work, **stop** and report them — do not duplicate. Still fix missing assignee/project/parent if the user asked to repair metadata.
-5. Derive an ordered Task list from the Feature:
+2. Resolve Feature id from the current branch (`engine.py from-branch`). If missing, create/switch to `feature/<n>-…` first, then continue.
+3. Read the Feature issue (`gh issue view <n> --json title,body,issueType,url,milestone,labels,assignees`).
+4. Confirm type is Feature (or treat as Feature if the user said so).
+5. List existing sub-issues. If Task children already cover the work, **stop** and report them — do not duplicate. Still fix missing assignee/project/parent if the user asked to repair metadata.
+6. Derive an ordered Task list from the Feature:
    - Prefer an explicit numbered roadmap in the Feature body
    - Else split acceptance criteria into small, implementable Tasks
-6. Create each Task via GraphQL `createIssue` (or equivalent) with **all** required fields above:
+7. Create each Task via GraphQL `createIssue` (or equivalent) with **all** required fields above:
    - `issueTypeId` for Task
-   - `parentIssueId` = Feature node id
+   - `parentIssueId` = Feature node id (from the branch)
    - `assigneeIds` = configured default assignee
    - Then `gh project item-add` (or GraphQL `addProjectV2ItemById`) using `projectTitle`
-7. Order = ascending issue number = build order (create in intended sequence).
-8. Verify each created issue: parent = Feature, type = Task, assignee set, project membership when configured.
-9. Bind workflow state:
+8. Order = ascending issue number = build order (create in intended sequence).
+9. Verify each created issue: parent = Feature, type = Task, assignee set, project membership when configured.
+10. Bind workflow state:
 
 ```bash
-python3 .workflow/feature-task/engine.py set-feature <feature-number>
+python3 .workflow/feature-task/engine.py from-branch
 python3 .workflow/feature-task/engine.py next-context
 ```
 
-10. Tell the user which Tasks were created and that implementation starts with the **first open** Task only after they ask.
+11. Tell the user which Tasks were created and that implementation starts with the **first open** Task only after they ask.
 
 ## Guardrails
 
+- Feature work runs on `feature/<issueNumber>-<slug>` so the Feature id is unambiguous
 - Tasks **belong to the Feature** (parent/sub-issue) — never create orphan Tasks for this workflow
 - Generic drafting only — no product-domain hardcoding in titles beyond the Feature text and config defaults
 - One Feature at a time

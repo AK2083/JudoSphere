@@ -53,10 +53,11 @@ To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify
 
 Generic reusable workflow for GitHub **Feature** issues with ordered **Task** sub-issues:
 
-1. If the Feature has no Tasks yet, create them first (skill `create-feature-tasks`)
-2. Tasks in ascending issue-number order (one Task at a time)
-3. Agents stop for review and must not commit alone
-4. After you approve/create the commit (include `Refs #<task>`), the Task is marked Done
+1. Work on branch `feature/<issueNumber>-<short-description>` (Feature id comes from the branch)
+2. If the Feature has no Tasks yet, create them first (skill `create-feature-tasks`)
+3. Tasks in ascending issue-number order (one Task at a time)
+4. Agents stop for review and must not commit alone
+5. After you approve/create the commit (include `Refs #<task>`), the Task is marked Done
 
 Shared engine: [`.workflow/feature-task/`](.workflow/feature-task/) (`engine.py`, `config.json`; field notes in `config.example.json`).  
 Runtime active Feature/Task state is **local/feature-specific** (gitignored): `.workflow/feature-task/state.json`.
@@ -72,7 +73,8 @@ Wiring:
 - Skill: `.cline/skills/create-feature-tasks/SKILL.md`
 
 ```bash
-python3 .workflow/feature-task/engine.py set-feature <feature-issue-number>
+git switch -c feature/7-app-shell-navigation
+python3 .workflow/feature-task/engine.py from-branch
 python3 .workflow/feature-task/engine.py next-context
 ```
 
