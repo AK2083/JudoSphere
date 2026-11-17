@@ -40,8 +40,9 @@ Rules:
 - Imports may only point **downward**
 - Public APIs are exported via barrel `index.ts` files
 - Runtime dependencies are accessed only through `@shared/api` facades
-- Never import `@tauri-apps/*`, `vue`, `pinia`, or `vue-i18n` directly outside `src/shared/api`
-- Pinia and i18n are wired in `app/providers/` (`pinia/`, `i18n/` with root `de.ts` / `en.ts`)
+- Never import `@tauri-apps/*`, `vue`, `vue-router`, `pinia`, or `vue-i18n` directly outside `src/shared/api`
+- Pinia, i18n, and Vue Router are wired in `app/providers/` (`pinia/`, `i18n/` with root `de.ts` / `en.ts`, `router/`)
+- Router imports page components from `@pages/*` only
 - Stores live in feature/entity `model/` via `defineStore` / `storeToRefs` from `@shared/api`
 - UI copy: per-slice `i18n/` (`keys.ts`, `de.ts`, `en.ts`); resolve with `useTranslation()` from `@shared/api` and key objects — never raw key strings or direct `vue-i18n` imports
 

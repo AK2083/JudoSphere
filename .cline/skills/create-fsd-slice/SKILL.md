@@ -29,7 +29,7 @@ src/features/<feature>/<slice>/
 2. Add `index.ts` as the **only** public export surface.
 3. Put presentation in `ui/` with `<script setup lang="ts">`.
 4. Put composables in `model/use-*.ts` — no business logic in templates.
-5. Put host/client calls in slice `api/` that wrap `@shared/api` (never import `vue` / `@tauri-apps/*` / `vue-i18n` directly in features).
+5. Put host/client calls in slice `api/` that wrap `@shared/api` (never import `vue` / `vue-router` / `@tauri-apps/*` / `vue-i18n` directly in features).
 6. Add slice `i18n/` with `keys.ts`, `de.ts`, `en.ts`, and `index.ts`; UI uses `useTranslation()` from `@shared/api` plus the key object.
 7. Use Tailwind design-system components from `@shared/ui` instead of inventing one-off controls.
 8. Add colocated `<Name>.stories.ts` for each new `ui/` component in the same change.

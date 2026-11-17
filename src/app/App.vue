@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { HomePage } from '@pages/home'
+import { RouterView } from '@shared/api'
 </script>
 
 <template>
-  <HomePage />
+  <RouterView />
 </template>

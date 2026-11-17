@@ -104,9 +104,10 @@ Abstraction of **swappable** dependencies. No feature or page logic. Features/wi
 | `config/`                     | —         | Frontend configuration                    |
 | `model/`, `types/`, `errors/` | —         | Shared types/errors when needed           |
 
-- Vue/Pinia/vue-i18n/Tauri/runtime SDKs are imported **only** inside `shared/api`.
+- Vue/Vue Router/Pinia/vue-i18n/Tauri/runtime SDKs are imported **only** inside `shared/api`.
 - Pinia wiring lives in `app/providers/pinia/`; stores are defined in feature/entity `model/` via `defineStore` from `@shared/api`.
 - i18n wiring lives in `app/providers/i18n/` (aggregates feature/page/shared message bundles + root `de.ts` / `en.ts`).
+- Vue Router wiring lives in `app/providers/router/`; routes import `@pages/*` only; use `useRouter` / `useRoute` / `RouterLink` / `RouterView` from `@shared/api`.
 - Slice/page copy: `i18n/keys.ts` + `de.ts` / `en.ts`; UI calls `useTranslation()` from `@shared/api` with key objects (swappable library behind the facade).
 - Nested features (e.g. `features/authentication/<slice>/`) keep per-slice `i18n/` and may roll up into a feature-level `i18n/` bundle for the provider.
 - Design-system components without feature affiliation → `shared/ui/` (Tailwind).

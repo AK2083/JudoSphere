@@ -49,6 +49,7 @@ export default defineConfig({
         'src/shared/api/opener.ts',
         'src/shared/api/pinia.ts',
         'src/shared/api/i18n.ts',
+        'src/shared/api/router.ts',
         'src/shared/lib/**',
         'src/main.ts',
         'src/vite-env.d.ts'

@@ -1,2 +1,2 @@
 export { default as App } from './App.vue'
-export { appTranslationKeys, i18n, setupI18n, setupPinia } from './providers'
+export { appTranslationKeys, i18n, router, setupI18n, setupPinia, setupRouter } from './providers'
