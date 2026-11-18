@@ -1,6 +1,6 @@
 [package]
 name = "judosphere"
-version = "0.1.0"
+version = "0.0.0"
 description = "Offline-first judo competition software for small clubs"
 authors = ["you"]
 edition = "2024"

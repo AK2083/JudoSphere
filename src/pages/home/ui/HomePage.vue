@@ -8,7 +8,7 @@ const { t } = useTranslation()
 </script>
 
 <template>
-  <main class="home">
+  <div class="home">
     <h1 class="text-3xl font-bold underline">
       {{ t(translationKeys.title) }}
     </h1>
@@ -16,7 +16,7 @@ const { t } = useTranslation()
       {{ t(translationKeys.description) }}
     </p>
     <GreetForm />
-  </main>
+  </div>
 </template>
 
 <style scoped>

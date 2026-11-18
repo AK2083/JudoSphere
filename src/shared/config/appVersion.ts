@@ -5,7 +5,7 @@ import packageJson from '../../../package.json'
  * Bump this when releasing a named milestone; keep `package.json` / Tauri / Cargo versions in sync
  * (see CONTRIBUTING “App version & version name”).
  */
-export const APP_VERSION_NAME = 'White Belt'
+export const APP_VERSION_NAME = 'starlight'
 
 /**
  * Semantic version for the shell notch and about/chrome surfaces.

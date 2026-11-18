@@ -57,11 +57,41 @@ Route components — one page per route. The router knows only `@pages/*`.
 
 ## widgets
 
-Standalone UI building blocks without feature affiliation (e.g. `Navigation`).
+**Reusable shell / composition UI** that is not a route page and not a single business use-case. Widgets assemble chrome that several pages (or the app shell) share.
+
+### Prefer a widget when
+
+| Signal                                                                           | Example                                             |
+| -------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Same UI block appears across routes or in the app shell                          | Brand notch, primary navigation, status bar region  |
+| Block has its own interaction + i18n but **no** domain use-case ownership        | Collapse/drag chrome, layout regions                |
+| Putting it in `app/` would bloat the composition root                            | `AppShell` only composes; notch/nav live as widgets |
+| Putting it in a **feature** would invent a fake use-case                         | Navigation is not “the navigate feature”            |
+| Putting it in `shared/ui` would mix product chrome with design-system primitives | Buttons/inputs → `shared/ui`; shell nav → widget    |
+
+### Prefer something else when
+
+| Better home     | When                                                                      |
+| --------------- | ------------------------------------------------------------------------- |
+| `app/`          | One-off composition root wiring (providers, `AppShell` layout frame only) |
+| `pages/`        | Route-level screens                                                       |
+| `features/<…>/` | A named business use-case (forms, flows, domain actions)                  |
+| `shared/ui/`    | Headless/visual primitives reused outside product chrome                  |
+
+### Structure and rules
+
+```
+widgets/<widget-name>/
+  ui/           # Vue + colocated <Name>.stories.ts
+  model/        # composables (split by concern when a file grows)
+  i18n/         # keys.ts, de.ts, en.ts, index.ts when the widget has copy
+  index.ts      # public API — components + i18n exports only
+```
 
 - May use features, entities, and `shared`.
-- Structure: `ui/`, optional `i18n/`, `index.ts`.
-- Each component in `ui/` requires a colocated `<Name>.stories.ts`.
+- Must **not** import `pages` or `app`.
+- Register widget message bundles in `app/providers/i18n`.
+- Keep `app` thin: shell composes widgets; widgets own their chrome behavior.
 
 ## features
 
@@ -121,9 +151,11 @@ Abstraction of **swappable** dependencies. No feature or page logic. Features/wi
 ## Checklist for new files
 
 1. Correct layer and slice chosen?
-2. **app vs. shared:** wiring or swappable abstraction?
-3. Import direction respected (downward only)?
-4. Public API exported via `index.ts`?
-5. Runtime deps go through `@shared/api` (and slice `api/` when in a feature)?
-6. Reusable UI without feature affiliation → `shared/ui/` with Tailwind?
-7. New or changed file in `ui/` → colocated `<Name>.stories.ts` added in the same change?
+2. **Widget vs feature vs shared/ui vs app:** product chrome shared by shell/pages → widget; business use-case → feature; primitive → `shared/ui`; composition root only → `app`?
+3. **app vs. shared:** wiring or swappable abstraction?
+4. Import direction respected (downward only)?
+5. Public API exported via `index.ts`?
+6. Runtime deps go through `@shared/api` (and slice `api/` when in a feature)?
+7. Reusable UI without feature affiliation → `shared/ui/` with Tailwind?
+8. New or changed file in `ui/` → colocated `<Name>.stories.ts` added in the same change?
+9. JSDoc policy respected ([project-overview.md](./project-overview.md))?

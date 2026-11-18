@@ -26,13 +26,23 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 Shell chrome (brand notch) reads a single identity from `@shared/config`:
 
 - **SemVer** — `package.json` `version` (via `appVersion.version`)
-- **Version name** — `APP_VERSION_NAME` in `src/shared/config/appVersion.ts`
+- **Version name** — `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` (current default: `starlight`)
 
 When releasing:
 
 1. Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together
 2. Update `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` when the release gets a new codename
 3. Do not hard-code a second version string in Vue UI
+
+## Icons (Heroicons)
+
+Use [`@heroicons/vue`](https://github.com/tailwindlabs/heroicons) for UI icons in Vue components:
+
+```ts
+import { HomeIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
+```
+
+Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria-hidden="true"`; icon-only controls need a translated `aria-label` / `title` (see app shell nav when collapsed).
 
 ## Available scripts
 
