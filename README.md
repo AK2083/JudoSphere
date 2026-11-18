@@ -30,10 +30,10 @@ Offline-first [Tauri](https://tauri.app/) application for managing **smaller jud
 
 ```bash
 npm install
-npm run tauri dev
+npm run tauri:dev
 ```
 
-Hooks install via `npm install` (`prepare` → `husky`). Other common commands: `npm run storybook`, `npm run typecheck`, `npm run test`.
+Hooks install via `npm install` (`prepare` → `husky`). Other common commands: `npm start` (same as `tauri:dev`), `npm run storybook`, `npm run typecheck`, `npm run test`.
 
 ### Git hooks (Husky)
 

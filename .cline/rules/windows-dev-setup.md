@@ -20,6 +20,6 @@ Do **not** default to deleting `package-lock.json` / all of `node_modules` first
 
 ## Tauri on Windows
 
-For `npm run tauri dev` / builds, follow the official [Tauri Windows prerequisites](https://tauri.app/start/prerequisites/#windows) (MSVC Build Tools, WebView2, Rust).
+For `npm run tauri:dev` / builds, follow the official [Tauri Windows prerequisites](https://tauri.app/start/prerequisites/#windows) (MSVC Build Tools, WebView2, Rust).
 
 This project uses **Tauri**, not Electron — do not suggest Electron binary reinstall steps.
