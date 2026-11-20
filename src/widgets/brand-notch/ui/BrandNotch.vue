@@ -5,6 +5,7 @@ import { useTranslation } from '@shared/api'
 import { appVersion } from '@shared/config'
 
 import { translationKeys } from '../i18n'
+import { NOTCH_BRAND_ID, NOTCH_VERSION_ID } from '../model/constants'
 import { useBrandNotch } from '../model/useBrandNotch'
 
 const { t } = useTranslation()
@@ -39,6 +40,9 @@ function setNotchEl(el: unknown): void {
     }"
     :style="notchPositionStyle"
     role="banner"
+    :aria-label="notchExpanded ? undefined : t(translationKeys.name)"
+    :aria-labelledby="notchExpanded ? NOTCH_BRAND_ID : undefined"
+    :aria-describedby="notchExpanded ? NOTCH_VERSION_ID : undefined"
     @pointerdown="onNotchPointerDown"
     @pointermove="onNotchPointerMove"
     @pointerup="onNotchPointerUp"
@@ -58,12 +62,16 @@ function setNotchEl(el: unknown): void {
       <SparklesIcon class="brand-notch__icon" aria-hidden="true" />
     </button>
 
-    <div :id="NOTCH_DETAILS_ID" class="brand-notch__details">
+    <div
+      :id="NOTCH_DETAILS_ID"
+      class="brand-notch__details"
+      :aria-hidden="isNarrowViewport && !notchOpen ? 'true' : undefined"
+    >
       <div class="brand-notch__details-inner">
-        <p class="brand-notch__brand">
+        <p :id="NOTCH_BRAND_ID" class="brand-notch__brand">
           {{ t(translationKeys.name) }}
         </p>
-        <p class="brand-notch__version">
+        <p :id="NOTCH_VERSION_ID" class="brand-notch__version">
           {{
             t(translationKeys.version, {
               version: appVersion.version,
@@ -78,8 +86,8 @@ function setNotchEl(el: unknown): void {
 
 <style scoped>
 .brand-notch {
-  --brand-notch-border: color-mix(in srgb, currentColor 16%, transparent);
-  --brand-notch-bg: color-mix(in srgb, currentColor 10%, #0f0f0f);
+  --brand-notch-border: color-mix(in srgb, var(--js-color-fg, #000000) 16%, transparent);
+  --brand-notch-bg: color-mix(in srgb, var(--js-color-fg, #000000) 8%, var(--js-color-bg, #ffffff));
 
   position: absolute;
   top: 0;
@@ -96,18 +104,13 @@ function setNotchEl(el: unknown): void {
   border-radius: 0 0 1.15rem 1.15rem;
   background: var(--brand-notch-bg);
   box-shadow: 0 0.35rem 0.85rem color-mix(in srgb, #000 18%, transparent);
+  color: var(--js-color-fg, #000000);
   text-align: center;
   transform: translateX(-50%);
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
   user-select: none;
-}
-
-@media (prefers-color-scheme: light) {
-  .brand-notch {
-    --brand-notch-bg: color-mix(in srgb, currentColor 8%, #f6f6f6);
-  }
 }
 
 .brand-notch--dragging {
@@ -136,6 +139,12 @@ function setNotchEl(el: unknown): void {
 .brand-notch__icon {
   width: 0.85rem;
   height: 0.85rem;
+  color: inherit;
+  stroke: currentColor;
+  fill: none;
+  filter: none;
+  box-shadow: none;
+  text-shadow: none;
 }
 
 .brand-notch__details {
@@ -163,7 +172,7 @@ function setNotchEl(el: unknown): void {
   font-size: 0.7rem;
   line-height: 1.2;
   letter-spacing: 0.02em;
-  opacity: 0.75;
+  color: var(--js-color-fg-muted, currentColor);
 }
 
 @media (max-width: 767px) {

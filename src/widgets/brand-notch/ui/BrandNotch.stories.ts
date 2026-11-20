@@ -7,7 +7,10 @@ const meta = {
   component: BrandNotch,
   tags: ['autodocs'],
   parameters: {
-    layout: 'fullscreen'
+    layout: 'fullscreen',
+    a11y: {
+      test: 'todo'
+    }
   },
   decorators: [
     () => ({
@@ -19,12 +22,23 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Wide: Story = {
+  globals: {
+    locale: 'de',
+    viewport: { value: 'desktop', isRotated: false }
+  }
+}
 
 export const Narrow: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: 'mobile1'
-    }
+  globals: {
+    locale: 'de',
+    viewport: { value: 'mobile1', isRotated: false }
+  }
+}
+
+export const WideEnglish: Story = {
+  globals: {
+    locale: 'en',
+    viewport: { value: 'desktop', isRotated: false }
   }
 }

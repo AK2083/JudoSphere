@@ -33,17 +33,23 @@ function destinationLabel(key: string): string {
           :aria-label="navCollapsed ? destinationLabel(item.key) : undefined"
         >
           <component :is="item.icon" class="app-navigation__icon" aria-hidden="true" />
-          <span class="app-navigation__label">{{ destinationLabel(item.key) }}</span>
+          <span class="app-navigation__label" :aria-hidden="navCollapsed ? 'true' : undefined">
+            {{ destinationLabel(item.key) }}
+          </span>
         </RouterLink>
         <span
           v-else
           class="app-navigation__link app-navigation__link--placeholder"
+          role="link"
           aria-disabled="true"
+          tabindex="-1"
           :title="destinationLabel(item.key)"
           :aria-label="destinationLabel(item.key)"
         >
           <component :is="item.icon" class="app-navigation__icon" aria-hidden="true" />
-          <span class="app-navigation__label">{{ destinationLabel(item.key) }}</span>
+          <span class="app-navigation__label" :aria-hidden="navCollapsed ? 'true' : undefined">
+            {{ destinationLabel(item.key) }}
+          </span>
         </span>
       </li>
     </ul>
@@ -51,12 +57,14 @@ function destinationLabel(key: string): string {
     <div class="app-navigation__footer">
       <span
         class="app-navigation__link app-navigation__link--placeholder"
+        role="link"
         aria-disabled="true"
+        tabindex="-1"
         :title="destinationLabel(settingsDestination.key)"
         :aria-label="destinationLabel(settingsDestination.key)"
       >
         <component :is="settingsDestination.icon" class="app-navigation__icon" aria-hidden="true" />
-        <span class="app-navigation__label">
+        <span class="app-navigation__label" :aria-hidden="navCollapsed ? 'true' : undefined">
           {{ destinationLabel(settingsDestination.key) }}
         </span>
       </span>
@@ -75,7 +83,7 @@ function destinationLabel(key: string): string {
           aria-hidden="true"
         />
         <ChevronDoubleLeftIcon v-else class="app-navigation__icon" aria-hidden="true" />
-        <span class="app-navigation__label">
+        <span class="app-navigation__label" :aria-hidden="navCollapsed ? 'true' : undefined">
           {{ navCollapsed ? t(translationKeys.expand) : t(translationKeys.collapse) }}
         </span>
       </button>
@@ -85,8 +93,8 @@ function destinationLabel(key: string): string {
 
 <style scoped>
 .app-navigation {
-  --app-navigation-border: color-mix(in srgb, currentColor 16%, transparent);
-  --app-navigation-surface: color-mix(in srgb, currentColor 6%, transparent);
+  --app-navigation-border: color-mix(in srgb, var(--js-color-fg, #000000) 16%, transparent);
+  --app-navigation-surface: var(--js-color-surface, #ffffff);
   --app-navigation-width: 14rem;
   --app-navigation-width-collapsed: 3.5rem;
 
@@ -98,6 +106,7 @@ function destinationLabel(key: string): string {
   gap: 0.25rem;
   border-bottom: 1px solid var(--app-navigation-border);
   background: var(--app-navigation-surface);
+  color: var(--js-color-fg, #000000);
 }
 
 .app-navigation__list,
@@ -105,7 +114,7 @@ function destinationLabel(key: string): string {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0.5rem 0.75rem;
   list-style: none;
@@ -124,18 +133,21 @@ function destinationLabel(key: string): string {
 
 .app-navigation__link,
 .app-navigation__toggle {
-  display: inline-flex;
+  --app-navigation-icon-size: 1.25rem;
+
+  display: inline-grid;
+  grid-template-columns: var(--app-navigation-icon-size) minmax(0, auto);
   align-items: center;
-  gap: 0.65rem;
+  column-gap: 0.65rem;
   min-height: 2.25rem;
   padding: 0.4rem 0.7rem;
   border: none;
   border-radius: 0.35rem;
   background: transparent;
-  color: inherit;
+  color: var(--js-color-fg, #000000);
   font: inherit;
+  line-height: 1.25;
   text-decoration: none;
-  opacity: 0.85;
   cursor: pointer;
 }
 
@@ -143,29 +155,41 @@ function destinationLabel(key: string): string {
 .app-navigation__link:focus-visible,
 .app-navigation__toggle:hover,
 .app-navigation__toggle:focus-visible {
-  opacity: 1;
-  outline: 2px solid color-mix(in srgb, currentColor 45%, transparent);
+  color: var(--js-color-fg, #000000);
+  outline: 2px solid color-mix(in srgb, var(--js-color-fg, #000000) 45%, transparent);
   outline-offset: 2px;
 }
 
-.app-navigation__link--active {
-  opacity: 1;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  font-weight: 600;
+.app-navigation__link--active,
+.app-navigation__link.router-link-active {
+  color: var(--js-color-fg, #000000);
+  background: color-mix(in srgb, var(--js-color-fg, #000000) 12%, transparent);
+  font-weight: 700;
 }
 
 .app-navigation__link--placeholder {
-  opacity: 0.55;
-  cursor: default;
+  color: var(--js-color-fg, #000000);
+  cursor: pointer;
 }
 
 .app-navigation__icon {
-  flex: 0 0 auto;
-  width: 1.25rem;
-  height: 1.25rem;
+  display: block;
+  width: var(--app-navigation-icon-size);
+  height: var(--app-navigation-icon-size);
+  justify-self: center;
+  translate: 0 -0.0625rem;
+  color: inherit;
+  stroke: currentColor;
+  fill: none;
+  filter: none;
+  box-shadow: none;
+  text-shadow: none;
 }
 
 .app-navigation__label {
+  display: block;
+  margin: 0;
+  line-height: var(--app-navigation-icon-size);
   white-space: nowrap;
 }
 
@@ -195,6 +219,7 @@ function destinationLabel(key: string): string {
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
+    gap: 0.65rem;
     padding: 0.75rem;
   }
 
@@ -213,12 +238,22 @@ function destinationLabel(key: string): string {
   .app-navigation__link,
   .app-navigation__toggle {
     width: 100%;
-    justify-content: flex-start;
+    justify-items: start;
+  }
+
+  .app-navigation__list > li {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .app-navigation__list > li > .app-navigation__link {
+    flex: 1 1 auto;
   }
 
   .app-navigation--collapsed .app-navigation__link,
   .app-navigation--collapsed .app-navigation__toggle {
-    justify-content: center;
+    grid-template-columns: 1fr;
+    justify-items: center;
     padding-inline: 0.5rem;
   }
 

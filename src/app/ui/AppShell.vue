@@ -24,16 +24,16 @@ import { AppNavigation, BrandNotch } from '@widgets'
 
 <style scoped>
 .app-shell {
-  --app-shell-border: color-mix(in srgb, currentColor 16%, transparent);
-  --app-shell-surface: color-mix(in srgb, currentColor 6%, transparent);
+  --app-shell-border: color-mix(in srgb, var(--js-color-fg, #000000) 16%, transparent);
+  --app-shell-surface: var(--js-color-surface, #ffffff);
   --app-shell-notch-clearance: 4.5rem;
 
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  background: inherit;
-  color: inherit;
+  background: var(--js-color-bg, #f6f6f6);
+  color: var(--js-color-fg, #000000);
 }
 
 @media (max-width: 767px) {
