@@ -131,7 +131,7 @@ The Vue frontend follows [Feature-Sliced Design](https://feature-sliced.design/)
 
 1. Create a slice under `src/features/<feature>/` (or a use-case folder inside it).
 2. Export only through `index.ts`.
-3. Use `@shared/api` for Vue/Tauri and other runtime dependencies.
+3. Use `@shared/api` for Tauri/Pinia/i18n and other host runtime dependencies; import `vue` and `vue-router` directly.
 4. Import via aliases (`@features/...`, `@shared/...`), not deep relative paths across layers.
 
 ### Adding a Tauri slice

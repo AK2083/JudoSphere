@@ -34,7 +34,7 @@ Implement features and host logic following **SOLID**. Prefer small, focused uni
 
 ## D — Dependency Inversion
 
-- High-level policy depends on abstractions: features use slice `api/` → `@shared/api` → Tauri/Vue — never import SDKs deep in UI or domain.
+- High-level policy depends on abstractions: features use slice `api/` → `@shared/api` → Tauri (and similar) — never import host SDKs deep in UI or domain. Vue and vue-router may be imported directly.
 - Host domain logic does not depend on Vue or HTTP details; adapters (commands, routes) depend on domain.
 - Invert ownership: shared kernels stay free of feature knowledge; features depend inward/downward per FSD and VSA rules.
 

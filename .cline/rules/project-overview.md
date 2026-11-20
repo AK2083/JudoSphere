@@ -40,7 +40,7 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 - **Desktop / host:** Tauri 2 + Rust vertical slices under `src-tauri/src/slices/`
 - **Design:** follow **SOLID** for all feature and host work ([solid-principles.md](./solid-principles.md))
 - **Offline-first:** local use must work without cloud or internet
-- **Dependency access:** runtime deps only via `@shared/api` facades
+- **Dependency access:** host/runtime deps (Tauri, Pinia, i18n, …) via `@shared/api` facades; **Vue** and **vue-router** import directly
 - **Docs/comments:** English only. See JSDoc policy below; barrel `index.ts` exposes public APIs
 
 ## JSDoc and comments

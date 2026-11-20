@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { RouterView } from '@shared/api'
+import { RouterView } from 'vue-router'
+
 import { AppNavigation, BrandNotch } from '@widgets'
 </script>
 

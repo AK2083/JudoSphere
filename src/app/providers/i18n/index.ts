@@ -1,6 +1,8 @@
+import type { App } from 'vue'
+
 import { greetDe, greetEn } from '@features/greet'
 import { homeDe, homeEn } from '@pages/home'
-import { type App, createI18n } from '@shared/api'
+import { createI18n } from '@shared/api'
 import { FallbackLanguage, sharedDe, sharedEn } from '@shared/lib'
 import { appNavigationDe, appNavigationEn, brandNotchDe, brandNotchEn } from '@widgets'
 

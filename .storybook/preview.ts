@@ -1,8 +1,10 @@
 import { type Preview, setup } from '@storybook/vue3-vite'
 import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 
+import { createMemoryHistory, createRouter } from 'vue-router'
+
 import { i18n } from '@app/providers'
-import { createMemoryHistory, createPinia, createRouter } from '@shared/api'
+import { createPinia } from '@shared/api'
 import { FallbackLanguage } from '@shared/lib'
 
 import '@app/styles.css'

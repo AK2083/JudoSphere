@@ -1,4 +1,6 @@
-import { type App, createPinia } from '@shared/api'
+import type { App } from 'vue'
+
+import { createPinia } from '@shared/api'
 
 /**
  * Registers Pinia on the Vue application composition root.

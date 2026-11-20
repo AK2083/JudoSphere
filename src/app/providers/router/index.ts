@@ -1,5 +1,7 @@
+import type { App } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
+
 import { HomePage } from '@pages/home'
-import { type App, createRouter, createWebHistory } from '@shared/api'
 
 /**
  * Root Vue Router instance. Routes import page components from `@pages/*` only.

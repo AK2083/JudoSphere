@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/vue/24/outline'
 
-import { RouterLink, useTranslation } from '@shared/api'
+import { useTranslation } from '@shared/api'
 
 import { translationKeys } from '../i18n'
 import { useAppNavigation } from '../model/useAppNavigation'

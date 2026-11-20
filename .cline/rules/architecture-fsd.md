@@ -31,7 +31,7 @@ Classify new dependencies by **role**, not technology:
 **Rules of thumb:**
 
 - Render framework and global providers (app shell) → `app/` / `app/providers/` — configure directly, do not abstract.
-- Vendor/infrastructure clients (Tauri bridge, storage, …) → `shared/` — wrap behind a public API (especially `@shared/api`).
+- Vendor/infrastructure clients (Tauri bridge, storage, …) → `shared/` — wrap behind a public API (especially `@shared/api`). **Vue** and **vue-router** are imported directly (not via `@shared/api`).
 - Thin helpers **built on** the framework that features use everywhere → `shared/lib/` (setup stays in `app`).
 - Design-system primitives (Tailwind-based) → `shared/ui/`.
 
@@ -110,9 +110,9 @@ features/<feature>/<slice>/
   index.ts     # public API — export only here
 ```
 
-**API layering:** Generic host/client access lives in `shared/api/` (Vue, Tauri, …). Each slice that needs such access gets its own `api/` folder with **use-case-specific** functions that call `@shared/api`.
+**API layering:** Generic host/client access lives in `shared/api/` (Tauri, Pinia, i18n, … — not Vue/vue-router). Each slice that needs such access gets its own `api/` folder with **use-case-specific** functions that call `@shared/api`.
 
-- `model/` and `service/` import **only** from the slice `api/`, never directly from `@shared/api`.
+- `model/` and `service/` import **only** from the slice `api/`, never directly from `@shared/api` (Vue/`vue-router` stay direct imports where needed).
 - Slices import `entities` and `shared`; they may use other slices **of the same** feature, but **not** other features, pages, or widgets.
 
 ## entities
@@ -124,20 +124,20 @@ Domain entities (match, athlete, club, …) without use-case orchestration.
 
 ## shared
 
-Abstraction of **swappable** dependencies. No feature or page logic. Features/widgets import only the public API — never the SDK directly.
+Abstraction of **swappable** host/runtime dependencies. No feature or page logic. Features/widgets use `@shared/api` for those facades; import `vue` / `vue-router` directly.
 
-| Segment                       | Level     | Content                                   |
-| ----------------------------- | --------- | ----------------------------------------- |
-| `api/`                        | Low-level | Dependency facades (Vue, Tauri invoke, …) |
-| `lib/`                        | Low-level | Technical helpers                         |
-| `ui/`                         | —         | Tailwind design-system primitives         |
-| `config/`                     | —         | Frontend configuration                    |
-| `model/`, `types/`, `errors/` | —         | Shared types/errors when needed           |
+| Segment                       | Level     | Content                                           |
+| ----------------------------- | --------- | ------------------------------------------------- |
+| `api/`                        | Low-level | Dependency facades (Tauri invoke, Pinia, i18n, …) |
+| `lib/`                        | Low-level | Technical helpers                                 |
+| `ui/`                         | —         | Tailwind design-system primitives                 |
+| `config/`                     | —         | Frontend configuration                            |
+| `model/`, `types/`, `errors/` | —         | Shared types/errors when needed                   |
 
-- Vue/Vue Router/Pinia/vue-i18n/Tauri/runtime SDKs are imported **only** inside `shared/api`.
+- Pinia/vue-i18n/Tauri/runtime SDKs are imported **only** inside `shared/api`. **Vue** and **vue-router** are imported directly.
 - Pinia wiring lives in `app/providers/pinia/`; stores are defined in feature/entity `model/` via `defineStore` from `@shared/api`.
 - i18n wiring lives in `app/providers/i18n/` (aggregates feature/page/shared message bundles + root `de.ts` / `en.ts`).
-- Vue Router wiring lives in `app/providers/router/`; routes import `@pages/*` only; use `useRouter` / `useRoute` / `RouterLink` / `RouterView` from `@shared/api`.
+- Vue Router wiring lives in `app/providers/router/`; routes import `@pages/*` only; use `useRouter` / `useRoute` / `RouterLink` / `RouterView` from `vue-router`.
 - Slice/page copy: `i18n/keys.ts` + `de.ts` / `en.ts`; UI calls `useTranslation()` from `@shared/api` with key objects (swappable library behind the facade).
 - Nested features (e.g. `features/authentication/<slice>/`) keep per-slice `i18n/` and may roll up into a feature-level `i18n/` bundle for the provider.
 - Design-system components without feature affiliation → `shared/ui/` (Tailwind).
@@ -155,7 +155,7 @@ Abstraction of **swappable** dependencies. No feature or page logic. Features/wi
 3. **app vs. shared:** wiring or swappable abstraction?
 4. Import direction respected (downward only)?
 5. Public API exported via `index.ts`?
-6. Runtime deps go through `@shared/api` (and slice `api/` when in a feature)?
+6. Host/runtime deps go through `@shared/api` (and slice `api/` when in a feature); Vue/vue-router imported directly?
 7. Reusable UI without feature affiliation → `shared/ui/` with Tailwind?
 8. New or changed file in `ui/` → colocated `<Name>.stories.ts` added in the same change?
 9. JSDoc policy respected ([project-overview.md](./project-overview.md))?
