@@ -35,7 +35,7 @@ describe('useAppNavigation', () => {
 
     expect(api.primaryDestinations).toHaveLength(3)
     expect(api.primaryDestinations[0]?.to).toBe('/')
-    expect(api.settingsDestination.to).toBeNull()
+    expect(api.settingsDestination.to).toBe('/settings')
     expect(api.navCollapsed.value).toBe(false)
 
     wrapper.unmount()

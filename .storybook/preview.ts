@@ -22,6 +22,13 @@ setup((app) => {
           component: {
             template: '<div class="story-shell-main">Shell main content</div>'
           }
+        },
+        {
+          path: '/settings',
+          name: 'settings',
+          component: {
+            template: '<div class="story-shell-main">Settings</div>'
+          }
         }
       ]
     })
