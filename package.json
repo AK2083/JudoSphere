@@ -1,7 +1,7 @@
 {
   "name": "judosphere",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Offline-first judo competition software for small clubs and tournaments",
   "type": "module",
   "scripts": {
@@ -9,6 +9,9 @@
     "build": "vue-tsc --build && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "start": "tauri dev",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "vue-tsc --build --noEmit",
@@ -22,6 +25,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "pinia": "^4.1.0",

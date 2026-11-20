@@ -40,8 +40,18 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 - **Desktop / host:** Tauri 2 + Rust vertical slices under `src-tauri/src/slices/`
 - **Design:** follow **SOLID** for all feature and host work ([solid-principles.md](./solid-principles.md))
 - **Offline-first:** local use must work without cloud or internet
-- **Dependency access:** runtime deps only via `@shared/api` facades
-- **Docs/comments:** English; JSDoc only on exported functions/variables; barrel `index.ts` public APIs
+- **Dependency access:** host/runtime deps (Tauri, Pinia, i18n, …) via `@shared/api` facades; **Vue** and **vue-router** import directly
+- **Docs/comments:** English only. See JSDoc policy below; barrel `index.ts` exposes public APIs
+
+## JSDoc and comments
+
+- **Language:** English.
+- **Exported functions / types / default exports:** require JSDoc (`@param` / `@returns` where applicable). Aligns with ESLint `jsdoc/require-jsdoc` (`publicOnly`).
+- **Constants:** every `const` that names a fixed value (storage keys, media queries, thresholds, DOM ids, magic numbers) gets a short JSDoc describing purpose — including **module-private** constants.
+- **Do not JSDoc:** non-exported functions, local variables/`let`/`ref` state, or inline narration of obvious code.
+- **Do not leave:** `//` or block comments that only restate the next line, TODOs-as-noise, or “ignore error” catch notes. Prefer empty `catch` blocks when ignoring is intentional.
+- **Vue SFCs:** same rules in `<script setup>` — no JSDoc on local helpers; no comments in `<template>`.
+- **CSS / `<style>`:** no comments at all (`/* … */` or `//`) in `.css` files or SFC `<style>` blocks — neither narration nor “contract” notes.
 
 ## Data storage and sync
 

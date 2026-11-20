@@ -6,6 +6,7 @@
     "vadimcn.vscode-lldb",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "storybook.storybook-vscode"
+    "storybook.storybook-vscode",
+    "bradlc.vscode-tailwindcss"
   ]
 }

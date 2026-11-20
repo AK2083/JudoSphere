@@ -1,6 +1,5 @@
+import type { Ref } from 'vue'
 import { type Composer, createI18n as createVueI18n, type I18n, useI18n } from 'vue-i18n'
-
-import type { Ref } from './vue'
 
 /**
  * Creates a vue-i18n instance for app / Storybook provider wiring.

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from '@shared/api'
+import { computed } from 'vue'
 
 import './button.css'
 

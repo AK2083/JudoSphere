@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { greet, ref, useTranslation } from '@shared/api'
+import { ref } from 'vue'
+
+import { greet, useTranslation } from '@shared/api'
 
 import translationKeys from '../i18n/keys'
 

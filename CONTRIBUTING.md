@@ -12,19 +12,44 @@ Thank you for your interest in contributing. This guide covers the development w
 
 ```bash
 npm install
-npm run tauri dev
+npm run tauri:dev
 ```
 
-`npm run tauri dev` starts the Vite frontend and the Tauri host application.
+`npm run tauri:dev` (alias: `npm start`) starts the Vite frontend and the Tauri host application. In Cursor/VS Code use task **tauri:dev** (default build task).
 
 For isolated UI work, run `npm run storybook`. For frontend-only Vite, run `npm run dev`.
 
 See the [README](README.md) for the product overview and [docs/architecture.md](docs/architecture.md) for folder layout.
 
+## App version & version name
+
+Shell chrome (brand notch) reads a single identity from `@shared/config`:
+
+- **SemVer** — `package.json` `version` (via `appVersion.version`)
+- **Version name** — `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` (current default: `starlight`)
+
+When releasing:
+
+1. Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together
+2. Update `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` when the release gets a new codename
+3. Do not hard-code a second version string in Vue UI
+
+## Icons (Heroicons)
+
+Use [`@heroicons/vue`](https://github.com/tailwindlabs/heroicons) for UI icons in Vue components:
+
+```ts
+import { HomeIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
+```
+
+Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria-hidden="true"`; icon-only controls need a translated `aria-label` / `title` (see app shell nav when collapsed).
+
 ## Available scripts
 
 - `npm run dev` — Vite frontend only
-- `npm run tauri` / `npm run tauri dev` — Tauri CLI / full host app
+- `npm run tauri:dev` / `npm start` — full Tauri host + Vite (`beforeDevCommand`)
+- `npm run tauri:build` — Tauri production bundle
+- `npm run tauri` — Tauri CLI passthrough (e.g. `npm run tauri -- info`)
 - `npm run build` — typecheck + frontend production build
 - `npm run preview` — preview the frontend production build
 - `npm run lint` — ESLint
@@ -106,7 +131,7 @@ The Vue frontend follows [Feature-Sliced Design](https://feature-sliced.design/)
 
 1. Create a slice under `src/features/<feature>/` (or a use-case folder inside it).
 2. Export only through `index.ts`.
-3. Use `@shared/api` for Vue/Tauri and other runtime dependencies.
+3. Use `@shared/api` for Tauri/Pinia/i18n and other host runtime dependencies; import `vue` and `vue-router` directly.
 4. Import via aliases (`@features/...`, `@shared/...`), not deep relative paths across layers.
 
 ### Adding a Tauri slice
@@ -141,7 +166,7 @@ Configs live in `.vscode/launch.json` and `.vscode/tasks.json`. Install recommen
 
 **Vue breakpoints with Safari (recommended on your Mac):**
 
-1. Start **Tauri: Debug Rust (dev)** or `npm run tauri dev` / `npm run dev`.
+1. Start **Tauri: Debug Rust (dev)**, task **tauri:dev**, or `npm run tauri:dev` / `npm run dev`.
 2. Safari → Settings → Advanced → enable **Show features for web developers**.
 3. **Develop → [your Mac] →** the Vite page or **judosphere** WebView.
 4. In Web Inspector → **Sources**: open your `.vue` / `.ts` and set breakpoints there.
