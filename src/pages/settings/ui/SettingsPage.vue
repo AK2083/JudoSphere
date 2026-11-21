@@ -104,17 +104,18 @@ function onLanguageChange(event: Event): void {
   --settings-copy-gap: 0.35rem;
   --settings-icon-size: 1.25rem;
   --settings-hit: 2.5rem;
-  --settings-control-width: 22.5rem;
+  --settings-control-width: 22rem;
   --settings-border: color-mix(in srgb, var(--js-color-fg, #000000) 24%, transparent);
   --settings-border-strong: color-mix(in srgb, var(--js-color-fg, #000000) 40%, transparent);
   --settings-active-bg: color-mix(in srgb, var(--js-color-fg, #000000) 12%, transparent);
 
   container-type: inline-size;
   container-name: settings-page;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--settings-row-gap);
-  max-width: 52rem;
+  width: 100%;
   padding: 1rem;
 }
 
@@ -183,10 +184,11 @@ function onLanguageChange(event: Event): void {
 
 .settings-page__theme-group {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: stretch;
   box-sizing: border-box;
   width: 100%;
+  height: var(--settings-hit);
   border: 1px solid var(--settings-border);
   border-radius: 0.35rem;
   overflow: hidden;
@@ -195,15 +197,16 @@ function onLanguageChange(event: Event): void {
 
 .settings-page__theme-button {
   display: inline-grid;
-  flex: 1 1 0;
+  flex: 1 1 6.5rem;
   grid-template-columns: var(--settings-icon-size) minmax(0, auto);
   justify-content: center;
   justify-items: center;
   align-items: center;
   column-gap: 0.65rem;
   min-width: 0;
-  min-height: var(--settings-hit);
-  padding: 0 0.85rem;
+  min-height: 0;
+  height: 100%;
+  padding: 0 0.75rem;
   border: none;
   border-right: 1px solid var(--settings-border);
   border-radius: 0;
@@ -240,19 +243,45 @@ function onLanguageChange(event: Event): void {
 }
 
 .settings-page__theme-label {
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  text-align: start;
 }
 
 .settings-page__control {
   box-sizing: border-box;
   width: 100%;
+  height: var(--settings-hit);
   min-height: var(--settings-hit);
-  padding: 0.4rem 0.65rem;
+  padding-block: 0;
+  padding-inline: 0.65rem;
   border: 1px solid var(--settings-border);
   border-radius: 0.35rem;
   background: var(--js-color-surface, #ffffff);
   color: var(--js-color-fg, #000000);
   font: inherit;
+  line-height: calc(var(--settings-hit) - 2px);
+  cursor: pointer;
+}
+
+@container settings-page (max-width: 24rem) {
+  .settings-page__theme-group {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .settings-page__theme-button {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: var(--settings-hit);
+    height: auto;
+    justify-items: start;
+    border-right: none;
+    border-bottom: 1px solid var(--settings-border);
+  }
+
+  .settings-page__theme-button:last-child {
+    border-bottom: none;
+  }
 }
 
 @container settings-page (min-width: 46rem) {
@@ -271,8 +300,17 @@ function onLanguageChange(event: Event): void {
     width: var(--settings-control-width);
   }
 
+  .settings-page__theme-group {
+    flex-wrap: nowrap;
+  }
+
   .settings-page__theme-button {
-    justify-items: start;
+    flex: 1 1 0;
+    padding-inline: 0.85rem;
+  }
+
+  .settings-page__theme-label {
+    white-space: nowrap;
   }
 }
 </style>

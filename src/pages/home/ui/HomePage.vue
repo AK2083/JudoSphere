@@ -21,7 +21,9 @@ const { t } = useTranslation()
 
 <style scoped>
 .home {
+  box-sizing: border-box;
   margin: 0;
+  width: 100%;
   padding: 10vh 1.5rem 2rem;
   display: flex;
   flex-direction: column;
