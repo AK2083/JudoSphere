@@ -72,7 +72,12 @@ export function loadAppPreferences(): AppPreferences {
  */
 export function saveAppPreferences(preferences: AppPreferences): boolean {
   try {
-    globalThis.localStorage?.setItem(APP_PREFERENCES_STORAGE_KEY, JSON.stringify(preferences))
+    const storage = globalThis.localStorage
+    if (!storage) {
+      return false
+    }
+
+    storage.setItem(APP_PREFERENCES_STORAGE_KEY, JSON.stringify(preferences))
 
     return true
   } catch {

@@ -14,13 +14,18 @@ import {
 import translationKeys from '../i18n/keys'
 
 /**
- *
+ * Theme control option with i18n label key and Heroicon component.
  */
 export type ThemeOption = {
   value: ThemePreference
   labelKey: string
   icon: Component
 }
+
+/**
+ * Visible persist feedback after a settings write attempt.
+ */
+export type SettingsPersistFeedback = 'idle' | 'success' | 'error'
 
 const THEME_OPTIONS: readonly ThemeOption[] = [
   {
@@ -42,8 +47,9 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
 
 /**
  * Settings screen bindings for theme and language preferences.
- * Loads the shared `localStorage` bag, reflects it in controls, and applies live UI updates.
- * @returns Reactive preferences, option lists, and setters used by `SettingsPage`
+ * Loads the shared `localStorage` bag, reflects it in controls, applies live UI updates,
+ * and exposes success/failure feedback for persist attempts.
+ * @returns Reactive preferences, option lists, persist feedback, and setters used by `SettingsPage`
  */
 export function useSettingsPreferences() {
   const { locale } = useTranslation()
@@ -51,15 +57,19 @@ export function useSettingsPreferences() {
 
   const theme = ref<ThemePreference>(stored.theme)
   const language = ref<LanguageCode>(stored.language)
+  const persistFeedback = ref<SettingsPersistFeedback>('idle')
 
   applyThemePreference(theme.value)
   locale.value = language.value
 
-  function persist(): void {
-    saveAppPreferences({
+  function persist(): boolean {
+    const saved = saveAppPreferences({
       theme: theme.value,
       language: language.value
     })
+    persistFeedback.value = saved ? 'success' : 'error'
+
+    return saved
   }
 
   function setTheme(next: ThemePreference): void {
@@ -77,6 +87,7 @@ export function useSettingsPreferences() {
   return {
     theme,
     language,
+    persistFeedback,
     themeOptions: THEME_OPTIONS,
     languageOptions: AvailableLanguages,
     setTheme,

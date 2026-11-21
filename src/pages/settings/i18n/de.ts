@@ -10,5 +10,7 @@ export default {
   themeDark: 'Dunkel',
   themeSystem: 'System',
   languageLabel: 'Sprache',
-  languageHelp: 'Sprache der Benutzeroberfläche auf diesem Gerät.'
+  languageHelp: 'Sprache der Benutzeroberfläche auf diesem Gerät.',
+  saveSuccess: 'Einstellung auf diesem Gerät gespeichert.',
+  saveError: 'Speichern fehlgeschlagen. Die Änderung gilt nur in dieser Sitzung.'
 }

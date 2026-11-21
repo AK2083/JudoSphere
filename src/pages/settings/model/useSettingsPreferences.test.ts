@@ -52,6 +52,7 @@ describe('useSettingsPreferences', () => {
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
     localStorage.clear()
     document.documentElement.removeAttribute('data-color-scheme')
@@ -76,11 +77,14 @@ describe('useSettingsPreferences', () => {
   it('updates live theme and persists the shared bag', async () => {
     const { api, wrapper } = mountPreferences()
 
+    expect(api.persistFeedback.value).toBe('idle')
+
     api.setTheme(ThemePreference.Light)
     await nextTick()
 
     expect(api.theme.value).toBe(ThemePreference.Light)
     expect(document.documentElement.getAttribute('data-color-scheme')).toBe('light')
+    expect(api.persistFeedback.value).toBe('success')
     expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '{}')).toMatchObject({
       theme: ThemePreference.Light
     })
@@ -96,9 +100,49 @@ describe('useSettingsPreferences', () => {
 
     expect(api.language.value).toBe(LanguageCode.DE)
     expect(localeRef.value).toBe(LanguageCode.DE)
+    expect(api.persistFeedback.value).toBe('success')
     expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '{}')).toMatchObject({
       language: LanguageCode.DE
     })
+
+    wrapper.unmount()
+  })
+
+  it('keeps values after remount from stored preferences', () => {
+    const first = mountPreferences()
+    first.api.setTheme(ThemePreference.Dark)
+    first.api.setLanguage(LanguageCode.DE)
+    first.wrapper.unmount()
+
+    const second = mountPreferences()
+
+    expect(second.api.theme.value).toBe(ThemePreference.Dark)
+    expect(second.api.language.value).toBe(LanguageCode.DE)
+    expect(document.documentElement.getAttribute('data-color-scheme')).toBe('dark')
+    expect(localeRef.value).toBe(LanguageCode.DE)
+
+    second.wrapper.unmount()
+  })
+
+  it('shows error feedback when storage write fails', async () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => JSON.stringify({ theme: ThemePreference.System, language: LanguageCode.EN }),
+      setItem: () => {
+        throw new Error('quota')
+      },
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 0
+    })
+
+    const { api, wrapper } = mountPreferences()
+
+    api.setTheme(ThemePreference.Light)
+    await nextTick()
+
+    expect(api.theme.value).toBe(ThemePreference.Light)
+    expect(api.persistFeedback.value).toBe('error')
 
     wrapper.unmount()
   })

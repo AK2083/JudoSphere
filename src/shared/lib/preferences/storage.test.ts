@@ -69,4 +69,10 @@ describe('app preferences storage', () => {
 
     expect(saveAppPreferences(DEFAULT_APP_PREFERENCES)).toBe(false)
   })
+
+  it('reports failure when localStorage is unavailable', () => {
+    vi.stubGlobal('localStorage', undefined)
+
+    expect(saveAppPreferences(DEFAULT_APP_PREFERENCES)).toBe(false)
+  })
 })

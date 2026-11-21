@@ -6,7 +6,7 @@ import translationKeys from '../i18n/keys'
 import { useSettingsPreferences } from '../model/useSettingsPreferences'
 
 const { t } = useTranslation()
-const { theme, language, themeOptions, languageOptions, setTheme, setLanguage } =
+const { theme, language, persistFeedback, themeOptions, languageOptions, setTheme, setLanguage } =
   useSettingsPreferences()
 
 function onLanguageChange(event: Event): void {
@@ -21,6 +21,23 @@ function onLanguageChange(event: Event): void {
       <h1>{{ t(translationKeys.title) }}</h1>
       <p>{{ t(translationKeys.description) }}</p>
     </header>
+
+    <p
+      v-if="persistFeedback === 'success'"
+      class="settings-page__feedback settings-page__feedback--success"
+      role="status"
+      aria-live="polite"
+    >
+      {{ t(translationKeys.saveSuccess) }}
+    </p>
+    <p
+      v-else-if="persistFeedback === 'error'"
+      class="settings-page__feedback settings-page__feedback--error"
+      role="alert"
+      aria-live="assertive"
+    >
+      {{ t(translationKeys.saveError) }}
+    </p>
 
     <form class="settings-page__form" @submit.prevent>
       <div class="settings-page__row">
@@ -117,6 +134,24 @@ function onLanguageChange(event: Event): void {
 .settings-page__help {
   margin: 0;
   color: var(--js-color-fg-muted, #0a0a0a);
+}
+
+.settings-page__feedback {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--settings-border);
+  line-height: 1.35;
+}
+
+.settings-page__feedback--success {
+  background: color-mix(in srgb, #1f7a3f 14%, var(--js-color-surface, #ffffff));
+  border-color: color-mix(in srgb, #1f7a3f 45%, var(--settings-border));
+}
+
+.settings-page__feedback--error {
+  background: color-mix(in srgb, #b42318 12%, var(--js-color-surface, #ffffff));
+  border-color: color-mix(in srgb, #b42318 45%, var(--settings-border));
 }
 
 .settings-page__form {

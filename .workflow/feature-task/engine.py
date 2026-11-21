@@ -32,7 +32,7 @@ When implementing that Feature:
 
 0. **Ensure Tasks exist** for the Feature id from the branch (GitHub Task sub-issues in build order). If none exist yet, **create them first** before writing product code — follow the project skill `create-feature-tasks` (hook = when/why; skill = how).
 1. Load the Feature and its Task sub-issues (order = ascending issue number).
-2. Work on **exactly one** Task at a time: the first open / not-done Task.
+2. Work on **exactly one** Task at a time: the first open / not-done Task. Starting it sets project status to **In progress**.
 3. Implement only that Task’s acceptance criteria. Do not start the next Task in the same turn.
 4. **Do not create a git commit on your own.** Stop and ask the user to review the diff.
 5. Only after the user has reviewed and explicitly asks to commit, create the commit (include `Refs #<task>` in the message).
@@ -64,7 +64,11 @@ def load_config() -> dict[str, Any]:
         "taskTitlePrefix": "Task:",
         "defaultAssignee": None,
         "projectTitle": None,
+        "projectStatusFieldName": "Status",
+        "inProgressStatusName": "In progress",
+        "doneStatusName": "Done",
         "branchPattern": r"^feature/(?P<number>\d+)-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$",
+        "inProgressStatusId": None,
         "doneStatusId": None,
         "closeTaskOnDone": True,
         "requireCommitApproval": True,
@@ -109,6 +113,14 @@ def log(message: str) -> None:
 
 def load_state() -> dict[str, Any]:
     return read_json(state_path())
+
+
+def _coerce_issue_number(value: Any) -> int | None:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return None
 
 
 def save_state(data: dict[str, Any]) -> None:
@@ -312,15 +324,15 @@ def resolve_active_task_number(commit_message: str | None = None) -> int | None:
 def set_feature_context(feature_number: int) -> dict[str, Any]:
     """Bind runtime state to a Feature. Feature-specific; not required for hook install."""
     existing = load_state()
+    previous_active = _coerce_issue_number(existing.get("activeTaskIssue"))
+
     task = next_open_task(feature_number)
     state: dict[str, Any] = {
         "featureIssue": feature_number,
         "allowCommit": bool(existing.get("allowCommit")),
     }
     if task:
-        state["activeTaskIssue"] = int(task["number"])
-        state["activeTaskTitle"] = task.get("title")
-        state["activeTaskUrl"] = task.get("url")
+        state.update(activate_task(task, previous_active=previous_active))
     else:
         state["activeTaskIssue"] = None
         state["activeTaskTitle"] = None
@@ -331,7 +343,8 @@ def set_feature_context(feature_number: int) -> dict[str, Any]:
 
 def build_next_task_context(feature_number: int | None = None) -> str:
     branch = current_branch()
-    feature = resolve_feature_number(feature_number, bind=True)
+    # Do not bind via set_feature_context here — activation (incl. In progress) happens below once.
+    feature = resolve_feature_number(feature_number, bind=False)
     lines = [WORKFLOW_CONTEXT.strip(), ""]
     lines.append(f"Current branch: `{branch or '(unknown)'}`")
     if branch and parse_feature_from_branch(branch) is None and not branch.startswith(
@@ -370,20 +383,26 @@ def build_next_task_context(feature_number: int | None = None) -> str:
         lines.append(f"- #{task.get('number')} [{marker}] {task.get('title')}")
 
     existing = load_state()
+    previous_active = _coerce_issue_number(existing.get("activeTaskIssue"))
+
     if open_tasks:
         nxt = open_tasks[0]
+        nxt_number = int(nxt["number"])
+        activated = activate_task(nxt, previous_active=previous_active)
         lines.append("")
         lines.append(
-            f"**Implement next: #{nxt.get('number')} — {nxt.get('title')}** "
+            f"**Implement next: #{nxt_number} — {nxt.get('title')}** "
             f"({nxt.get('url')}). Stop after this Task for user review; do not commit alone."
         )
+        if previous_active != nxt_number:
+            lines.append(
+                f"Project status for #{nxt_number} set to **{cfg_status_label('inProgress')}**."
+            )
         save_state(
             {
                 "featureIssue": feature,
-                "activeTaskIssue": int(nxt["number"]),
-                "activeTaskTitle": nxt.get("title"),
-                "activeTaskUrl": nxt.get("url"),
                 "allowCommit": bool(existing.get("allowCommit")),
+                **activated,
             }
         )
     else:
@@ -495,66 +514,329 @@ def is_valid_feature_branch(name: str, cfg: dict[str, Any] | None = None) -> boo
     return parse_feature_from_branch(name, cfg) is not None
 
 
+def gh_graphql(query: str, variables: dict[str, Any] | None = None, timeout: int = 45) -> dict[str, Any]:
+    payload = {"query": query, "variables": variables or {}}
+    proc = subprocess.run(
+        ["gh", "api", "graphql", "--input", "-"],
+        cwd=str(REPO_ROOT),
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        timeout=timeout,
+        check=False,
+    )
+    if proc.returncode != 0:
+        log(f"gh graphql failed: {proc.stderr.strip() or proc.stdout.strip()}")
+        return {"errors": [{"message": proc.stderr.strip() or proc.stdout.strip() or "graphql failed"}]}
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {"errors": [{"message": "invalid graphql json"}]}
+
+
+def fetch_issue_node_id(task_number: int, cfg: dict[str, Any] | None = None) -> str | None:
+    cfg = cfg or load_config()
+    try:
+        owner, name = owner_repo(cfg).split("/", 1)
+    except RuntimeError:
+        return None
+    data = gh_graphql(
+        """
+        query($owner:String!, $name:String!, $number:Int!) {
+          repository(owner:$owner, name:$name) {
+            issue(number:$number) { id }
+          }
+        }
+        """,
+        {"owner": owner, "name": name, "number": int(task_number)},
+    )
+    try:
+        return data["data"]["repository"]["issue"]["id"]
+    except (KeyError, TypeError):
+        return None
+
+
+def resolve_project_v2(cfg: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    """Resolve configured Projects V2 board by title (user + repository scopes)."""
+    cfg = cfg or load_config()
+    title = str(cfg.get("projectTitle") or "").strip()
+    if not title:
+        return None
+    try:
+        owner, name = owner_repo(cfg).split("/", 1)
+    except RuntimeError as exc:
+        log(str(exc))
+        return None
+
+    data = gh_graphql(
+        """
+        query($owner:String!, $name:String!, $login:String!) {
+          repository(owner:$owner, name:$name) {
+            projectsV2(first:20) { nodes { id title number } }
+          }
+          user(login:$login) {
+            projectsV2(first:20) { nodes { id title number } }
+          }
+        }
+        """,
+        {"owner": owner, "name": name, "login": owner},
+    )
+    nodes: list[dict[str, Any]] = []
+    try:
+        nodes.extend((((data.get("data") or {}).get("repository") or {}).get("projectsV2") or {}).get("nodes") or [])
+    except AttributeError:
+        pass
+    try:
+        nodes.extend((((data.get("data") or {}).get("user") or {}).get("projectsV2") or {}).get("nodes") or [])
+    except AttributeError:
+        pass
+
+    wanted = title.casefold()
+    for node in nodes:
+        if str(node.get("title") or "").casefold() == wanted:
+            return node
+    log(f"project not found for title={title!r}")
+    return None
+
+
+def resolve_project_status_field(
+    project_id: str, cfg: dict[str, Any] | None = None
+) -> dict[str, Any] | None:
+    cfg = cfg or load_config()
+    field_name = str(cfg.get("projectStatusFieldName") or "Status").strip()
+    data = gh_graphql(
+        """
+        query($id:ID!) {
+          node(id:$id) {
+            ... on ProjectV2 {
+              fields(first:40) {
+                nodes {
+                  ... on ProjectV2SingleSelectField {
+                    id
+                    name
+                    options { id name }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """,
+        {"id": project_id},
+    )
+    try:
+        fields = data["data"]["node"]["fields"]["nodes"]
+    except (KeyError, TypeError):
+        return None
+    wanted = field_name.casefold()
+    for field in fields:
+        if not field or "options" not in field:
+            continue
+        if str(field.get("name") or "").casefold() == wanted:
+            return field
+    log(f"project status field not found: {field_name!r}")
+    return None
+
+
+def project_status_option_id(field: dict[str, Any], option_name: str) -> str | None:
+    wanted = option_name.casefold()
+    for option in field.get("options") or []:
+        if str(option.get("name") or "").casefold() == wanted:
+            return str(option.get("id"))
+    return None
+
+
+def ensure_project_item(issue_id: str, project_id: str) -> str | None:
+    data = gh_graphql(
+        """
+        query($id:ID!) {
+          node(id:$id) {
+            ... on Issue {
+              projectItems(first:20) {
+                nodes { id project { id } }
+              }
+            }
+          }
+        }
+        """,
+        {"id": issue_id},
+    )
+    try:
+        items = data["data"]["node"]["projectItems"]["nodes"]
+    except (KeyError, TypeError):
+        items = []
+    for item in items or []:
+        if ((item.get("project") or {}).get("id")) == project_id:
+            return str(item.get("id"))
+
+    added = gh_graphql(
+        """
+        mutation($project:ID!, $content:ID!) {
+          addProjectV2ItemById(input:{projectId:$project, contentId:$content}) {
+            item { id }
+          }
+        }
+        """,
+        {"project": project_id, "content": issue_id},
+    )
+    try:
+        return added["data"]["addProjectV2ItemById"]["item"]["id"]
+    except (KeyError, TypeError):
+        log(f"failed to add issue to project: {added}")
+        return None
+
+
+def set_project_item_status(issue_number: int, status_name: str, cfg: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Set Projects V2 Status option for an issue (e.g. In progress / Done)."""
+    cfg = cfg or load_config()
+    result: dict[str, Any] = {"task": issue_number, "projectStatus": status_name, "ok": False}
+    if not cfg.get("projectTitle") or not status_name:
+        result["skipped"] = "project-status-unconfigured"
+        return result
+
+    project = resolve_project_v2(cfg)
+    if not project:
+        result["error"] = "project-not-found"
+        return result
+    field = resolve_project_status_field(str(project["id"]), cfg)
+    if not field:
+        result["error"] = "status-field-not-found"
+        return result
+    option_id = project_status_option_id(field, status_name)
+    if not option_id:
+        result["error"] = f"status-option-not-found:{status_name}"
+        return result
+    issue_id = fetch_issue_node_id(issue_number, cfg)
+    if not issue_id:
+        result["error"] = "issue-not-found"
+        return result
+    item_id = ensure_project_item(issue_id, str(project["id"]))
+    if not item_id:
+        result["error"] = "project-item-missing"
+        return result
+
+    updated = gh_graphql(
+        """
+        mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) {
+          updateProjectV2ItemFieldValue(
+            input:{
+              projectId:$project
+              itemId:$item
+              fieldId:$field
+              value:{ singleSelectOptionId:$option }
+            }
+          ) {
+            projectV2Item { id }
+          }
+        }
+        """,
+        {
+            "project": str(project["id"]),
+            "item": item_id,
+            "field": str(field["id"]),
+            "option": option_id,
+        },
+    )
+    if updated.get("errors"):
+        result["error"] = updated["errors"]
+        log(f"set project status failed for #{issue_number}: {updated['errors']}")
+        return result
+    result["ok"] = True
+    log(f"Set project status for #{issue_number} → {status_name}")
+    return result
+
+
+def set_issue_planning_status(issue_number: int, status_id: str) -> bool:
+    issue_id = fetch_issue_node_id(issue_number)
+    if not issue_id or not status_id:
+        return False
+    data = gh_graphql(
+        """
+        mutation($issueId:ID!, $statusId:ID!) {
+          setIssueStatus(input:{issueId:$issueId, statusId:$statusId}) {
+            issue { number state status { name } }
+          }
+        }
+        """,
+        {"issueId": issue_id, "statusId": status_id},
+    )
+    if data.get("errors"):
+        log(f"setIssueStatus failed for #{issue_number}: {data['errors']}")
+        return False
+    log(f"setIssueStatus for #{issue_number}: {json.dumps(data.get('data'))}")
+    return True
+
+
+def mark_task_in_progress(task_number: int) -> dict[str, Any]:
+    """Mark the active Task as In progress (project Status + optional planning status)."""
+    cfg = load_config()
+    result: dict[str, Any] = {"task": task_number, "status": "unknown"}
+    planning_id = cfg.get("inProgressStatusId") or os.environ.get("FEATURE_TASK_IN_PROGRESS_STATUS_ID")
+    if planning_id and set_issue_planning_status(int(task_number), str(planning_id)):
+        result["status"] = "planning-status-in-progress"
+
+    project_name = str(cfg.get("inProgressStatusName") or "In progress")
+    project_result = set_project_item_status(int(task_number), project_name, cfg)
+    result["project"] = project_result
+    if project_result.get("ok"):
+        result["status"] = (
+            "project-status-in-progress"
+            if result["status"] == "unknown"
+            else f"{result['status']}+project"
+        )
+    elif project_result.get("error") and result["status"] == "unknown":
+        result["error"] = project_result.get("error")
+    return result
+
+
+def cfg_status_label(kind: str) -> str:
+    cfg = load_config()
+    if kind == "inProgress":
+        return str(cfg.get("inProgressStatusName") or "In progress")
+    if kind == "done":
+        return str(cfg.get("doneStatusName") or "Done")
+    return kind
+
+
+def activate_task(task: dict[str, Any], *, previous_active: int | None = None) -> dict[str, Any]:
+    """Persist active Task in local state and flip GitHub/project status to In progress when it changes."""
+    number = int(task["number"])
+    state_update = {
+        "activeTaskIssue": number,
+        "activeTaskTitle": task.get("title"),
+        "activeTaskUrl": task.get("url"),
+    }
+    if previous_active != number:
+        status_result = mark_task_in_progress(number)
+        state_update["activeTaskStatus"] = status_result.get("status")
+    return state_update
+
+
 def mark_task_done(task_number: int, commit_sha: str | None = None) -> dict[str, Any]:
     cfg = load_config()
     done_status_id = cfg.get("doneStatusId") or os.environ.get("FEATURE_TASK_DONE_STATUS_ID")
     result: dict[str, Any] = {"task": task_number, "status": "unknown"}
 
     try:
-        repo = owner_repo(cfg)
+        owner_repo(cfg)
     except RuntimeError as exc:
         result["error"] = str(exc)
         log(str(exc))
         return result
 
-    if done_status_id:
-        owner, name = repo.split("/", 1)
-        lookup = subprocess.run(
-            [
-                "gh",
-                "api",
-                "graphql",
-                "-f",
-                f'query=query{{repository(owner:"{owner}",name:"{name}"){{issue(number:{task_number}){{id}}}}}}',
-            ],
-            cwd=str(REPO_ROOT),
-            text=True,
-            capture_output=True,
-            timeout=30,
-            check=False,
-        )
-        issue_id = None
-        try:
-            issue_id = json.loads(lookup.stdout)["data"]["repository"]["issue"]["id"]
-        except (json.JSONDecodeError, KeyError, TypeError):
-            issue_id = None
-        if issue_id:
-            mutation = {
-                "query": """
-                mutation($issueId:ID!, $statusId:ID!) {
-                  setIssueStatus(input:{issueId:$issueId, statusId:$statusId}) {
-                    issue { number state status { name } }
-                  }
-                }
-                """,
-                "variables": {"issueId": issue_id, "statusId": done_status_id},
-            }
-            status_proc = subprocess.run(
-                ["gh", "api", "graphql", "--input", "-"],
-                cwd=str(REPO_ROOT),
-                input=json.dumps(mutation),
-                text=True,
-                capture_output=True,
-                timeout=30,
-                check=False,
-            )
-            if status_proc.returncode == 0 and "errors" not in (status_proc.stdout or ""):
-                result["status"] = "planning-status-done"
-                log(f"setIssueStatus Done for #{task_number}: {status_proc.stdout.strip()}")
-            else:
-                log(f"setIssueStatus failed for #{task_number}: {status_proc.stderr or status_proc.stdout}")
+    if done_status_id and set_issue_planning_status(int(task_number), str(done_status_id)):
+        result["status"] = "planning-status-done"
 
-    if not cfg.get("closeTaskOnDone", True) and result["status"] == "planning-status-done":
+    done_name = str(cfg.get("doneStatusName") or "Done")
+    project_result = set_project_item_status(int(task_number), done_name, cfg)
+    result["project"] = project_result
+    if project_result.get("ok") and result["status"] == "unknown":
+        result["status"] = "project-status-done"
+
+    if not cfg.get("closeTaskOnDone", True) and result["status"] in {
+        "planning-status-done",
+        "project-status-done",
+    }:
         return result
 
     sha = commit_sha or run_git(["rev-parse", "--short", "HEAD"]).stdout.strip()

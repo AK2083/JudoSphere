@@ -10,5 +10,7 @@ export default {
   themeDark: 'Dark',
   themeSystem: 'System',
   languageLabel: 'Language',
-  languageHelp: 'User interface language on this device.'
+  languageHelp: 'User interface language on this device.',
+  saveSuccess: 'Setting saved on this device.',
+  saveError: 'Could not save. The change applies only for this session.'
 }

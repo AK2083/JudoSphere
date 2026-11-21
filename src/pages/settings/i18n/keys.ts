@@ -10,7 +10,9 @@ const translationKeys = {
   themeDark: 'settings.themeDark',
   themeSystem: 'settings.themeSystem',
   languageLabel: 'settings.languageLabel',
-  languageHelp: 'settings.languageHelp'
+  languageHelp: 'settings.languageHelp',
+  saveSuccess: 'settings.saveSuccess',
+  saveError: 'settings.saveError'
 }
 
 export default translationKeys
