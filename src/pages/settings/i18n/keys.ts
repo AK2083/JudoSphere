@@ -3,7 +3,14 @@
  */
 const translationKeys = {
   title: 'settings.title',
-  description: 'settings.description'
+  description: 'settings.description',
+  themeLabel: 'settings.themeLabel',
+  themeHelp: 'settings.themeHelp',
+  themeLight: 'settings.themeLight',
+  themeDark: 'settings.themeDark',
+  themeSystem: 'settings.themeSystem',
+  languageLabel: 'settings.languageLabel',
+  languageHelp: 'settings.languageHelp'
 }
 
 export default translationKeys

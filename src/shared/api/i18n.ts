@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { type Composer, createI18n as createVueI18n, type I18n, useI18n } from 'vue-i18n'
+import { createI18n as createVueI18n, type I18n, useI18n } from 'vue-i18n'
 
 /**
  * Creates a vue-i18n instance for app / Storybook provider wiring.
@@ -8,11 +8,17 @@ import { type Composer, createI18n as createVueI18n, type I18n, useI18n } from '
 export const createI18n = createVueI18n
 
 /**
+ * Message translator used by features, pages, and widgets.
+ * Structural shape stays JSDoc-parseable (no indexed TypeScript access types).
+ */
+export type TranslateFunction = (key: string, ...args: unknown[]) => string
+
+/**
  * Translation helpers exposed to features, pages, and widgets.
  * Callers must pass keys from slice/shared `keys.ts` objects — never raw string literals.
  */
 export type TranslationApi = {
-  t: Composer['t']
+  t: TranslateFunction
   locale: Ref<string>
 }
 
@@ -24,7 +30,7 @@ export function useTranslation(): TranslationApi {
   const { t, locale } = useI18n({ useScope: 'global' })
 
   return {
-    t,
+    t: t as TranslateFunction,
     locale: locale as Ref<string>
   }
 }
