@@ -232,3 +232,25 @@ test('map CLI prints promoted identity JSON', () => {
   })
   assert.notEqual(skip.status, 0)
 })
+
+test('Linux release matrix ships deb+appimage and never RPM', () => {
+  const workflow = readFileSync(
+    path.join(root, '.github/workflows/release-tauri-build.yml'),
+    'utf8'
+  )
+  assert.match(workflow, /platform: ubuntu-26\.04[\s\S]*?args: --bundles deb,appimage/)
+  assert.doesNotMatch(
+    workflow,
+    /platform: ubuntu-26\.04[\s\S]*?args: --bundles[^\n]*rpm/
+  )
+
+  const tauriConf = JSON.parse(
+    readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8')
+  )
+  const targets = tauriConf.bundle?.targets
+  assert.ok(Array.isArray(targets), 'bundle.targets must be an explicit list')
+  assert.ok(targets.includes('deb'))
+  assert.ok(targets.includes('appimage'))
+  assert.ok(!targets.includes('rpm'))
+  assert.notEqual(targets, 'all')
+})

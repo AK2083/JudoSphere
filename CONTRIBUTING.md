@@ -76,7 +76,7 @@ RPM and MSI reject those prereleases (RPM: `-` in the version; MSI: non-numeric 
 | Linux   | `deb`, `appimage` | `rpm`          |
 | Windows | `nsis`            | `msi`          |
 
-Encoded in `src-tauri/tauri.conf.json` and in the release matrix (`--bundles …` in `.github/workflows/release-tauri-build.yml`). A later change could add packager-specific version mapping if we need RPM/MSI again.
+Encoded in `src-tauri/tauri.conf.json` and in the release matrix (`--bundles …` in `.github/workflows/release-tauri-build.yml`). Linux CI also installs FUSE 2 (`libfuse2t64` / `libfuse2`) and sets `APPIMAGE_EXTRACT_AND_RUN=1` so AppImage/`linuxdeploy` works on GitHub runners. A later change could add packager-specific version mapping if we need RPM/MSI again.
 
 ## Release stages (Test → Staging → Production)
 

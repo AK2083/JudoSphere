@@ -22,9 +22,9 @@ name: Release Tauri Build
 #   Do **not** use `bundle.targets: all` on release builds: RPM rejects `-` in prereleases;
 #   MSI requires a numeric-only prerelease. Ship formats that accept SemVer prereleases:
 #     macOS  → app, dmg
-#     Linux  → deb, appimage  (no rpm)
+#     Linux  → deb, appimage  (no rpm) — AppImage needs FUSE workaround on GH runners
 #     Windows → nsis          (no msi)
-#   Local `tauri.conf.json` mirrors that target list. Follow-up Tasks verify Linux/Windows.
+#   Local `tauri.conf.json` mirrors that target list.
 
 on:
   workflow_call:
@@ -108,7 +108,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          # Node.js 26 LTS (Lithium); check-latest picks the newest 26.x patch
           node-version: 26
           check-latest: true
           cache: npm
@@ -123,11 +122,12 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
-      - name: Install Linux WebKit deps
+      - name: Install Linux WebKit + AppImage deps
         if: matrix.platform == 'ubuntu-26.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+          sudo apt-get install -y libfuse2t64 || sudo apt-get install -y libfuse2
 
       - name: Install npm dependencies
         run: npm ci
@@ -138,6 +138,22 @@ jobs:
           RELEASE_VERSION_NAME: ${{ inputs.version_name }}
         run: node scripts/sync-release-identity.mjs
 
+      - name: Assert Linux bundles exclude RPM
+        if: matrix.platform == 'ubuntu-26.04'
+        env:
+          MATRIX_ARGS: ${{ matrix.args }}
+        run: |
+          set -euo pipefail
+          echo "Linux matrix args: ${MATRIX_ARGS}"
+          if [[ "${MATRIX_ARGS}" == *rpm* ]]; then
+            echo "::error::Linux release must not build RPM (SemVer prereleases are rejected). Use deb,appimage only."
+            exit 1
+          fi
+          if [[ "${MATRIX_ARGS}" != *deb* || "${MATRIX_ARGS}" != *appimage* ]]; then
+            echo "::error::Linux release must include deb and appimage bundles."
+            exit 1
+          fi
+
       - name: Build Tauri app (no GitHub Release)
         if: ${{ !inputs.publish_release }}
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
@@ -146,8 +162,8 @@ jobs:
           VITE_APP_VERSION_NAME: ${{ inputs.version_name }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPIMAGE_EXTRACT_AND_RUN: ${{ matrix.platform == 'ubuntu-26.04' && '1' || '' }}
         with:
-          # matrix.args selects SemVer-prerelease-safe bundles; inputs.args are optional extras
           args: ${{ matrix.args }} ${{ inputs.args }}
 
       - name: Upload build artifacts
@@ -172,6 +188,7 @@ jobs:
           VITE_APP_VERSION_NAME: ${{ inputs.version_name }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPIMAGE_EXTRACT_AND_RUN: ${{ matrix.platform == 'ubuntu-26.04' && '1' || '' }}
         with:
           tagName: ${{ inputs.tag }}
           releaseName: ${{ inputs.version_name }}
