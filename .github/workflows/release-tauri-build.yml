@@ -16,6 +16,15 @@ name: Release Tauri Build
 # Publish behavior:
 #   publish_release: false (default) → build only; upload workflow artifacts (no GitHub Release)
 #   publish_release: true            → build and attach assets to tag `tag` (caller supplies metadata)
+#
+# Packager strategy (#41 / #42) — prefer per-OS bundle targets over version rewriting:
+#   Keep SemVer channels alpha/beta/rc in manifests and tags (`v{version}+{versionName}`).
+#   Do **not** use `bundle.targets: all` on release builds: RPM rejects `-` in prereleases;
+#   MSI requires a numeric-only prerelease. Ship formats that accept SemVer prereleases:
+#     macOS  → app, dmg
+#     Linux  → deb, appimage  (no rpm)
+#     Windows → nsis          (no msi)
+#   Local `tauri.conf.json` mirrors that target list. Follow-up Tasks verify Linux/Windows.
 
 on:
   workflow_call:
@@ -82,10 +91,13 @@ jobs:
         include:
           - platform: macos-latest
             label: macos
+            args: --bundles app,dmg
           - platform: ubuntu-26.04
             label: linux
+            args: --bundles deb,appimage
           - platform: windows-latest
             label: windows
+            args: --bundles nsis
 
     steps:
       - name: Checkout
@@ -135,7 +147,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          args: ${{ inputs.args }}
+          # matrix.args selects SemVer-prerelease-safe bundles; inputs.args are optional extras
+          args: ${{ matrix.args }} ${{ inputs.args }}
 
       - name: Upload build artifacts
         if: ${{ !inputs.publish_release }}
@@ -147,8 +160,6 @@ jobs:
             src-tauri/target/release/bundle/macos
             src-tauri/target/release/bundle/deb
             src-tauri/target/release/bundle/appimage
-            src-tauri/target/release/bundle/rpm
-            src-tauri/target/release/bundle/msi
             src-tauri/target/release/bundle/nsis
           if-no-files-found: warn
           retention-days: 14
@@ -167,4 +178,4 @@ jobs:
           releaseBody: ${{ inputs.release_body }}
           releaseDraft: false
           prerelease: ${{ inputs.prerelease }}
-          args: ${{ inputs.args }}
+          args: ${{ matrix.args }} ${{ inputs.args }}

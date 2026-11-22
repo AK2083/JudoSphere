@@ -64,6 +64,20 @@ Tests: `npm run test:release-identity`.
 
 `versionName` is chosen **manually per release** (any SemVer build-metadata-safe name). It is not a fixed project constant.
 
+### Packager strategy (SemVer prereleases)
+
+We **keep** channel SemVer (`alpha` / `beta` / `rc`) in manifests and tags. We do **not** rewrite versions just for packagers.
+
+RPM and MSI reject those prereleases (RPM: `-` in the version; MSI: non-numeric prerelease). Release builds therefore use **per-OS bundle targets** instead of `targets: "all"`:
+
+| OS      | Ship              | Skip (for now) |
+| ------- | ----------------- | -------------- |
+| macOS   | `app`, `dmg`      | —              |
+| Linux   | `deb`, `appimage` | `rpm`          |
+| Windows | `nsis`            | `msi`          |
+
+Encoded in `src-tauri/tauri.conf.json` and in the release matrix (`--bundles …` in `.github/workflows/release-tauri-build.yml`). A later change could add packager-specific version mapping if we need RPM/MSI again.
+
 ## Release stages (Test → Staging → Production)
 
 GitHub Environments `test`, `staging`, and `production` gate the three SemVer channels. Shared matrix build: [`.github/workflows/release-tauri-build.yml`](.github/workflows/release-tauri-build.yml).
