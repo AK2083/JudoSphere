@@ -4,11 +4,11 @@
  *
  * Build metadata / designation is not written into those version fields (Cargo
  * rejects `+meta`). You choose the designation manually each release
- * (`RELEASE_VERSION_NAME`, e.g. Starlet or any other name); it becomes part of
+ * (`RELEASE_VERSION_NAME`, e.g. Example or any other name); it becomes part of
  * the Git tag `v{version}+{versionName}` and later `VITE_APP_VERSION_NAME`.
  *
  * Usage:
- *   RELEASE_VERSION=1.0.0-alpha.1 RELEASE_VERSION_NAME=Starlet \
+ *   RELEASE_VERSION=1.0.0-alpha.1 RELEASE_VERSION_NAME=Example \
  *     node scripts/sync-release-identity.mjs
  *
  * Optional:

@@ -15,7 +15,7 @@ export const VERSION_RE =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/
 
 /**
- * Per-release designation entered manually (e.g. Starlet, Nova).
+ * Per-release designation entered manually (e.g. Example, Nova).
  * SemVer build-metadata charset: letters, digits, hyphen; case preserved.
  */
 export const VERSION_NAME_RE = /^[A-Za-z][0-9A-Za-z-]{0,63}$/

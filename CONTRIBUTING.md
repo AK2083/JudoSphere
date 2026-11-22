@@ -26,12 +26,12 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 Shell chrome (brand notch) reads a single identity from `@shared/config`:
 
 - **SemVer** — `package.json` `version` (via `appVersion.version`)
-- **Version name** — `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` (current default: `starlight`)
+- **Version name** — from `VITE_APP_VERSION_NAME` when set; otherwise empty (`appVersion.versionName`)
 
 When releasing:
 
 1. Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together
-2. Update `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` when the release gets a new codename
+2. Pass the release designation via `VITE_APP_VERSION_NAME` (not a hardcoded fallback in source)
 3. Do not hard-code a second version string in Vue UI
 
 ## Icons (Heroicons)

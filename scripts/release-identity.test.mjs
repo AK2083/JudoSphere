@@ -46,7 +46,7 @@ test('parseChannelVersion accepts channel.counter prereleases', () => {
 })
 
 test('parseChannelVersion rejects build metadata and unknown channels', () => {
-  assert.throws(() => parseChannelVersion('1.0.0+Starlet'), /build metadata/)
+  assert.throws(() => parseChannelVersion('1.0.0+Example'), /build metadata/)
   assert.throws(() => parseChannelVersion('1.0.0'), /prerelease channel/)
   assert.throws(() => parseChannelVersion('1.0.0-gamma.1'), /unsupported channel/)
   assert.throws(() => parseChannelVersion('1.0.0-alpha'), /\{channel\}\.\{counter\}/)
@@ -54,10 +54,10 @@ test('parseChannelVersion rejects build metadata and unknown channels', () => {
 })
 
 test('parseReleaseTag round-trips tag identity with manual mixed-case designation', () => {
-  assert.deepEqual(parseReleaseTag('v1.0.0-beta.2+Starlet'), {
+  assert.deepEqual(parseReleaseTag('v1.0.0-beta.2+Example'), {
     version: '1.0.0-beta.2',
-    versionName: 'Starlet',
-    tag: 'v1.0.0-beta.2+Starlet',
+    versionName: 'Example',
+    tag: 'v1.0.0-beta.2+Example',
     channel: 'beta',
     core: '1.0.0',
     counter: 2
@@ -68,17 +68,17 @@ test('parseReleaseTag round-trips tag identity with manual mixed-case designatio
 test('mapReleaseChannel preserves core, counter, and manual designation', () => {
   assert.deepEqual(
     mapReleaseChannel({
-      sourceTag: 'v1.0.0-alpha.1+Starlet',
+      sourceTag: 'v1.0.0-alpha.1+Example',
       targetChannel: 'beta'
     }),
     {
       version: '1.0.0-beta.1',
-      versionName: 'Starlet',
-      tag: 'v1.0.0-beta.1+Starlet',
+      versionName: 'Example',
+      tag: 'v1.0.0-beta.1+Example',
       channel: 'beta',
       core: '1.0.0',
       counter: 1,
-      sourceTag: 'v1.0.0-alpha.1+Starlet',
+      sourceTag: 'v1.0.0-alpha.1+Example',
       sourceVersion: '1.0.0-alpha.1',
       sourceChannel: 'alpha'
     }
@@ -98,7 +98,7 @@ test('mapReleaseChannel rejects skips and backwards moves', () => {
   assert.throws(
     () =>
       mapReleaseChannel({
-        sourceTag: 'v1.0.0-alpha.1+Starlet',
+        sourceTag: 'v1.0.0-alpha.1+Example',
         targetChannel: 'rc'
       }),
     /only the next channel/
@@ -106,7 +106,7 @@ test('mapReleaseChannel rejects skips and backwards moves', () => {
   assert.throws(
     () =>
       mapReleaseChannel({
-        sourceTag: 'v1.0.0-beta.1+Starlet',
+        sourceTag: 'v1.0.0-beta.1+Example',
         targetChannel: 'alpha'
       }),
     /only the next channel/
@@ -172,15 +172,15 @@ test('syncReleaseIdentity fails clearly when a manifest is missing', () => {
 
 test('sync CLI rejects invalid env and maps happy-path output shape', () => {
   const rejectedMeta = runCli(syncScript, {
-    RELEASE_VERSION: '1.0.0+Starlet',
-    RELEASE_VERSION_NAME: 'Starlet'
+    RELEASE_VERSION: '1.0.0+Example',
+    RELEASE_VERSION_NAME: 'Example'
   })
   assert.notEqual(rejectedMeta.status, 0)
   assert.match(rejectedMeta.stderr, /build metadata|must match/)
 
   const rejectedName = runCli(syncScript, {
     RELEASE_VERSION: '1.0.0-alpha.1',
-    RELEASE_VERSION_NAME: 'Star Let'
+    RELEASE_VERSION_NAME: 'Has Space'
   })
   assert.notEqual(rejectedName.status, 0)
 
@@ -202,14 +202,14 @@ test('sync CLI rejects invalid env and maps happy-path output shape', () => {
 
     const ok = runCli(syncScript, {
       RELEASE_VERSION: '1.0.0-alpha.1',
-      RELEASE_VERSION_NAME: 'Starlet',
+      RELEASE_VERSION_NAME: 'Example',
       RELEASE_ROOT: tempRoot
     })
     assert.equal(ok.status, 0, ok.stderr)
     assert.deepEqual(JSON.parse(ok.stdout), {
       version: '1.0.0-alpha.1',
-      versionName: 'Starlet',
-      tag: 'v1.0.0-alpha.1+Starlet',
+      versionName: 'Example',
+      tag: 'v1.0.0-alpha.1+Example',
       files: ['package.json', 'src-tauri/tauri.conf.json', 'src-tauri/Cargo.toml']
     })
   } finally {
@@ -219,15 +219,15 @@ test('sync CLI rejects invalid env and maps happy-path output shape', () => {
 
 test('map CLI prints promoted identity JSON', () => {
   const ok = runCli(mapScript, {
-    SOURCE_TAG: 'v1.0.0-alpha.1+Starlet',
+    SOURCE_TAG: 'v1.0.0-alpha.1+Example',
     TARGET_CHANNEL: 'beta'
   })
   assert.equal(ok.status, 0, ok.stderr)
-  assert.equal(JSON.parse(ok.stdout).tag, 'v1.0.0-beta.1+Starlet')
-  assert.equal(JSON.parse(ok.stdout).versionName, 'Starlet')
+  assert.equal(JSON.parse(ok.stdout).tag, 'v1.0.0-beta.1+Example')
+  assert.equal(JSON.parse(ok.stdout).versionName, 'Example')
 
   const skip = runCli(mapScript, {
-    SOURCE_TAG: 'v1.0.0-alpha.1+Starlet',
+    SOURCE_TAG: 'v1.0.0-alpha.1+Example',
     TARGET_CHANNEL: 'rc'
   })
   assert.notEqual(skip.status, 0)

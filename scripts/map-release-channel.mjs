@@ -2,14 +2,14 @@
 /**
  * Maps a release identity to the next SemVer channel (alpha → beta → rc)
  * while preserving core version, prerelease counter, and the manually chosen
- * designation from the source tag (any name you entered, e.g. Starlet).
+ * designation from the source tag (any name you entered, e.g. Example).
  *
  * Usage (from Git tag — preferred; designation comes from the tag):
- *   SOURCE_TAG=v1.0.0-alpha.1+Starlet TARGET_CHANNEL=beta \
+ *   SOURCE_TAG=v1.0.0-alpha.1+Example TARGET_CHANNEL=beta \
  *     node scripts/map-release-channel.mjs
  *
  * Usage (from parts):
- *   RELEASE_VERSION=1.0.0-alpha.1 RELEASE_VERSION_NAME=Starlet TARGET_CHANNEL=beta \
+ *   RELEASE_VERSION=1.0.0-alpha.1 RELEASE_VERSION_NAME=Example TARGET_CHANNEL=beta \
  *     node scripts/map-release-channel.mjs
  *
  * Prints JSON:
