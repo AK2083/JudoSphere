@@ -26,13 +26,76 @@ See the [README](README.md) for the product overview and [docs/architecture.md](
 Shell chrome (brand notch) reads a single identity from `@shared/config`:
 
 - **SemVer** — `package.json` `version` (via `appVersion.version`)
-- **Version name** — `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` (current default: `starlight`)
+- **Version name** — from `VITE_APP_VERSION_NAME` when set; otherwise empty (`appVersion.versionName`)
 
-When releasing:
+Do not hard-code a second version string in Vue UI. Day-to-day local builds leave the designation empty unless you set `VITE_APP_VERSION_NAME`.
 
-1. Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together
-2. Update `APP_VERSION_NAME` in `src/shared/config/appVersion.ts` when the release gets a new codename
-3. Do not hard-code a second version string in Vue UI
+### Sync script
+
+Release workflows call `scripts/sync-release-identity.mjs` to write the same SemVer **without** `+metadata` into:
+
+- `package.json`
+- `src-tauri/tauri.conf.json`
+- `src-tauri/Cargo.toml`
+
+Cargo rejects `+build` metadata in `version`, so the per-release designation lives only in the Git tag and `VITE_APP_VERSION_NAME`.
+
+```bash
+RELEASE_VERSION=1.0.0-alpha.1 RELEASE_VERSION_NAME=Example \
+  node scripts/sync-release-identity.mjs
+```
+
+Channel promotion (alpha → beta → rc) keeps core, counter, and designation:
+
+```bash
+SOURCE_TAG=v1.0.0-alpha.1+Example TARGET_CHANNEL=beta \
+  node scripts/map-release-channel.mjs
+```
+
+Tests: `npm run test:release-identity`.
+
+### Tag & Release naming
+
+| Field                   | Rule                                   | Example                  |
+| ----------------------- | -------------------------------------- | ------------------------ |
+| Git tag                 | `v{version}+{versionName}`             | `v1.0.0-alpha.1+Example` |
+| GitHub Release **name** | the manual designation (`versionName`) | `Example`                |
+| Manifest SemVer         | version **without** `+versionName`     | `1.0.0-alpha.1`          |
+
+`versionName` is chosen **manually per release** (any SemVer build-metadata-safe name). It is not a fixed project constant.
+
+## Release stages (Test → Staging → Production)
+
+GitHub Environments `test`, `staging`, and `production` gate the three SemVer channels. Shared matrix build: [`.github/workflows/release-tauri-build.yml`](.github/workflows/release-tauri-build.yml).
+
+| Stage          | Workflow                                                             | Environment                       | Channel                           | Publish            |
+| -------------- | -------------------------------------------------------------------- | --------------------------------- | --------------------------------- | ------------------ |
+| **Test**       | [`release-test.yml`](.github/workflows/release-test.yml)             | `test`                            | **alpha** (e.g. `1.0.0-alpha.1`)  | Prerelease         |
+| **Staging**    | [`release-staging.yml`](.github/workflows/release-staging.yml)       | `staging`                         | **beta** (from a green Test tag)  | Prerelease         |
+| **Production** | [`release-production.yml`](.github/workflows/release-production.yml) | `production` (required reviewers) | **rc** (from a green Staging tag) | **Non**-prerelease |
+
+Typical operator flow:
+
+1. **Release Test** — `workflow_dispatch` with `version` (`*-alpha.*`) + `version_name` (+ optional `ref`). Smoke the installers (local app / local Supabase).
+2. **Release Staging** — `from_tag` = green Test tag (e.g. `v1.0.0-alpha.1+Example`). Rebuilds as beta; validate against cloud Supabase.
+3. **Release Production** — `from_tag` = green Staging tag (e.g. `v1.0.0-beta.1+Example`). Rebuilds as rc; cannot skip Staging.
+
+Staging and Production refuse invalid source tags (missing release, draft, wrong channel, or no assets).
+
+### Signing secrets
+
+Configure on the GitHub Environments (especially `production`) before relying on signed updates:
+
+| Secret                               | Required                       | Purpose                                                 |
+| ------------------------------------ | ------------------------------ | ------------------------------------------------------- |
+| `TAURI_SIGNING_PRIVATE_KEY`          | For trusted Production updates | Private key that signs Tauri update/installer artifacts |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Only if the key is encrypted   | Passphrase for that private key                         |
+
+Builds succeed without these secrets; auto-update trust needs them once the updater is enabled.
+
+### Tauri Updater (later Feature)
+
+Production already publishes consumable non-prerelease artifacts. Wiring `@tauri-apps/plugin-updater` and a `latest.json` endpoint is a **separate later Feature** — not part of these release workflows.
 
 ## Icons (Heroicons)
 
@@ -56,6 +119,7 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 - `npm run typecheck` — TypeScript project references check
 - `npm run test` — Vitest unit suite (once)
 - `npm run test:coverage` — unit tests + coverage (80% thresholds)
+- `npm run test:release-identity` — Node test runner for `scripts/release-identity*.mjs` (sync + channel mapping)
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
@@ -106,10 +170,10 @@ python3 .workflow/feature-task/engine.py next-context
 
 GitHub Actions workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
 
-1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%)
+1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%), release-identity script tests
 2. Frontend build + Playwright e2e (Chromium); HTML report uploaded as the `playwright-report` artifact
 
-No repository secrets are required for this workflow.
+No repository secrets are required for this workflow. Manual release workflows (Test / Staging / Production) are separate; see **Release stages** above.
 
 ## Best practices
 
