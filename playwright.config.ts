@@ -7,8 +7,9 @@ import { DEV_HOST, E2E_BASE_URL, E2E_SERVER_PORT } from './config/dev'
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './e2e',
-  testMatch: ['**/*.e2e.spec.ts'],
+  testDir: '.',
+  testMatch: ['e2e/**/*.e2e.spec.ts', 'src/**/*.e2e.spec.ts'],
+  testIgnore: ['**/node_modules/**', '**/dist/**', '**/storybook-static/**'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

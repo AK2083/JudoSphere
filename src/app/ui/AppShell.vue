@@ -60,6 +60,7 @@ import { AppNavigation, BrandNotch } from '@widgets'
 
 .app-shell__main {
   flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   overflow: auto;
 }

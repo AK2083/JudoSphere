@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { HomePage } from '@pages/home'
+import { SettingsPage } from '@pages/settings'
 
 /**
  * Root Vue Router instance. Routes import page components from `@pages/*` only.
@@ -13,6 +14,11 @@ export const router = createRouter({
       path: '/',
       name: 'home',
       component: HomePage
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: SettingsPage
     }
   ]
 })

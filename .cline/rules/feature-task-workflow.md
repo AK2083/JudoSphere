@@ -27,11 +27,11 @@ When the user asks to implement a **Feature** that should have **Task** sub-issu
 1. Ensure you are on (or create) the correct `feature/<n>-…` branch.
 2. **Ensure Tasks exist** for that Feature id. If there are none, create them first with skill **`create-feature-tasks`** — do not start product code yet. Each Task must be a **sub-issue of the Feature**, type **Task**, assignee from config (`defaultAssignee`), and added to config `projectTitle` when set.
 3. **Inspect Tasks** (sub-issues). Build order = ascending issue number.
-4. **Do one Task only** — the first open / not-done Task. Do not start later Tasks in the same turn.
+4. **Do one Task only** — the first open / not-done Task. Starting it sets project Status to **In progress**. Do not start later Tasks in the same turn.
 5. Implement that Task’s acceptance criteria; keep the change focused.
 6. **Stop for review** — do **not** create a git commit on your own. Summarize the diff and ask the user to review.
 7. Commit **only** after the user explicitly asks. Include `Refs #<taskNumber>` in the commit message.
-8. After a successful commit, hooks / Husky `post-commit` mark that Task **Done**.
+8. After a successful commit, hooks / Husky `post-commit` mark that Task **Done** (project Status **Done**, then close).
 9. Start the **next** open Task only when the user asks.
 
 **Hook vs skill:** hooks enforce _when_ (branch/Feature id, Tasks first, one-at-a-time, no solo commit, Done after commit). Skill `create-feature-tasks` teaches _how_ to draft/create Task issues.

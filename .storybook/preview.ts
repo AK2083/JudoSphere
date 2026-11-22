@@ -4,8 +4,9 @@ import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { i18n } from '@app/providers'
+import { SettingsPage } from '@pages/settings'
 import { createPinia } from '@shared/api'
-import { FallbackLanguage } from '@shared/lib'
+import { FallbackLanguage, isLanguageCode } from '@shared/lib'
 
 import '@app/styles.css'
 
@@ -22,6 +23,11 @@ setup((app) => {
           component: {
             template: '<div class="story-shell-main">Shell main content</div>'
           }
+        },
+        {
+          path: '/settings',
+          name: 'settings',
+          component: SettingsPage
         }
       ]
     })
@@ -63,8 +69,8 @@ const preview: Preview = {
   },
   decorators: [
     (story, context) => {
-      const locale = (context.globals.locale as string | undefined) ?? FallbackLanguage
-      i18n.global.locale.value = locale
+      const localeGlobal = context.globals.locale
+      i18n.global.locale.value = isLanguageCode(localeGlobal) ? localeGlobal : FallbackLanguage
 
       const scheme = (context.globals.colorScheme as string | undefined) ?? 'light'
       const root = document.documentElement

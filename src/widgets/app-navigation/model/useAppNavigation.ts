@@ -21,7 +21,7 @@ export function useAppNavigation() {
 
   const settingsDestination = {
     key: translationKeys.settings,
-    to: null,
+    to: '/settings',
     icon: Cog6ToothIcon
   } as const
 

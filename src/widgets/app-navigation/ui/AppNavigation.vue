@@ -56,7 +56,21 @@ function destinationLabel(key: string): string {
     </ul>
 
     <div class="app-navigation__footer">
+      <RouterLink
+        v-if="settingsDestination.to"
+        class="app-navigation__link"
+        :to="settingsDestination.to"
+        exact-active-class="app-navigation__link--active"
+        :title="navCollapsed ? destinationLabel(settingsDestination.key) : undefined"
+        :aria-label="navCollapsed ? destinationLabel(settingsDestination.key) : undefined"
+      >
+        <component :is="settingsDestination.icon" class="app-navigation__icon" aria-hidden="true" />
+        <span class="app-navigation__label" :aria-hidden="navCollapsed ? 'true' : undefined">
+          {{ destinationLabel(settingsDestination.key) }}
+        </span>
+      </RouterLink>
       <span
+        v-else
         class="app-navigation__link app-navigation__link--placeholder"
         role="link"
         aria-disabled="true"
@@ -97,14 +111,20 @@ function destinationLabel(key: string): string {
   --app-navigation-border: color-mix(in srgb, var(--js-color-fg, #000000) 16%, transparent);
   --app-navigation-surface: var(--js-color-surface, #ffffff);
   --app-navigation-width: 14rem;
-  --app-navigation-width-collapsed: 3.5rem;
+  --app-navigation-width-collapsed: 4.25rem;
+  --app-navigation-hit: 2.5rem;
+  --app-navigation-space: 0.75rem;
+  --app-navigation-space-compact: 0.5rem;
+  --app-navigation-item-gap: 0.65rem;
+  --app-navigation-link-padding-inline: 0.7rem;
+  --app-navigation-icon-size: 1.25rem;
 
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--app-navigation-space-compact);
   border-bottom: 1px solid var(--app-navigation-border);
   background: var(--app-navigation-surface);
   color: var(--js-color-fg, #000000);
@@ -115,9 +135,9 @@ function destinationLabel(key: string): string {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-navigation-space-compact);
   margin: 0;
-  padding: 0.5rem 0.75rem;
+  padding: var(--app-navigation-space-compact) var(--app-navigation-space);
   list-style: none;
 }
 
@@ -134,14 +154,14 @@ function destinationLabel(key: string): string {
 
 .app-navigation__link,
 .app-navigation__toggle {
-  --app-navigation-icon-size: 1.25rem;
-
   display: inline-grid;
   grid-template-columns: var(--app-navigation-icon-size) minmax(0, auto);
   align-items: center;
-  column-gap: 0.65rem;
-  min-height: 2.25rem;
-  padding: 0.4rem 0.7rem;
+  column-gap: var(--app-navigation-item-gap);
+  box-sizing: border-box;
+  min-height: var(--app-navigation-hit);
+  height: var(--app-navigation-hit);
+  padding: 0 var(--app-navigation-link-padding-inline);
   border: none;
   border-radius: 0.35rem;
   background: transparent;
@@ -178,7 +198,6 @@ function destinationLabel(key: string): string {
   width: var(--app-navigation-icon-size);
   height: var(--app-navigation-icon-size);
   justify-self: center;
-  translate: 0 -0.0625rem;
   color: inherit;
   stroke: currentColor;
   fill: none;
@@ -202,7 +221,7 @@ function destinationLabel(key: string): string {
     align-items: stretch;
     width: var(--app-navigation-width);
     min-height: 100%;
-    gap: 0.5rem;
+    gap: var(--app-navigation-space-compact);
     border-bottom: none;
     border-right: 1px solid var(--app-navigation-border);
     transition:
@@ -213,6 +232,7 @@ function destinationLabel(key: string): string {
   .app-navigation--collapsed {
     flex-basis: var(--app-navigation-width-collapsed);
     width: var(--app-navigation-width-collapsed);
+    overflow: hidden;
   }
 
   .app-navigation__list,
@@ -220,8 +240,8 @@ function destinationLabel(key: string): string {
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 0.65rem;
-    padding: 0.75rem;
+    gap: var(--app-navigation-item-gap);
+    padding: var(--app-navigation-space);
   }
 
   .app-navigation__list {
@@ -232,14 +252,16 @@ function destinationLabel(key: string): string {
     margin-left: 0;
     margin-top: auto;
     justify-content: flex-start;
-    padding-top: 0.75rem;
+    padding-top: var(--app-navigation-space);
     border-top: 1px solid var(--app-navigation-border);
   }
 
   .app-navigation__link,
   .app-navigation__toggle {
+    position: relative;
     width: 100%;
     justify-items: start;
+    align-items: center;
   }
 
   .app-navigation__list > li {
@@ -249,13 +271,6 @@ function destinationLabel(key: string): string {
 
   .app-navigation__list > li > .app-navigation__link {
     flex: 1 1 auto;
-  }
-
-  .app-navigation--collapsed .app-navigation__link,
-  .app-navigation--collapsed .app-navigation__toggle {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    padding-inline: 0.5rem;
   }
 
   .app-navigation--collapsed .app-navigation__label {

@@ -2,6 +2,7 @@ import type { App } from 'vue'
 
 import { greetDe, greetEn } from '@features/greet'
 import { homeDe, homeEn } from '@pages/home'
+import { settingsDe, settingsEn } from '@pages/settings'
 import { createI18n } from '@shared/api'
 import { FallbackLanguage, sharedDe, sharedEn } from '@shared/lib'
 import { appNavigationDe, appNavigationEn, brandNotchDe, brandNotchEn } from '@widgets'
@@ -24,6 +25,7 @@ export const i18n = createI18n({
       brandNotch: brandNotchDe,
       appNavigation: appNavigationDe,
       home: homeDe,
+      settings: settingsDe,
       greet: greetDe
     },
     en: {
@@ -32,6 +34,7 @@ export const i18n = createI18n({
       brandNotch: brandNotchEn,
       appNavigation: appNavigationEn,
       home: homeEn,
+      settings: settingsEn,
       greet: greetEn
     }
   }
