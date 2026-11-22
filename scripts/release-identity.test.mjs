@@ -239,14 +239,9 @@ test('Linux release matrix ships deb+appimage and never RPM', () => {
     'utf8'
   )
   assert.match(workflow, /platform: ubuntu-26\.04[\s\S]*?args: --bundles deb,appimage/)
-  assert.doesNotMatch(
-    workflow,
-    /platform: ubuntu-26\.04[\s\S]*?args: --bundles[^\n]*rpm/
-  )
+  assert.doesNotMatch(workflow, /platform: ubuntu-26\.04[\s\S]*?args: --bundles[^\n]*rpm/)
 
-  const tauriConf = JSON.parse(
-    readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8')
-  )
+  const tauriConf = JSON.parse(readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8'))
   const targets = tauriConf.bundle?.targets
   assert.ok(Array.isArray(targets), 'bundle.targets must be an explicit list')
   assert.ok(targets.includes('deb'))
@@ -261,16 +256,23 @@ test('Windows release matrix ships nsis and never MSI', () => {
     'utf8'
   )
   assert.match(workflow, /platform: windows-latest[\s\S]*?args: --bundles nsis/)
-  assert.doesNotMatch(
-    workflow,
-    /platform: windows-latest[\s\S]*?args: --bundles[^\n]*msi/
-  )
+  assert.doesNotMatch(workflow, /platform: windows-latest[\s\S]*?args: --bundles[^\n]*msi/)
 
-  const tauriConf = JSON.parse(
-    readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8')
-  )
+  const tauriConf = JSON.parse(readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8'))
   const targets = tauriConf.bundle?.targets
   assert.ok(Array.isArray(targets), 'bundle.targets must be an explicit list')
   assert.ok(targets.includes('nsis'))
   assert.ok(!targets.includes('msi'))
+})
+
+test('macOS release matrix ships app+dmg and packager list stays explicit', () => {
+  const workflow = readFileSync(
+    path.join(root, '.github/workflows/release-tauri-build.yml'),
+    'utf8'
+  )
+  assert.match(workflow, /platform: macos-latest[\s\S]*?args: --bundles app,dmg/)
+
+  const tauriConf = JSON.parse(readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8'))
+  const targets = tauriConf.bundle?.targets
+  assert.deepEqual(targets, ['app', 'dmg', 'deb', 'appimage', 'nsis'])
 })

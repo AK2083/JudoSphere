@@ -78,6 +78,28 @@ RPM and MSI reject those prereleases (RPM: `-` in the version; MSI: non-numeric 
 
 Encoded in `src-tauri/tauri.conf.json` and in the release matrix (`--bundles …` in `.github/workflows/release-tauri-build.yml`). Linux CI also installs FUSE 2 (`libfuse2t64` / `libfuse2`) and sets `APPIMAGE_EXTRACT_AND_RUN=1` so AppImage/`linuxdeploy` works on GitHub runners. Windows releases ship an NSIS installer (`.exe`); MSI is skipped because WiX requires numeric-only prerelease identifiers. A later change could add packager-specific version mapping if we need RPM/MSI again.
 
+Regression checks for these targets run with `npm run test:release-identity`.
+
+#### Expected Release Test assets
+
+After a green **Release Test** (`version` like `0.1.0-alpha.1` + manual `version_name`), the GitHub **Prerelease** should include at least:
+
+| OS      | Expected artifacts (examples)            |
+| ------- | ---------------------------------------- |
+| macOS   | `.app` / `.dmg` under the release assets |
+| Linux   | `.deb` and `.AppImage`                   |
+| Windows | NSIS `.exe` installer                    |
+
+There should be **no** `.rpm` or `.msi` from these workflows. Tag format remains `v{version}+{versionName}` (e.g. `v0.1.0-alpha.1+Example`).
+
+#### How to verify
+
+1. Push the branch that contains the release workflows.
+2. Actions → **Release Test** → _Run workflow_ on that branch with an alpha SemVer + `version_name`.
+3. Confirm the matrix (macOS / Ubuntu 26.04 / Windows) is green.
+4. Open the new Prerelease and check the assets table above.
+5. Optional local guard (no full Tauri matrix): `npm run test:release-identity`.
+
 ## Release stages (Test → Staging → Production)
 
 GitHub Environments `test`, `staging`, and `production` gate the three SemVer channels. Shared matrix build: [`.github/workflows/release-tauri-build.yml`](.github/workflows/release-tauri-build.yml).
