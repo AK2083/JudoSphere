@@ -1,0 +1,131 @@
+name: Release Production
+
+# Stage: Production · channel: rc
+# Promotes a green Staging (beta) tag to rc, rebuilds via the shared Tauri matrix,
+# and publishes a *non-prerelease* GitHub Release under Environment `production`
+# (required reviewers expected on that Environment). Does not skip Staging.
+#
+# Artifacts are suitable for a future Tauri Updater / `latest.json` endpoint Feature;
+# wiring `@tauri-apps/plugin-updater` itself is out of scope here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      from_tag:
+        description: Green Staging tag to promote (e.g. v1.0.0-beta.1+Example)
+        required: true
+        type: string
+      ref:
+        description: Git ref to build (branch, tag, or SHA). Empty = the ref that triggered the workflow.
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-production-${{ github.event.inputs.from_tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Map beta → rc
+    runs-on: ubuntu-26.04
+    outputs:
+      version: ${{ steps.map.outputs.version }}
+      version_name: ${{ steps.map.outputs.version_name }}
+      tag: ${{ steps.map.outputs.tag }}
+      source_tag: ${{ steps.map.outputs.source_tag }}
+      ref: ${{ steps.ref.outputs.ref }}
+    steps:
+      - name: Resolve ref
+        id: ref
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ inputs.ref }}" ]]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          check-latest: true
+
+      - name: Require Staging (beta) prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.from_tag }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::No GitHub Release for $TAG. Run Release Staging first and wait until it is green."
+            exit 1
+          fi
+          is_draft="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          is_prerelease="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq .isPrerelease)"
+          asset_count="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets | length')"
+          if [[ "$is_draft" == "true" ]]; then
+            echo "::error::$TAG is still a draft; finish/publish the Staging release first."
+            exit 1
+          fi
+          if [[ "$is_prerelease" != "true" ]]; then
+            echo "::error::$TAG must remain a Staging prerelease (beta). Production cannot skip Staging."
+            exit 1
+          fi
+          if [[ "$asset_count" -lt 1 ]]; then
+            echo "::error::$TAG has no assets; wait for the Staging matrix build to finish."
+            exit 1
+          fi
+
+      - name: Map channel to rc
+        id: map
+        env:
+          SOURCE_TAG: ${{ inputs.from_tag }}
+          TARGET_CHANNEL: rc
+        run: |
+          set -euo pipefail
+          mapped="$(node scripts/map-release-channel.mjs)"
+          echo "mapped=${mapped}"
+
+          source_channel="$(node -e 'console.log(JSON.parse(process.argv[1]).sourceChannel)' "$mapped")"
+          channel="$(node -e 'console.log(JSON.parse(process.argv[1]).channel)' "$mapped")"
+          if [[ "$source_channel" != "beta" || "$channel" != "rc" ]]; then
+            echo "::error::expected beta → rc; got ${source_channel} → ${channel}"
+            exit 1
+          fi
+
+          echo "version=$(node -e 'console.log(JSON.parse(process.argv[1]).version)' "$mapped")" >> "$GITHUB_OUTPUT"
+          echo "version_name=$(node -e 'console.log(JSON.parse(process.argv[1]).versionName)' "$mapped")" >> "$GITHUB_OUTPUT"
+          echo "tag=$(node -e 'console.log(JSON.parse(process.argv[1]).tag)' "$mapped")" >> "$GITHUB_OUTPUT"
+          echo "source_tag=$(node -e 'console.log(JSON.parse(process.argv[1]).sourceTag)' "$mapped")" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build & publish Production release
+    needs: prepare
+    uses: ./.github/workflows/release-tauri-build.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      version_name: ${{ needs.prepare.outputs.version_name }}
+      tag: ${{ needs.prepare.outputs.tag }}
+      environment: production
+      ref: ${{ needs.prepare.outputs.ref }}
+      publish_release: true
+      prerelease: false
+      release_body: |
+        Production (rc) release **${{ needs.prepare.outputs.version_name }}** (`${{ needs.prepare.outputs.version }}`).
+
+        Tag: `${{ needs.prepare.outputs.tag }}`
+        Stage: Production · channel: rc
+        Promoted from Staging: `${{ needs.prepare.outputs.source_tag }}`
+
+        Non-prerelease artifacts for production / future Tauri Updater clients (`latest.json` endpoint Feature is separate).
+    secrets: inherit
