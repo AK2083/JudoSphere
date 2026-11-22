@@ -1,0 +1,121 @@
+name: Release Test
+
+# Stage: Test · channel: alpha
+# Manual dispatch publishes a GitHub *prerelease* under tag `v{version}+{versionName}`
+# (e.g. v1.0.0-alpha.1+Example) via the shared Tauri matrix. Smoke-test that build
+# (local app + local Supabase), then promote with Release Staging.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SemVer alpha channel without build metadata (e.g. 1.0.0-alpha.1)
+        required: true
+        type: string
+      version_name:
+        description: Per-release designation entered manually (Release name + tag metadata)
+        required: true
+        type: string
+      ref:
+        description: Git ref to build (branch, tag, or SHA). Empty = the ref that triggered the workflow.
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-test-${{ github.event.inputs.version }}-${{ github.event.inputs.version_name }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare Test (alpha) identity
+    runs-on: ubuntu-26.04
+    outputs:
+      version: ${{ steps.identity.outputs.version }}
+      version_name: ${{ steps.identity.outputs.version_name }}
+      tag: ${{ steps.identity.outputs.tag }}
+      ref: ${{ steps.ref.outputs.ref }}
+    steps:
+      - name: Resolve ref
+        id: ref
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ inputs.ref }}" ]]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          check-latest: true
+
+      - name: Validate alpha identity and format tag
+        id: identity
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_VERSION_NAME: ${{ inputs.version_name }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'EOF'
+          import { appendFileSync } from 'node:fs'
+          import process from 'node:process'
+
+          import {
+            formatReleaseTag,
+            parseChannelVersion,
+            parseVersionName
+          } from './scripts/lib/release-identity.mjs'
+
+          const version = parseChannelVersion(process.env.RELEASE_VERSION).version
+          const parsed = parseChannelVersion(version)
+          if (parsed.channel !== 'alpha') {
+            throw new Error(
+              `Release Test requires an alpha SemVer (e.g. 1.0.0-alpha.1); got channel ${JSON.stringify(parsed.channel)}`
+            )
+          }
+
+          const versionName = parseVersionName(process.env.RELEASE_VERSION_NAME)
+          const tag = formatReleaseTag(version, versionName)
+          const output = process.env.GITHUB_OUTPUT
+          if (!output) {
+            throw new Error('GITHUB_OUTPUT is not set')
+          }
+
+          appendFileSync(
+            output,
+            `version=${version}\nversion_name=${versionName}\ntag=${tag}\n`
+          )
+          process.stdout.write(`${JSON.stringify({ version, versionName, tag })}\n`)
+          EOF
+
+  build:
+    name: Build & publish Test prerelease
+    needs: prepare
+    uses: ./.github/workflows/release-tauri-build.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      version_name: ${{ needs.prepare.outputs.version_name }}
+      tag: ${{ needs.prepare.outputs.tag }}
+      environment: test
+      ref: ${{ needs.prepare.outputs.ref }}
+      publish_release: true
+      prerelease: true
+      release_body: |
+        Test (alpha) prerelease **${{ needs.prepare.outputs.version_name }}** (`${{ needs.prepare.outputs.version }}`).
+
+        Tag: `${{ needs.prepare.outputs.tag }}`
+        Stage: Test · channel: alpha
+
+        Intended for local / automated smoke (including **local Supabase**). After Test is green, run **Release Staging** with this tag.
+    secrets: inherit
