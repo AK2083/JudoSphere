@@ -254,3 +254,23 @@ test('Linux release matrix ships deb+appimage and never RPM', () => {
   assert.ok(!targets.includes('rpm'))
   assert.notEqual(targets, 'all')
 })
+
+test('Windows release matrix ships nsis and never MSI', () => {
+  const workflow = readFileSync(
+    path.join(root, '.github/workflows/release-tauri-build.yml'),
+    'utf8'
+  )
+  assert.match(workflow, /platform: windows-latest[\s\S]*?args: --bundles nsis/)
+  assert.doesNotMatch(
+    workflow,
+    /platform: windows-latest[\s\S]*?args: --bundles[^\n]*msi/
+  )
+
+  const tauriConf = JSON.parse(
+    readFileSync(path.join(root, 'src-tauri/tauri.conf.json'), 'utf8')
+  )
+  const targets = tauriConf.bundle?.targets
+  assert.ok(Array.isArray(targets), 'bundle.targets must be an explicit list')
+  assert.ok(targets.includes('nsis'))
+  assert.ok(!targets.includes('msi'))
+})

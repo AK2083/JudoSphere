@@ -154,6 +154,23 @@ jobs:
             exit 1
           fi
 
+      - name: Assert Windows bundles exclude MSI
+        if: matrix.platform == 'windows-latest'
+        env:
+          MATRIX_ARGS: ${{ matrix.args }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Windows matrix args: ${MATRIX_ARGS}"
+          if [[ "${MATRIX_ARGS}" == *msi* ]]; then
+            echo "::error::Windows release must not build MSI (SemVer prereleases require numeric-only identifiers). Use nsis only."
+            exit 1
+          fi
+          if [[ "${MATRIX_ARGS}" != *nsis* ]]; then
+            echo "::error::Windows release must include the nsis bundle."
+            exit 1
+          fi
+
       - name: Build Tauri app (no GitHub Release)
         if: ${{ !inputs.publish_release }}
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
