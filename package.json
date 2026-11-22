@@ -15,6 +15,7 @@
     "typecheck": "vue-tsc --build --noEmit",
     "test": "vitest run --project unit",
     "test:coverage": "vitest run --project unit --coverage",
+    "test:release-identity": "node --test scripts/release-identity.test.mjs",
     "test:e2e": "playwright test",
     "test:storybook": "VITEST_STORYBOOK=true vitest --project storybook",
     "storybook": "storybook dev -p 6006",

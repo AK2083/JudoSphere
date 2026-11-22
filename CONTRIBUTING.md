@@ -56,6 +56,7 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 - `npm run typecheck` — TypeScript project references check
 - `npm run test` — Vitest unit suite (once)
 - `npm run test:coverage` — unit tests + coverage (80% thresholds)
+- `npm run test:release-identity` — Node test runner for `scripts/release-identity*.mjs` (sync + channel mapping)
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
@@ -106,7 +107,7 @@ python3 .workflow/feature-task/engine.py next-context
 
 GitHub Actions workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
 
-1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%)
+1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%), release-identity script tests
 2. Frontend build + Playwright e2e (Chromium); HTML report uploaded as the `playwright-report` artifact
 
 No repository secrets are required for this workflow.

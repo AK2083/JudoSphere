@@ -43,6 +43,9 @@ jobs:
       - name: Vitest with coverage
         run: npm run test:coverage
 
+      - name: Release identity scripts
+        run: npm run test:release-identity
+
   e2e:
     name: Playwright e2e
     runs-on: ubuntu-latest
