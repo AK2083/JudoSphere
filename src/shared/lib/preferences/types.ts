@@ -15,9 +15,33 @@ export const ThemePreference = {
 export type ThemePreference = (typeof ThemePreference)[keyof typeof ThemePreference]
 
 /**
+ * Versioned one-off confirmation stored on this device (disclaimer now; more later).
+ * `version` is the accepted content version; `acceptedAt` is an ISO-8601 timestamp.
+ * Both are `null` until the user accepts the current notice.
+ */
+export type PreferenceConfirmation = {
+  version: string | null
+  acceptedAt: string | null
+}
+
+/**
+ * Known confirmation slots in the preferences bag.
+ * Add new one-off notices as named keys here (same shape as `disclaimer`).
+ */
+export type AppPreferenceConfirmations = {
+  disclaimer: PreferenceConfirmation
+}
+
+/**
  * Typed general preferences bag persisted in `localStorage`.
+ *
+ * Extend by adding a new top-level key with a matching default in
+ * `DEFAULT_APP_PREFERENCES` (and merge/validation in storage). Nested
+ * `confirmations` holds versioned acceptances; other day-of options belong
+ * as sibling keys on this type.
  */
 export type AppPreferences = {
   theme: ThemePreference
   language: LanguageCode
+  confirmations: AppPreferenceConfirmations
 }

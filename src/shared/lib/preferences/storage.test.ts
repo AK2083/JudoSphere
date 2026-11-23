@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LanguageCode } from '../i18n'
 import { APP_PREFERENCES_STORAGE_KEY, DEFAULT_APP_PREFERENCES } from './defaults'
-import { loadAppPreferences, mergeAppPreferences, saveAppPreferences } from './storage'
+import {
+  isPreferenceConfirmation,
+  loadAppPreferences,
+  mergeAppPreferences,
+  saveAppPreferences
+} from './storage'
 import { ThemePreference } from './types'
 
 describe('app preferences storage', () => {
@@ -25,11 +30,58 @@ describe('app preferences storage', () => {
       })
     ).toEqual({
       theme: ThemePreference.Dark,
-      language: LanguageCode.DE
+      language: LanguageCode.DE,
+      confirmations: DEFAULT_APP_PREFERENCES.confirmations
     })
 
     expect(mergeAppPreferences({ theme: 'neon', language: 'fr' })).toEqual(DEFAULT_APP_PREFERENCES)
     expect(mergeAppPreferences(null)).toEqual(DEFAULT_APP_PREFERENCES)
+  })
+
+  it('keeps valid disclaimer confirmation and defaults missing confirmation slots', () => {
+    expect(
+      mergeAppPreferences({
+        theme: ThemePreference.Light,
+        language: LanguageCode.EN,
+        confirmations: {
+          disclaimer: { version: '2026-01', acceptedAt: '2026-01-15T10:00:00.000Z' }
+        }
+      })
+    ).toEqual({
+      theme: ThemePreference.Light,
+      language: LanguageCode.EN,
+      confirmations: {
+        disclaimer: { version: '2026-01', acceptedAt: '2026-01-15T10:00:00.000Z' }
+      }
+    })
+  })
+
+  it('accepts null confirmation fields and rejects non-object or invalid confirmations', () => {
+    expect(isPreferenceConfirmation(null)).toBe(false)
+    expect(isPreferenceConfirmation('nope')).toBe(false)
+    expect(isPreferenceConfirmation({ version: 1, acceptedAt: null })).toBe(false)
+    expect(isPreferenceConfirmation({ version: null, acceptedAt: 1 })).toBe(false)
+    expect(isPreferenceConfirmation({ version: null, acceptedAt: null })).toBe(true)
+
+    expect(
+      mergeAppPreferences({
+        confirmations: {
+          disclaimer: { version: null, acceptedAt: null }
+        }
+      }).confirmations.disclaimer
+    ).toEqual({ version: null, acceptedAt: null })
+
+    expect(
+      mergeAppPreferences({
+        confirmations: { disclaimer: null }
+      }).confirmations
+    ).toEqual(DEFAULT_APP_PREFERENCES.confirmations)
+
+    expect(
+      mergeAppPreferences({
+        confirmations: { disclaimer: { version: 1, acceptedAt: 'x' } }
+      }).confirmations
+    ).toEqual(DEFAULT_APP_PREFERENCES.confirmations)
   })
 
   it('seeds defaults on first load when storage is empty', () => {
@@ -46,7 +98,8 @@ describe('app preferences storage', () => {
 
     expect(loadAppPreferences()).toEqual({
       theme: ThemePreference.Light,
-      language: LanguageCode.DE
+      language: LanguageCode.DE,
+      confirmations: DEFAULT_APP_PREFERENCES.confirmations
     })
   })
 

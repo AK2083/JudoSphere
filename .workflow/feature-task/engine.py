@@ -30,13 +30,14 @@ branch shape for Feature work.
 
 When implementing that Feature:
 
-0. **Ensure Tasks exist** for the Feature id from the branch (GitHub Task sub-issues in build order). If none exist yet, **create them first** before writing product code — follow the project skill `create-feature-tasks` (hook = when/why; skill = how).
+0. **Ensure Tasks exist** for the Feature id from the branch (GitHub Task sub-issues in build order). If none exist yet, **create them first** before writing product code — follow the project skill `create-feature-tasks` (hook = when/why; skill = how). Creating Tasks sets the **Feature** project Status to **In progress**; do **not** set any Task to In progress yet.
 1. Load the Feature and its Task sub-issues (order = ascending issue number).
-2. Work on **exactly one** Task at a time: the first open / not-done Task. Starting it sets project status to **In progress**.
+2. Work on **exactly one** Task at a time: the first open / not-done Task. **Only when you begin implementing that Task**, set its project Status to **In progress** (`engine.py start-task`). Creating Tasks or loading context must not mark a Task In progress.
 3. Implement only that Task’s acceptance criteria. Do not start the next Task in the same turn.
-4. **Do not create a git commit on your own.** Stop and ask the user to review the diff.
-5. Only after the user has reviewed and explicitly asks to commit, create the commit (include `Refs #<task>` in the message).
-6. After that commit succeeds, the Task is marked **Done** automatically (hooks / post-commit). Then continue with the next open Task only when the user asks.
+4. Before review, unit coverage on every source file touched by the Task must be **100%** (statements/branches/functions/lines); fix gaps before stopping.
+5. **Do not create a git commit on your own.** Stop and ask the user to review the diff.
+6. Only after the user has reviewed and explicitly asks to commit, create the commit (include `Refs #<task>` in the message).
+7. After that commit succeeds, the Task is marked **Done** automatically (hooks / post-commit). Then continue with the next open Task only when the user asks (and only then `start-task` for that next Task).
 
 Runtime state (active Feature/Task) is local and feature-specific — not part of the shared hook policy.
 """
@@ -322,28 +323,30 @@ def resolve_active_task_number(commit_message: str | None = None) -> int | None:
 
 
 def set_feature_context(feature_number: int) -> dict[str, Any]:
-    """Bind runtime state to a Feature. Feature-specific; not required for hook install."""
+    """Bind runtime state to a Feature without marking any Task In progress."""
     existing = load_state()
-    previous_active = _coerce_issue_number(existing.get("activeTaskIssue"))
-
-    task = next_open_task(feature_number)
     state: dict[str, Any] = {
         "featureIssue": feature_number,
         "allowCommit": bool(existing.get("allowCommit")),
+        "activeTaskIssue": None,
+        "activeTaskTitle": None,
+        "activeTaskUrl": None,
     }
-    if task:
-        state.update(activate_task(task, previous_active=previous_active))
-    else:
-        state["activeTaskIssue"] = None
-        state["activeTaskTitle"] = None
-        state["activeTaskUrl"] = None
+    # Keep a previously started Task bound locally if it still belongs to this Feature
+    # and is still open — but never flip project Status here.
+    previous_active = _coerce_issue_number(existing.get("activeTaskIssue"))
+    if previous_active is not None:
+        for task in fetch_feature_tasks(feature_number):
+            if int(task.get("number") or 0) == previous_active and task_is_open(task):
+                state.update(bind_active_task(task))
+                break
     save_state(state)
     return state
 
 
 def build_next_task_context(feature_number: int | None = None) -> str:
     branch = current_branch()
-    # Do not bind via set_feature_context here — activation (incl. In progress) happens below once.
+    # Bind Feature only — do not mark Task In progress just from loading context.
     feature = resolve_feature_number(feature_number, bind=False)
     lines = [WORKFLOW_CONTEXT.strip(), ""]
     lines.append(f"Current branch: `{branch or '(unknown)'}`")
@@ -372,8 +375,9 @@ def build_next_task_context(feature_number: int | None = None) -> str:
         lines.append(
             "No Task sub-issues found for this Feature (or `gh` unavailable). "
             "**Do not start product implementation yet.** "
-            "Create ordered Task sub-issues first using skill `create-feature-tasks`, "
-            "then re-run / continue with the first open Task."
+            "Create ordered Task sub-issues first using skill `create-feature-tasks` "
+            "(that sets the **Feature** to In progress). Do not mark any Task In progress "
+            "until the user asks to implement the first Task."
         )
         return "\n".join(lines)
 
@@ -388,21 +392,32 @@ def build_next_task_context(feature_number: int | None = None) -> str:
     if open_tasks:
         nxt = open_tasks[0]
         nxt_number = int(nxt["number"])
-        activated = activate_task(nxt, previous_active=previous_active)
         lines.append("")
         lines.append(
-            f"**Implement next: #{nxt_number} — {nxt.get('title')}** "
-            f"({nxt.get('url')}). Stop after this Task for user review; do not commit alone."
+            f"**Next Task: #{nxt_number} — {nxt.get('title')}** "
+            f"({nxt.get('url')}). When the user asks to implement it, run "
+            f"`python3 .workflow/feature-task/engine.py start-task {nxt_number}` "
+            f"(sets Task project Status to **{cfg_status_label('inProgress')}**), "
+            "then stop after that Task for user review; do not commit alone."
         )
-        if previous_active != nxt_number:
-            lines.append(
-                f"Project status for #{nxt_number} set to **{cfg_status_label('inProgress')}**."
-            )
+        # Remember which Task is next locally without flipping project Status.
+        # If a Task was already started (previous_active), keep that binding.
+        if previous_active is not None and any(
+            int(t.get("number") or 0) == previous_active for t in open_tasks
+        ):
+            keep = next(t for t in open_tasks if int(t["number"]) == previous_active)
+            bound = bind_active_task(keep)
+        else:
+            bound = {
+                "activeTaskIssue": None,
+                "activeTaskTitle": None,
+                "activeTaskUrl": None,
+            }
         save_state(
             {
                 "featureIssue": feature,
                 "allowCommit": bool(existing.get("allowCommit")),
-                **activated,
+                **bound,
             }
         )
     else:
@@ -767,16 +782,16 @@ def set_issue_planning_status(issue_number: int, status_id: str) -> bool:
     return True
 
 
-def mark_task_in_progress(task_number: int) -> dict[str, Any]:
-    """Mark the active Task as In progress (project Status + optional planning status)."""
+def mark_issue_in_progress(issue_number: int) -> dict[str, Any]:
+    """Mark an issue (Feature or Task) as In progress (project Status + optional planning status)."""
     cfg = load_config()
-    result: dict[str, Any] = {"task": task_number, "status": "unknown"}
+    result: dict[str, Any] = {"issue": issue_number, "status": "unknown"}
     planning_id = cfg.get("inProgressStatusId") or os.environ.get("FEATURE_TASK_IN_PROGRESS_STATUS_ID")
-    if planning_id and set_issue_planning_status(int(task_number), str(planning_id)):
+    if planning_id and set_issue_planning_status(int(issue_number), str(planning_id)):
         result["status"] = "planning-status-in-progress"
 
     project_name = str(cfg.get("inProgressStatusName") or "In progress")
-    project_result = set_project_item_status(int(task_number), project_name, cfg)
+    project_result = set_project_item_status(int(issue_number), project_name, cfg)
     result["project"] = project_result
     if project_result.get("ok"):
         result["status"] = (
@@ -789,6 +804,20 @@ def mark_task_in_progress(task_number: int) -> dict[str, Any]:
     return result
 
 
+def mark_feature_in_progress(feature_number: int) -> dict[str, Any]:
+    """Set Feature project Status to In progress (used when Tasks are created)."""
+    result = mark_issue_in_progress(int(feature_number))
+    result["feature"] = int(feature_number)
+    return result
+
+
+def mark_task_in_progress(task_number: int) -> dict[str, Any]:
+    """Mark the active Task as In progress (project Status + optional planning status)."""
+    result = mark_issue_in_progress(int(task_number))
+    result["task"] = int(task_number)
+    return result
+
+
 def cfg_status_label(kind: str) -> str:
     cfg = load_config()
     if kind == "inProgress":
@@ -798,18 +827,60 @@ def cfg_status_label(kind: str) -> str:
     return kind
 
 
-def activate_task(task: dict[str, Any], *, previous_active: int | None = None) -> dict[str, Any]:
-    """Persist active Task in local state and flip GitHub/project status to In progress when it changes."""
-    number = int(task["number"])
-    state_update = {
-        "activeTaskIssue": number,
+def bind_active_task(task: dict[str, Any]) -> dict[str, Any]:
+    """Persist active Task in local state only (no project Status change)."""
+    return {
+        "activeTaskIssue": int(task["number"]),
         "activeTaskTitle": task.get("title"),
         "activeTaskUrl": task.get("url"),
     }
+
+
+def activate_task(task: dict[str, Any], *, previous_active: int | None = None) -> dict[str, Any]:
+    """Persist active Task and set project Status to In progress when starting implementation."""
+    number = int(task["number"])
+    state_update = bind_active_task(task)
     if previous_active != number:
         status_result = mark_task_in_progress(number)
         state_update["activeTaskStatus"] = status_result.get("status")
     return state_update
+
+
+def start_task(task_number: int | None = None) -> dict[str, Any]:
+    """Start implementing a Task: bind it locally and set project Status to In progress."""
+    state = load_state()
+    feature = _coerce_issue_number(state.get("featureIssue"))
+    if feature is None:
+        feature = parse_feature_from_branch(current_branch())
+    if feature is None:
+        return {"ok": False, "error": "no-feature-bound"}
+
+    tasks = fetch_feature_tasks(int(feature))
+    open_tasks = [t for t in tasks if task_is_open(t)]
+    if not open_tasks:
+        return {"ok": False, "error": "no-open-tasks", "featureIssue": int(feature)}
+
+    target = task_number
+    if target is None:
+        target = int(open_tasks[0]["number"])
+    task = next((t for t in open_tasks if int(t["number"]) == int(target)), None)
+    if task is None:
+        return {
+            "ok": False,
+            "error": "task-not-open-or-not-child",
+            "featureIssue": int(feature),
+            "task": int(target),
+        }
+
+    previous_active = _coerce_issue_number(state.get("activeTaskIssue"))
+    activated = activate_task(task, previous_active=previous_active)
+    new_state = {
+        "featureIssue": int(feature),
+        "allowCommit": bool(state.get("allowCommit")),
+        **activated,
+    }
+    save_state(new_state)
+    return {"ok": True, **new_state}
 
 
 def mark_task_done(task_number: int, commit_sha: str | None = None) -> dict[str, Any]:
@@ -1122,6 +1193,23 @@ def main(argv: list[str]) -> int:
         print(build_next_task_context(feature))
         return 0
 
+    if len(argv) >= 2 and argv[1] == "mark-feature-in-progress":
+        feature = int(argv[2]) if len(argv) >= 3 else _coerce_issue_number(load_state().get("featureIssue"))
+        if feature is None:
+            feature = parse_feature_from_branch(current_branch())
+        if feature is None:
+            print("feature-task-workflow: no Feature to mark in progress", file=sys.stderr)
+            return 1
+        result = mark_feature_in_progress(int(feature))
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("status") != "unknown" or result.get("project", {}).get("ok") else 1
+
+    if len(argv) >= 2 and argv[1] == "start-task":
+        task = int(argv[2]) if len(argv) >= 3 else None
+        result = start_task(task)
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
     if len(argv) >= 2 and argv[1] == "cursor":
         mode = argv[2] if len(argv) >= 3 else ""
         payload = read_stdin_json()
@@ -1158,7 +1246,8 @@ def main(argv: list[str]) -> int:
         return 0
 
     print(
-        "usage: engine.py [mark-done|set-feature <n>|from-branch|next-context [n]|cursor <mode>|cline <mode>]",
+        "usage: engine.py [mark-done|set-feature <n>|from-branch|next-context [n]|"
+        "mark-feature-in-progress [n]|start-task [n]|cursor <mode>|cline <mode>]",
         file=sys.stderr,
     )
     return 2

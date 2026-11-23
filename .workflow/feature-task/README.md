@@ -5,11 +5,12 @@ Reusable agent/git workflow for GitHub **Feature** issues with ordered **Task** 
 ## Policy (generic)
 
 0. Feature work uses branch **`feature/<issueNumber>-<short-description>`**; Feature id for Task creation comes from the branch.
-1. If the Feature has no Task sub-issues yet, **create them first** (skill `create-feature-tasks`).
-2. Work Tasks in ascending issue-number order (one at a time). Starting a Task sets project **Status → In progress**.
-3. Do not commit alone — stop for human review.
-4. After an approved/successful commit, mark that Task done (project **Status → Done**, then close).
-5. Start the next Task only when asked.
+1. If the Feature has no Task sub-issues yet, **create them first** (skill `create-feature-tasks`). Creating Tasks sets the **Feature** project **Status → In progress**; new Tasks stay Todo.
+2. Work Tasks in ascending issue-number order (one at a time). **Only when implementation of a Task begins**, set that Task **Status → In progress** (`engine.py start-task`). Context / `from-branch` must not flip Task status.
+3. Before review, touched modules must have **100%** unit coverage (statements/branches/functions/lines).
+4. Do not commit alone — stop for human review.
+5. After an approved/successful commit, mark that Task done (project **Status → Done**, then close).
+6. Start the next Task only when asked (then `start-task` again).
 
 ### Hook vs skill
 
@@ -37,6 +38,10 @@ Cursor `beforeSubmitPrompt` can only continue/deny (no context injection) — it
 git switch -c feature/7-app-shell-navigation
 python3 .workflow/feature-task/engine.py from-branch
 python3 .workflow/feature-task/engine.py next-context
+# after creating Tasks:
+# python3 .workflow/feature-task/engine.py mark-feature-in-progress
+# when starting implementation of the next Task:
+# python3 .workflow/feature-task/engine.py start-task
 # fallback if needed:
 # python3 .workflow/feature-task/engine.py set-feature <feature-issue-number>
 ```
@@ -49,7 +54,8 @@ Task creation defaults (skill `create-feature-tasks`):
 - Type = `issueTypeTask` (Task)
 - Assignee = `defaultAssignee` (this repo: `AK2083`)
 - Project = `projectTitle` (this repo: `JudoSphere Planning`) — needs `gh auth` scopes `read:project` + `project`
-- On Task start: project Status → `inProgressStatusName` (`In progress`)
+- On Task **creation**: Feature project Status → `inProgressStatusName` (`In progress`); Tasks stay Todo
+- On Task **start** (`start-task`): that Task project Status → `inProgressStatusName` (`In progress`)
 - On Task done: project Status → `doneStatusName` (`Done`), then close unless configured otherwise
 
 Optional: set `inProgressStatusId` / `doneStatusId` when GitHub issue planning statuses are available.

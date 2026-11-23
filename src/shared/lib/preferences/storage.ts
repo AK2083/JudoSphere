@@ -1,6 +1,16 @@
 import { LanguageCode } from '../i18n'
-import { APP_PREFERENCES_STORAGE_KEY, DEFAULT_APP_PREFERENCES } from './defaults'
-import { type AppPreferences, ThemePreference } from './types'
+import {
+  APP_PREFERENCES_STORAGE_KEY,
+  DEFAULT_APP_PREFERENCE_CONFIRMATIONS,
+  DEFAULT_APP_PREFERENCES,
+  DEFAULT_PREFERENCE_CONFIRMATION
+} from './defaults'
+import {
+  type AppPreferenceConfirmations,
+  type AppPreferences,
+  type PreferenceConfirmation,
+  ThemePreference
+} from './types'
 
 const THEME_VALUES = new Set<string>(Object.values(ThemePreference))
 const LANGUAGE_VALUES = new Set<string>(Object.values(LanguageCode))
@@ -24,12 +34,57 @@ export function isLanguageCode(value: unknown): value is LanguageCode {
 }
 
 /**
+ * Returns whether a value is a usable preference confirmation record.
+ * @param value - Unknown candidate from storage
+ * @returns `true` when `version` and `acceptedAt` are each string or null
+ */
+export function isPreferenceConfirmation(value: unknown): value is PreferenceConfirmation {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  const versionOk = record.version === null || typeof record.version === 'string'
+  const acceptedAtOk = record.acceptedAt === null || typeof record.acceptedAt === 'string'
+
+  return versionOk && acceptedAtOk
+}
+
+function mergePreferenceConfirmation(raw: unknown): PreferenceConfirmation {
+  if (!isPreferenceConfirmation(raw)) {
+    return { ...DEFAULT_PREFERENCE_CONFIRMATION }
+  }
+
+  return {
+    version: raw.version,
+    acceptedAt: raw.acceptedAt
+  }
+}
+
+function mergeAppPreferenceConfirmations(raw: unknown): AppPreferenceConfirmations {
+  const base: AppPreferenceConfirmations = {
+    disclaimer: { ...DEFAULT_APP_PREFERENCE_CONFIRMATIONS.disclaimer }
+  }
+  if (!raw || typeof raw !== 'object') {
+    return base
+  }
+
+  const record = raw as Record<string, unknown>
+  base.disclaimer = mergePreferenceConfirmation(record.disclaimer)
+
+  return base
+}
+
+/**
  * Merges a partial/unknown bag onto defaults, keeping only valid known fields.
  * @param raw - Parsed JSON or partial object from storage
  * @returns Typed preferences with defaults for missing/invalid fields
  */
 export function mergeAppPreferences(raw: unknown): AppPreferences {
-  const base: AppPreferences = { ...DEFAULT_APP_PREFERENCES }
+  const base: AppPreferences = {
+    ...DEFAULT_APP_PREFERENCES,
+    confirmations: mergeAppPreferenceConfirmations(undefined)
+  }
   if (!raw || typeof raw !== 'object') {
     return base
   }
@@ -41,6 +96,7 @@ export function mergeAppPreferences(raw: unknown): AppPreferences {
   if (isLanguageCode(record.language)) {
     base.language = record.language
   }
+  base.confirmations = mergeAppPreferenceConfirmations(record.confirmations)
 
   return base
 }
