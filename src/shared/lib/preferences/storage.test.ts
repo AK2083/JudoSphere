@@ -169,8 +169,60 @@ describe('app preferences storage', () => {
     setItem.mockRestore()
   })
 
-  it('falls back to defaults when stored JSON is corrupt', () => {
+  it('falls back to defaults when stored JSON is corrupt and rewrites storage', () => {
     localStorage.setItem(APP_PREFERENCES_STORAGE_KEY, '{not-json')
+    expect(() => loadAppPreferences()).not.toThrow()
+    expect(loadAppPreferences()).toEqual(DEFAULT_APP_PREFERENCES)
+    expect(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY)).toBe(
+      JSON.stringify(DEFAULT_APP_PREFERENCES)
+    )
+  })
+
+  it('keeps valid fields from a partially corrupt bag and rewrites a safe bag', () => {
+    localStorage.setItem(
+      APP_PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        theme: ThemePreference.Dark,
+        language: 'not-a-language',
+        confirmations: { disclaimer: { version: 99, acceptedAt: 'ok' } }
+      })
+    )
+
+    const prefs = loadAppPreferences()
+    expect(prefs).toEqual({
+      theme: ThemePreference.Dark,
+      language: DEFAULT_APP_PREFERENCES.language,
+      confirmations: {
+        disclaimer: { version: null, acceptedAt: 'ok' }
+      }
+    })
+    expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')).toEqual(prefs)
+  })
+
+  it('recovers non-object JSON values to defaults without throwing', () => {
+    for (const payload of ['null', '42', '"oops"', '[]']) {
+      localStorage.setItem(APP_PREFERENCES_STORAGE_KEY, payload)
+      expect(() => loadAppPreferences()).not.toThrow()
+      expect(loadAppPreferences()).toEqual(DEFAULT_APP_PREFERENCES)
+      expect(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY)).toBe(
+        JSON.stringify(DEFAULT_APP_PREFERENCES)
+      )
+    }
+  })
+
+  it('returns defaults without throwing when localStorage getItem fails', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('denied')
+      },
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 0
+    })
+
+    expect(() => loadAppPreferences()).not.toThrow()
     expect(loadAppPreferences()).toEqual(DEFAULT_APP_PREFERENCES)
   })
 

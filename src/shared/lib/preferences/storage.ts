@@ -107,29 +107,41 @@ export function mergeAppPreferences(raw: unknown): AppPreferences {
 
 /**
  * Reads preferences from browser `localStorage` only (no SQLite / cloud).
- * On first open (missing key), seeds defaults. On upgrade, merges stored values
- * onto current defaults and writes back when the stored JSON is not yet complete.
+ * Seeds on first open, merges on upgrade, and recovers from invalid or partial
+ * JSON without throwing (rewrites a safe bag when storage can be written).
  * @returns Typed preferences bag (never empty/undefined known fields)
  */
 export function loadAppPreferences(): AppPreferences {
+  let raw: string | null | undefined
   try {
-    const raw = globalThis.localStorage?.getItem(APP_PREFERENCES_STORAGE_KEY)
-    if (raw == null) {
-      const seeded = createDefaultAppPreferences()
-      saveAppPreferences(seeded)
-
-      return seeded
-    }
-
-    const merged = mergeAppPreferences(JSON.parse(raw) as unknown)
-    if (raw !== JSON.stringify(merged)) {
-      saveAppPreferences(merged)
-    }
-
-    return merged
+    raw = globalThis.localStorage?.getItem(APP_PREFERENCES_STORAGE_KEY)
   } catch {
     return createDefaultAppPreferences()
   }
+
+  if (raw == null) {
+    const seeded = createDefaultAppPreferences()
+    saveAppPreferences(seeded)
+
+    return seeded
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw) as unknown
+  } catch {
+    const recovered = createDefaultAppPreferences()
+    saveAppPreferences(recovered)
+
+    return recovered
+  }
+
+  const merged = mergeAppPreferences(parsed)
+  if (raw !== JSON.stringify(merged)) {
+    saveAppPreferences(merged)
+  }
+
+  return merged
 }
 
 /**
