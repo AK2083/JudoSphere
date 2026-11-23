@@ -11,6 +11,7 @@ export {
   applyThemePreference,
   type AppPreferenceConfirmations,
   type AppPreferences,
+  createDefaultAppPreferences,
   DEFAULT_APP_PREFERENCE_CONFIRMATIONS,
   DEFAULT_APP_PREFERENCES,
   DEFAULT_PREFERENCE_CONFIRMATION,

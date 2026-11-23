@@ -87,7 +87,21 @@ describe('app preferences storage', () => {
   it('seeds defaults on first load when storage is empty', () => {
     const prefs = loadAppPreferences()
     expect(prefs).toEqual(DEFAULT_APP_PREFERENCES)
+    expect(prefs.theme).toBeDefined()
+    expect(prefs.language).toBeDefined()
+    expect(prefs.confirmations.disclaimer).toEqual({ version: null, acceptedAt: null })
     expect(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY)).toBe(JSON.stringify(prefs))
+    expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')).toEqual(
+      DEFAULT_APP_PREFERENCES
+    )
+  })
+
+  it('returns a full typed bag when localStorage is unavailable on first open', () => {
+    vi.stubGlobal('localStorage', undefined)
+
+    const prefs = loadAppPreferences()
+    expect(prefs).toEqual(DEFAULT_APP_PREFERENCES)
+    expect(prefs.confirmations.disclaimer.version).toBeNull()
   })
 
   it('loads previously stored preferences', () => {

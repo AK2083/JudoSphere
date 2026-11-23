@@ -1,6 +1,7 @@
 export { applyThemePreference } from './applyTheme'
 export {
   APP_PREFERENCES_STORAGE_KEY,
+  createDefaultAppPreferences,
   DEFAULT_APP_PREFERENCE_CONFIRMATIONS,
   DEFAULT_APP_PREFERENCES,
   DEFAULT_PREFERENCE_CONFIRMATION

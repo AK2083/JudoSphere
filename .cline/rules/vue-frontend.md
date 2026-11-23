@@ -12,7 +12,7 @@ alwaysApply: false
 - **No business logic in templates** — no calculations, API calls, or complex conditions. Templates bind state and events from script/composable.
 - Logic belongs in **composables** (`model/use-*.ts`) or `service/` — UI components in `ui/` stay presentation-focused.
 - When a composable mixes unrelated concerns (viewport, disclosure, drag, persistence), **split by concern** into focused `use-*.ts` files and keep a thin facade for the UI.
-- JSDoc: only exported APIs + constants — see [project-overview.md](./project-overview.md).
+- JSDoc: only exported public members/functions — see [project-overview.md](./project-overview.md).
 - **No comments in CSS:** never put `/* … */` (or `//`) in `<style>` blocks or `.css` files.
 - Decorative / nav icons: no `box-shadow`, `filter`, or `text-shadow` on icon SVGs.
 - UI primitives come from the Tailwind-based design system in `@shared/ui` (no Vuetify).

@@ -1,6 +1,7 @@
 import { LanguageCode } from '../i18n'
 import {
   APP_PREFERENCES_STORAGE_KEY,
+  createDefaultAppPreferences,
   DEFAULT_APP_PREFERENCE_CONFIRMATIONS,
   DEFAULT_APP_PREFERENCES,
   DEFAULT_PREFERENCE_CONFIRMATION
@@ -102,14 +103,15 @@ export function mergeAppPreferences(raw: unknown): AppPreferences {
 }
 
 /**
- * Reads preferences from `localStorage`, seeding defaults when missing/corrupt.
- * @returns Typed preferences bag (never empty/undefined fields)
+ * Reads preferences from browser `localStorage` only (no SQLite / cloud).
+ * On first open (missing key), seeds a full defaults bag into `localStorage`.
+ * @returns Typed preferences bag (never empty/undefined known fields)
  */
 export function loadAppPreferences(): AppPreferences {
   try {
     const raw = globalThis.localStorage?.getItem(APP_PREFERENCES_STORAGE_KEY)
     if (raw == null) {
-      const seeded = { ...DEFAULT_APP_PREFERENCES }
+      const seeded = createDefaultAppPreferences()
       saveAppPreferences(seeded)
 
       return seeded
@@ -117,12 +119,12 @@ export function loadAppPreferences(): AppPreferences {
 
     return mergeAppPreferences(JSON.parse(raw) as unknown)
   } catch {
-    return { ...DEFAULT_APP_PREFERENCES }
+    return createDefaultAppPreferences()
   }
 }
 
 /**
- * Persists the preferences bag to `localStorage`.
+ * Persists the preferences bag to browser `localStorage` only (no SQLite / cloud).
  * @param preferences - Full typed bag to store
  * @returns Whether the write succeeded
  */
