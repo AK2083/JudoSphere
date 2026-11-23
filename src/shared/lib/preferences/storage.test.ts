@@ -80,8 +80,8 @@ describe('app preferences storage', () => {
     expect(
       mergeAppPreferences({
         confirmations: { disclaimer: { version: 1, acceptedAt: 'x' } }
-      }).confirmations
-    ).toEqual(DEFAULT_APP_PREFERENCES.confirmations)
+      }).confirmations.disclaimer
+    ).toEqual({ version: null, acceptedAt: 'x' })
   })
 
   it('seeds defaults on first load when storage is empty', () => {
@@ -115,6 +115,58 @@ describe('app preferences storage', () => {
       language: LanguageCode.DE,
       confirmations: DEFAULT_APP_PREFERENCES.confirmations
     })
+  })
+
+  it('merges on upgrade: keeps user values and fills only missing keys into storage', () => {
+    localStorage.setItem(
+      APP_PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        theme: ThemePreference.Dark,
+        language: LanguageCode.EN
+      })
+    )
+
+    const prefs = loadAppPreferences()
+    expect(prefs).toEqual({
+      theme: ThemePreference.Dark,
+      language: LanguageCode.EN,
+      confirmations: DEFAULT_APP_PREFERENCES.confirmations
+    })
+    expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')).toEqual(prefs)
+  })
+
+  it('preserves nested confirmation fields and defaults only missing confirmation keys', () => {
+    expect(
+      mergeAppPreferences({
+        theme: ThemePreference.Light,
+        confirmations: {
+          disclaimer: { version: '2026-02' }
+        }
+      })
+    ).toEqual({
+      theme: ThemePreference.Light,
+      language: DEFAULT_APP_PREFERENCES.language,
+      confirmations: {
+        disclaimer: { version: '2026-02', acceptedAt: null }
+      }
+    })
+  })
+
+  it('does not rewrite storage when the stored bag already matches defaults merge', () => {
+    const complete = mergeAppPreferences({
+      theme: ThemePreference.Dark,
+      language: LanguageCode.EN,
+      confirmations: {
+        disclaimer: { version: 'keep', acceptedAt: '2026-01-01T00:00:00.000Z' }
+      }
+    })
+    const serialized = JSON.stringify(complete)
+    localStorage.setItem(APP_PREFERENCES_STORAGE_KEY, serialized)
+
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+    expect(loadAppPreferences()).toEqual(complete)
+    expect(setItem).not.toHaveBeenCalled()
+    setItem.mockRestore()
   })
 
   it('falls back to defaults when stored JSON is corrupt', () => {

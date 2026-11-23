@@ -3,7 +3,6 @@ import {
   APP_PREFERENCES_STORAGE_KEY,
   createDefaultAppPreferences,
   DEFAULT_APP_PREFERENCE_CONFIRMATIONS,
-  DEFAULT_APP_PREFERENCES,
   DEFAULT_PREFERENCE_CONFIRMATION
 } from './defaults'
 import {
@@ -52,14 +51,20 @@ export function isPreferenceConfirmation(value: unknown): value is PreferenceCon
 }
 
 function mergePreferenceConfirmation(raw: unknown): PreferenceConfirmation {
-  if (!isPreferenceConfirmation(raw)) {
-    return { ...DEFAULT_PREFERENCE_CONFIRMATION }
+  const base: PreferenceConfirmation = { ...DEFAULT_PREFERENCE_CONFIRMATION }
+  if (!raw || typeof raw !== 'object') {
+    return base
   }
 
-  return {
-    version: raw.version,
-    acceptedAt: raw.acceptedAt
+  const record = raw as Record<string, unknown>
+  if (record.version === null || typeof record.version === 'string') {
+    base.version = record.version
   }
+  if (record.acceptedAt === null || typeof record.acceptedAt === 'string') {
+    base.acceptedAt = record.acceptedAt
+  }
+
+  return base
 }
 
 function mergeAppPreferenceConfirmations(raw: unknown): AppPreferenceConfirmations {
@@ -77,15 +82,13 @@ function mergeAppPreferenceConfirmations(raw: unknown): AppPreferenceConfirmatio
 }
 
 /**
- * Merges a partial/unknown bag onto defaults, keeping only valid known fields.
+ * Merges a partial/unknown bag onto current defaults (upgrade-safe).
+ * Keeps valid stored values; fills only missing or invalid known keys from defaults.
  * @param raw - Parsed JSON or partial object from storage
  * @returns Typed preferences with defaults for missing/invalid fields
  */
 export function mergeAppPreferences(raw: unknown): AppPreferences {
-  const base: AppPreferences = {
-    ...DEFAULT_APP_PREFERENCES,
-    confirmations: mergeAppPreferenceConfirmations(undefined)
-  }
+  const base = createDefaultAppPreferences()
   if (!raw || typeof raw !== 'object') {
     return base
   }
@@ -104,7 +107,8 @@ export function mergeAppPreferences(raw: unknown): AppPreferences {
 
 /**
  * Reads preferences from browser `localStorage` only (no SQLite / cloud).
- * On first open (missing key), seeds a full defaults bag into `localStorage`.
+ * On first open (missing key), seeds defaults. On upgrade, merges stored values
+ * onto current defaults and writes back when the stored JSON is not yet complete.
  * @returns Typed preferences bag (never empty/undefined known fields)
  */
 export function loadAppPreferences(): AppPreferences {
@@ -117,7 +121,12 @@ export function loadAppPreferences(): AppPreferences {
       return seeded
     }
 
-    return mergeAppPreferences(JSON.parse(raw) as unknown)
+    const merged = mergeAppPreferences(JSON.parse(raw) as unknown)
+    if (raw !== JSON.stringify(merged)) {
+      saveAppPreferences(merged)
+    }
+
+    return merged
   } catch {
     return createDefaultAppPreferences()
   }
