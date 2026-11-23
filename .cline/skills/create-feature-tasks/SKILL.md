@@ -76,6 +76,17 @@ gh auth refresh -s read:project,project
 
 Then retry adding the created Tasks to the project. Do not skip parent/type/assignee while waiting on project scopes.
 
+## Status timing (mandatory)
+
+| Moment                       | Project Status                                                            |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| **After Tasks are created**  | Set the **Feature** to **In progress**. Leave every new **Task** as Todo. |
+| **When implementing a Task** | Only then set that **Task** to **In progress** (`engine.py start-task`).  |
+| **This skill**               | Must **not** call `start-task` / must **not** mark any Task In progress.  |
+
+Wrong: first Task → In progress while Feature stays Todo.  
+Right: Feature → In progress on Task creation; Task → In progress only when coding that Task starts.
+
 ## Procedure
 
 1. Read config: `.workflow/feature-task/config.json`.
@@ -92,15 +103,17 @@ Then retry adding the created Tasks to the project. Do not skip parent/type/assi
    - `assigneeIds` = configured default assignee
    - Then `gh project item-add` (or GraphQL `addProjectV2ItemById`) using `projectTitle`
 8. Order = ascending issue number = build order (create in intended sequence).
-9. Verify each created issue: parent = Feature, type = Task, assignee set, project membership when configured.
-10. Bind workflow state:
+9. Verify each created issue: parent = Feature, type = Task, assignee set, project membership when configured. New Tasks must remain **Todo** (not In progress).
+10. Set the **Feature** to In progress and bind workflow state **without** starting a Task:
 
 ```bash
+python3 .workflow/feature-task/engine.py mark-feature-in-progress
 python3 .workflow/feature-task/engine.py from-branch
-python3 .workflow/feature-task/engine.py next-context
 ```
 
-11. Tell the user which Tasks were created and that implementation starts with the **first open** Task only after they ask.
+Do **not** run `start-task` or mark any Task In progress here. Prefer not to rely on `next-context` for Status flips — context listing must not start a Task.
+
+11. Tell the user which Tasks were created, that the **Feature** is In progress, and that implementation of the **first open** Task (via `start-task`) starts only after they ask.
 
 ## Guardrails
 
@@ -109,4 +122,4 @@ python3 .workflow/feature-task/engine.py next-context
 - Generic drafting only — no product-domain hardcoding in titles beyond the Feature text and config defaults
 - One Feature at a time
 - Do not start coding the Feature until Tasks exist (unless the user explicitly waives that)
-- Do not mark Tasks Done here — that happens after commit via the workflow hooks
+- Do not mark Tasks In progress or Done here — In progress happens on `start-task` when implementation begins; Done happens after commit via the workflow hooks

@@ -1,6 +1,16 @@
 import { LanguageCode } from '../i18n'
-import { APP_PREFERENCES_STORAGE_KEY, DEFAULT_APP_PREFERENCES } from './defaults'
-import { type AppPreferences, ThemePreference } from './types'
+import {
+  APP_PREFERENCES_STORAGE_KEY,
+  createDefaultAppPreferences,
+  DEFAULT_APP_PREFERENCE_CONFIRMATIONS,
+  DEFAULT_PREFERENCE_CONFIRMATION
+} from './defaults'
+import {
+  type AppPreferenceConfirmations,
+  type AppPreferences,
+  type PreferenceConfirmation,
+  ThemePreference
+} from './types'
 
 const THEME_VALUES = new Set<string>(Object.values(ThemePreference))
 const LANGUAGE_VALUES = new Set<string>(Object.values(LanguageCode))
@@ -24,12 +34,61 @@ export function isLanguageCode(value: unknown): value is LanguageCode {
 }
 
 /**
- * Merges a partial/unknown bag onto defaults, keeping only valid known fields.
+ * Returns whether a value is a usable preference confirmation record.
+ * @param value - Unknown candidate from storage
+ * @returns `true` when `version` and `acceptedAt` are each string or null
+ */
+export function isPreferenceConfirmation(value: unknown): value is PreferenceConfirmation {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  const versionOk = record.version === null || typeof record.version === 'string'
+  const acceptedAtOk = record.acceptedAt === null || typeof record.acceptedAt === 'string'
+
+  return versionOk && acceptedAtOk
+}
+
+function mergePreferenceConfirmation(raw: unknown): PreferenceConfirmation {
+  const base: PreferenceConfirmation = { ...DEFAULT_PREFERENCE_CONFIRMATION }
+  if (!raw || typeof raw !== 'object') {
+    return base
+  }
+
+  const record = raw as Record<string, unknown>
+  if (record.version === null || typeof record.version === 'string') {
+    base.version = record.version
+  }
+  if (record.acceptedAt === null || typeof record.acceptedAt === 'string') {
+    base.acceptedAt = record.acceptedAt
+  }
+
+  return base
+}
+
+function mergeAppPreferenceConfirmations(raw: unknown): AppPreferenceConfirmations {
+  const base: AppPreferenceConfirmations = {
+    disclaimer: { ...DEFAULT_APP_PREFERENCE_CONFIRMATIONS.disclaimer }
+  }
+  if (!raw || typeof raw !== 'object') {
+    return base
+  }
+
+  const record = raw as Record<string, unknown>
+  base.disclaimer = mergePreferenceConfirmation(record.disclaimer)
+
+  return base
+}
+
+/**
+ * Merges a partial/unknown bag onto current defaults (upgrade-safe).
+ * Keeps valid stored values; fills only missing or invalid known keys from defaults.
  * @param raw - Parsed JSON or partial object from storage
  * @returns Typed preferences with defaults for missing/invalid fields
  */
 export function mergeAppPreferences(raw: unknown): AppPreferences {
-  const base: AppPreferences = { ...DEFAULT_APP_PREFERENCES }
+  const base = createDefaultAppPreferences()
   if (!raw || typeof raw !== 'object') {
     return base
   }
@@ -41,32 +100,52 @@ export function mergeAppPreferences(raw: unknown): AppPreferences {
   if (isLanguageCode(record.language)) {
     base.language = record.language
   }
+  base.confirmations = mergeAppPreferenceConfirmations(record.confirmations)
 
   return base
 }
 
 /**
- * Reads preferences from `localStorage`, seeding defaults when missing/corrupt.
- * @returns Typed preferences bag (never empty/undefined fields)
+ * Reads preferences from browser `localStorage` only (no SQLite / cloud).
+ * Seeds on first open, merges on upgrade, and recovers from invalid or partial
+ * JSON without throwing (rewrites a safe bag when storage can be written).
+ * @returns Typed preferences bag (never empty/undefined known fields)
  */
 export function loadAppPreferences(): AppPreferences {
+  let raw: string | null | undefined
   try {
-    const raw = globalThis.localStorage?.getItem(APP_PREFERENCES_STORAGE_KEY)
-    if (raw == null) {
-      const seeded = { ...DEFAULT_APP_PREFERENCES }
-      saveAppPreferences(seeded)
-
-      return seeded
-    }
-
-    return mergeAppPreferences(JSON.parse(raw) as unknown)
+    raw = globalThis.localStorage?.getItem(APP_PREFERENCES_STORAGE_KEY)
   } catch {
-    return { ...DEFAULT_APP_PREFERENCES }
+    return createDefaultAppPreferences()
   }
+
+  if (raw == null) {
+    const seeded = createDefaultAppPreferences()
+    saveAppPreferences(seeded)
+
+    return seeded
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw) as unknown
+  } catch {
+    const recovered = createDefaultAppPreferences()
+    saveAppPreferences(recovered)
+
+    return recovered
+  }
+
+  const merged = mergeAppPreferences(parsed)
+  if (raw !== JSON.stringify(merged)) {
+    saveAppPreferences(merged)
+  }
+
+  return merged
 }
 
 /**
- * Persists the preferences bag to `localStorage`.
+ * Persists the preferences bag to browser `localStorage` only (no SQLite / cloud).
  * @param preferences - Full typed bag to store
  * @returns Whether the write succeeded
  */

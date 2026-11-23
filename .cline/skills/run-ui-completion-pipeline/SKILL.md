@@ -16,7 +16,7 @@ Use this skill after UI features or component modifications.
 1. `npx eslint . --fix`
 2. `npm run format`
 3. `npm run typecheck`
-4. `npm run test:coverage` (affected unit tests)
+4. `npm run test:coverage` (affected unit tests). For Feature/Task implementation, also gate **100%** coverage on every touched source module before calling the Task ready for review (`npx vitest run <paths> --coverage --coverage.include=… --coverage.thresholds.*=100`)
 5. Verify Storybook for affected `.stories.ts` (`npm run storybook` / `build-storybook`)
 6. Run Playwright for affected `.e2e.spec.ts` when E2E exists
 7. Keep Accessibility/Best Practices/Performance expectations in mind (no Vuetify-specific checks)

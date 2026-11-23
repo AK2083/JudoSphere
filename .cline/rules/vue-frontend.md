@@ -12,7 +12,7 @@ alwaysApply: false
 - **No business logic in templates** — no calculations, API calls, or complex conditions. Templates bind state and events from script/composable.
 - Logic belongs in **composables** (`model/use-*.ts`) or `service/` — UI components in `ui/` stay presentation-focused.
 - When a composable mixes unrelated concerns (viewport, disclosure, drag, persistence), **split by concern** into focused `use-*.ts` files and keep a thin facade for the UI.
-- JSDoc: only exported APIs + constants — see [project-overview.md](./project-overview.md).
+- JSDoc: only exported public members/functions — see [project-overview.md](./project-overview.md).
 - **No comments in CSS:** never put `/* … */` (or `//`) in `<style>` blocks or `.css` files.
 - Decorative / nav icons: no `box-shadow`, `filter`, or `text-shadow` on icon SVGs.
 - UI primitives come from the Tailwind-based design system in `@shared/ui` (no Vuetify).
@@ -97,6 +97,6 @@ After UI work, run and fix errors:
 1. `npx eslint . --fix`
 2. `npm run typecheck`
 3. `npm run format`
-4. `npm run test:coverage` (affected unit tests)
+4. `npm run test:coverage` (affected unit tests). For Feature/Task work, touched modules must hit **100%** coverage (statements/branches/functions/lines) before review — see `feature-task-workflow`.
 5. Storybook for new/changed `.stories.ts`
 6. Playwright for new/changed `.e2e.spec.ts` when E2E exists

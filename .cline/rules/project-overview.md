@@ -46,9 +46,8 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 ## JSDoc and comments
 
 - **Language:** English.
-- **Exported functions / types / default exports:** require JSDoc (`@param` / `@returns` where applicable). Aligns with ESLint `jsdoc/require-jsdoc` (`publicOnly`).
-- **Constants:** every `const` that names a fixed value (storage keys, media queries, thresholds, DOM ids, magic numbers) gets a short JSDoc describing purpose — including **module-private** constants.
-- **Do not JSDoc:** non-exported functions, local variables/`let`/`ref` state, or inline narration of obvious code.
+- **JSDoc only on the public API:** exclusively **exported** members — functions, classes, methods, types/interfaces, and exported constants/variables. Require `@param` / `@returns` where applicable. Aligns with ESLint `jsdoc/require-jsdoc` (`publicOnly`).
+- **Do not JSDoc:** non-exported / module-private functions, private helpers, non-exported constants, local variables/`let`/`ref` state, or inline narration of obvious code.
 - **Do not leave:** `//` or block comments that only restate the next line, TODOs-as-noise, or “ignore error” catch notes. Prefer empty `catch` blocks when ignoring is intentional.
 - **Vue SFCs:** same rules in `<script setup>` — no JSDoc on local helpers; no comments in `<template>`.
 - **CSS / `<style>`:** no comments at all (`/* … */` or `//`) in `.css` files or SFC `<style>` blocks — neither narration nor “contract” notes.

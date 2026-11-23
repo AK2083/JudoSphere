@@ -64,6 +64,7 @@ export function useSettingsPreferences() {
 
   function persist(): boolean {
     const saved = saveAppPreferences({
+      ...loadAppPreferences(),
       theme: theme.value,
       language: language.value
     })
