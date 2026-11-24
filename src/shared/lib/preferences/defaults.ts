@@ -3,7 +3,8 @@ import {
   type AppPreferenceConfirmations,
   type AppPreferences,
   type PreferenceConfirmation,
-  ThemePreference
+  ThemePreference,
+  UiDensityPreference
 } from './types'
 
 /**
@@ -27,6 +28,7 @@ export const DEFAULT_APP_PREFERENCE_CONFIRMATIONS: AppPreferenceConfirmations = 
 export const DEFAULT_APP_PREFERENCES: AppPreferences = {
   theme: ThemePreference.System,
   language: FallbackLanguage,
+  uiDensity: UiDensityPreference.Comfortable,
   confirmations: {
     disclaimer: { ...DEFAULT_PREFERENCE_CONFIRMATION }
   }
@@ -40,6 +42,7 @@ export function createDefaultAppPreferences(): AppPreferences {
   return {
     theme: DEFAULT_APP_PREFERENCES.theme,
     language: DEFAULT_APP_PREFERENCES.language,
+    uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
     confirmations: {
       disclaimer: { ...DEFAULT_APP_PREFERENCE_CONFIRMATIONS.disclaimer }
     }
@@ -48,7 +51,7 @@ export function createDefaultAppPreferences(): AppPreferences {
 
 /**
  * Single `localStorage` key for the JSON preferences bag shared by host UI and LAN clients.
- * All general preferences (theme, language, confirmations, future options) live under this key.
+ * All general preferences (theme, language, uiDensity, confirmations, future options) live under this key.
  * Persistence for this milestone is browser `localStorage` only (no SQLite / cloud sync).
  * Keep in sync with the early theme boot script in `index.html` (same string literal).
  */

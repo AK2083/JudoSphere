@@ -21,11 +21,13 @@ export {
   isLanguageCode,
   isPreferenceConfirmation,
   isThemePreference,
+  isUiDensityPreference,
   loadAppPreferences,
   mergeAppPreferences,
   type PreferenceConfirmation,
   resolveSystemColorScheme,
   saveAppPreferences,
   stopSystemThemeWatch,
-  ThemePreference
+  ThemePreference,
+  UiDensityPreference
 } from './preferences'

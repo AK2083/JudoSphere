@@ -15,6 +15,20 @@ export const ThemePreference = {
 export type ThemePreference = (typeof ThemePreference)[keyof typeof ThemePreference]
 
 /**
+ * Chrome density preference for day-of UI compactness.
+ * Harmless extra general option proving the extensible preferences bag.
+ */
+export const UiDensityPreference = {
+  Comfortable: 'comfortable',
+  Compact: 'compact'
+} as const
+
+/**
+ * Union of supported UI density preference values.
+ */
+export type UiDensityPreference = (typeof UiDensityPreference)[keyof typeof UiDensityPreference]
+
+/**
  * Versioned one-off confirmation stored on this device (disclaimer now; more later).
  * `version` is the accepted content version; `acceptedAt` is an ISO-8601 timestamp.
  * Both are `null` until the user accepts the current notice.
@@ -38,10 +52,11 @@ export type AppPreferenceConfirmations = {
  * Extend by adding a new top-level key with a matching default in
  * `DEFAULT_APP_PREFERENCES` (and merge/validation in storage). Nested
  * `confirmations` holds versioned acceptances; other day-of options belong
- * as sibling keys on this type.
+ * as sibling keys on this type (e.g. `uiDensity`).
  */
 export type AppPreferences = {
   theme: ThemePreference
   language: LanguageCode
+  uiDensity: UiDensityPreference
   confirmations: AppPreferenceConfirmations
 }

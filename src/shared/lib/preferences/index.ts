@@ -16,6 +16,7 @@ export {
   isLanguageCode,
   isPreferenceConfirmation,
   isThemePreference,
+  isUiDensityPreference,
   loadAppPreferences,
   mergeAppPreferences,
   saveAppPreferences
@@ -24,5 +25,6 @@ export {
   type AppPreferenceConfirmations,
   type AppPreferences,
   type PreferenceConfirmation,
-  ThemePreference
+  ThemePreference,
+  UiDensityPreference
 } from './types'
