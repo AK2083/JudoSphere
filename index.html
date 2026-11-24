@@ -16,7 +16,9 @@
           if (theme === 'light' || theme === 'dark') {
             root.setAttribute('data-color-scheme', theme)
           } else if (theme === 'system') {
-            root.removeAttribute('data-color-scheme')
+            var dark =
+              window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            root.setAttribute('data-color-scheme', dark ? 'dark' : 'light')
           }
         } catch (_) {}
       })()

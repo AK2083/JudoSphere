@@ -24,6 +24,8 @@ export {
   loadAppPreferences,
   mergeAppPreferences,
   type PreferenceConfirmation,
+  resolveSystemColorScheme,
   saveAppPreferences,
+  stopSystemThemeWatch,
   ThemePreference
 } from './preferences'
