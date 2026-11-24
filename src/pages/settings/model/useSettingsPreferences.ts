@@ -8,7 +8,8 @@ import {
   type LanguageCode,
   loadAppPreferences,
   saveAppPreferences,
-  ThemePreference
+  ThemePreference,
+  UiDensityPreference
 } from '@shared/lib'
 
 import translationKeys from '../i18n/keys'
@@ -46,7 +47,15 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
 ] as const
 
 /**
- * Settings screen bindings for theme and language preferences.
+ * UI density control options (same shared bag as theme/language; settings UI optional).
+ */
+export const UI_DENSITY_OPTIONS: readonly UiDensityPreference[] = [
+  UiDensityPreference.Comfortable,
+  UiDensityPreference.Compact
+] as const
+
+/**
+ * Settings screen bindings for theme, language, and extensible preferences (e.g. uiDensity).
  * Loads the shared `localStorage` bag, reflects it in controls, applies live UI updates,
  * and exposes success/failure feedback for persist attempts.
  * @returns Reactive preferences, option lists, persist feedback, and setters used by `SettingsPage`
@@ -57,6 +66,7 @@ export function useSettingsPreferences() {
 
   const theme = ref<ThemePreference>(stored.theme)
   const language = ref<LanguageCode>(stored.language)
+  const uiDensity = ref<UiDensityPreference>(stored.uiDensity)
   const persistFeedback = ref<SettingsPersistFeedback>('idle')
 
   applyThemePreference(theme.value)
@@ -66,7 +76,8 @@ export function useSettingsPreferences() {
     const saved = saveAppPreferences({
       ...loadAppPreferences(),
       theme: theme.value,
-      language: language.value
+      language: language.value,
+      uiDensity: uiDensity.value
     })
     persistFeedback.value = saved ? 'success' : 'error'
 
@@ -85,13 +96,21 @@ export function useSettingsPreferences() {
     persist()
   }
 
+  function setUiDensity(next: UiDensityPreference): void {
+    uiDensity.value = next
+    persist()
+  }
+
   return {
     theme,
     language,
+    uiDensity,
     persistFeedback,
     themeOptions: THEME_OPTIONS,
     languageOptions: AvailableLanguages,
+    uiDensityOptions: UI_DENSITY_OPTIONS,
     setTheme,
-    setLanguage
+    setLanguage,
+    setUiDensity
   }
 }
