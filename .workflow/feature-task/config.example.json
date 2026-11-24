@@ -13,7 +13,7 @@
     "inProgressStatusId": "Optional GitHub planning-status node ID for In Progress (issue statuses API). null = use Projects V2 Status only.",
     "doneStatusId": "Optional GitHub planning-status node ID for Done. null = use Projects V2 Status + close with reason completed.",
     "closeTaskOnDone": "If true, close the Task issue after a successful commit (always used when doneStatusId is unset).",
-    "requireCommitApproval": "If true, agents cannot commit alone: Cursor asks for approval; Cline blocks until the user confirms commit intent.",
+    "requireCommitApproval": "If true, agents cannot commit alone: Cursor beforeShell asks for approval before git commit.",
     "stateFile": "Runtime path for the active Feature/Task (local, feature-specific, should be gitignored).",
     "logFile": "Optional workflow log path (local; should be gitignored)."
   },

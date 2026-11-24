@@ -17,20 +17,20 @@ Reusable agent/git workflow for GitHub **Feature** issues with ordered **Task** 
 | Layer                                            | Role                                                                              |
 | ------------------------------------------------ | --------------------------------------------------------------------------------- |
 | **Hooks** (`integrations/`, `engine.py` context) | Short, generic _when_: remind to create Tasks if missing; gate commits; mark Done |
-| **Skill** `.cline/skills/create-feature-tasks`   | _How_: read Feature, draft User Stories, create Task sub-issues                   |
+| **Skill** `.cursor/skills/create-feature-tasks`  | _How_: read Feature, draft User Stories, create Task sub-issues                   |
 
-Cursor `beforeSubmitPrompt` can only continue/deny (no context injection) — it binds the Feature and flags a one-shot inject. The same Task-creation guidance is then injected on Cursor **sessionStart** / **postToolUse**, and on Cline **TaskStart** & **UserPromptSubmit**, plus the always-on rule.
+Cursor `beforeSubmitPrompt` can only continue/deny (no context injection) — it binds the Feature and flags a one-shot inject. The same Task-creation guidance is then injected on Cursor **sessionStart** / **postToolUse**, plus the always-on rule.
 
 ## Layout
 
 | Path                  | Role                                                             |
 | --------------------- | ---------------------------------------------------------------- |
-| `engine.py`           | Shared logic (Cursor, Cline, Husky)                              |
+| `engine.py`           | Shared logic (Cursor hooks + Husky `mark-done`)                  |
 | `config.json`         | Repo policy (assignee/project defaults; no Feature/Task numbers) |
 | `config.example.json` | Template + English `_comments` per field                         |
 | `state.json`          | **Runtime** active Feature/Task (gitignored; feature-specific)   |
 | `extensions/`         | Future feature-specific adapters                                 |
-| `integrations/`       | Thin Cursor / Cline / Husky entrypoints                          |
+| `integrations/`       | Thin Cursor (+ optional future) entrypoints; Husky calls engine  |
 
 ## Setup
 
@@ -62,6 +62,9 @@ Optional: set `inProgressStatusId` / `doneStatusId` when GitHub issue planning s
 
 ## Agent wiring
 
-- Cursor: `.cline/hooks.json` (`.cursor` → `.cline`) → `integrations/cursor/*`
-- Cline: `.clinerules/hooks/*` → `engine.py cline …`
+Supported path: **Cursor hooks + Husky `mark-done`**.
+
+- Cursor: `.cursor/hooks.json` → `integrations/cursor/*` → `engine.py cursor <mode>`
 - Git: `.husky/post-commit` → `engine.py mark-done`
+- Rule: `.cursor/rules/feature-task-workflow.md`
+- Skill: `.cursor/skills/create-feature-tasks/SKILL.md`

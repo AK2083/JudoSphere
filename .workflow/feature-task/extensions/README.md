@@ -10,4 +10,4 @@ Put **feature-specific** helpers here later, for example:
 
 Runtime “where is the agent right now?” belongs in `../state.json` (gitignored), not in the shared hooks.
 
-The engine loads only `../config.json` today. Extension loading can be added without changing Cursor/Cline hook entrypoints.
+The engine loads only `../config.json` today. Extension loading can be added without changing Cursor hook entrypoints.
