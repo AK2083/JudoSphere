@@ -126,6 +126,23 @@ describe('applyThemePreference', () => {
 
     expect(() => applyThemePreference(ThemePreference.Light)).not.toThrow()
   })
+
+  it('applies light fallback for system when matchMedia is unavailable', () => {
+    vi.stubGlobal('matchMedia', undefined)
+
+    applyThemePreference(ThemePreference.System)
+
+    expect(document.documentElement.getAttribute('data-color-scheme')).toBe('light')
+  })
+
+  it('ignores OS change events when the document root disappears', () => {
+    const { emit } = stubMatchMedia(false)
+    applyThemePreference(ThemePreference.System)
+    expect(document.documentElement.getAttribute('data-color-scheme')).toBe('light')
+
+    vi.stubGlobal('document', undefined)
+    expect(() => emit(true)).not.toThrow()
+  })
 })
 
 describe('applyPersistedThemeOnStartup', () => {
