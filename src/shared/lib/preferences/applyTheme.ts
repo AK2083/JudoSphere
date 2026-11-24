@@ -1,3 +1,4 @@
+import { loadAppPreferences } from './storage'
 import { ThemePreference } from './types'
 
 /**
@@ -18,4 +19,16 @@ export function applyThemePreference(theme: ThemePreference): void {
   }
 
   root.setAttribute('data-color-scheme', theme)
+}
+
+/**
+ * Loads the shared `localStorage` preferences bag and applies its theme on startup.
+ * Safe to call before Vue mounts; uses each device’s own storage (host UI and LAN clients).
+ * @returns The theme that was applied (after seed/merge)
+ */
+export function applyPersistedThemeOnStartup(): ThemePreference {
+  const { theme } = loadAppPreferences()
+  applyThemePreference(theme)
+
+  return theme
 }

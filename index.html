@@ -5,6 +5,22 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JudoSphere</title>
+    <!-- Early theme boot: key must match APP_PREFERENCES_STORAGE_KEY -->
+    <script>
+      ;(function () {
+        try {
+          var raw = localStorage.getItem('judosphere.app.preferences')
+          if (!raw) return
+          var theme = JSON.parse(raw).theme
+          var root = document.documentElement
+          if (theme === 'light' || theme === 'dark') {
+            root.setAttribute('data-color-scheme', theme)
+          } else if (theme === 'system') {
+            root.removeAttribute('data-color-scheme')
+          }
+        } catch (_) {}
+      })()
+    </script>
   </head>
 
   <body>

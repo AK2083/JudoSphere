@@ -50,5 +50,6 @@ export function createDefaultAppPreferences(): AppPreferences {
  * Single `localStorage` key for the JSON preferences bag shared by host UI and LAN clients.
  * All general preferences (theme, language, confirmations, future options) live under this key.
  * Persistence for this milestone is browser `localStorage` only (no SQLite / cloud sync).
+ * Keep in sync with the early theme boot script in `index.html` (same string literal).
  */
 export const APP_PREFERENCES_STORAGE_KEY = 'judosphere.app.preferences'

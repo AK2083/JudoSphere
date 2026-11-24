@@ -8,6 +8,7 @@ export {
 } from './i18n'
 export {
   APP_PREFERENCES_STORAGE_KEY,
+  applyPersistedThemeOnStartup,
   applyThemePreference,
   type AppPreferenceConfirmations,
   type AppPreferences,

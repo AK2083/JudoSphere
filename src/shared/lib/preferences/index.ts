@@ -1,4 +1,4 @@
-export { applyThemePreference } from './applyTheme'
+export { applyPersistedThemeOnStartup, applyThemePreference } from './applyTheme'
 export {
   APP_PREFERENCES_STORAGE_KEY,
   createDefaultAppPreferences,

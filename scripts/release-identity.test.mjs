@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Run: node --test scripts/release-identity.test.mjs
+ * Run: npm run test:node
  */
 
 import assert from 'node:assert/strict'
