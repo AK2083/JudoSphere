@@ -52,7 +52,7 @@ SOURCE_TAG=v1.0.0-alpha.1+Example TARGET_CHANNEL=beta \
   node scripts/map-release-channel.mjs
 ```
 
-Tests: `npm run test:release-identity`.
+Tests: `npm run test:node`.
 
 ### Tag & Release naming
 
@@ -78,7 +78,7 @@ RPM and MSI reject those prereleases (RPM: `-` in the version; MSI: non-numeric 
 
 Encoded in `src-tauri/tauri.conf.json` and in the release matrix (`--bundles …` in `.github/workflows/release-tauri-build.yml`). Linux CI also installs FUSE 2 (`libfuse2t64` / `libfuse2`) and sets `APPIMAGE_EXTRACT_AND_RUN=1` so AppImage/`linuxdeploy` works on GitHub runners. Windows releases ship an NSIS installer (`.exe`); MSI is skipped because WiX requires numeric-only prerelease identifiers. A later change could add packager-specific version mapping if we need RPM/MSI again.
 
-Regression checks for these targets run with `npm run test:release-identity`.
+Regression checks for these targets run with `npm run test:node`.
 
 #### Expected Release Test assets
 
@@ -98,7 +98,7 @@ There should be **no** `.rpm` or `.msi` from these workflows. Tag format remains
 2. Actions → **Release Test** → _Run workflow_ on that branch with an alpha SemVer + `version_name`.
 3. Confirm the matrix (macOS / Ubuntu 26.04 / Windows) is green.
 4. Open the new Prerelease and check the assets table above.
-5. Optional local guard (no full Tauri matrix): `npm run test:release-identity`.
+5. Optional local guard (no full Tauri matrix): `npm run test:node`.
 
 ## Release stages (Test → Staging → Production)
 
@@ -155,7 +155,7 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 - `npm run typecheck` — TypeScript project references check
 - `npm run test` — Vitest unit suite (once)
 - `npm run test:coverage` — unit tests + coverage (80% thresholds)
-- `npm run test:release-identity` — Node test runner for `scripts/release-identity*.mjs` (sync + channel mapping)
+- `npm run test:node` — Node test runner for all `scripts/**/*.test.mjs` (incl. release-identity sync + channel mapping)
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
@@ -206,7 +206,7 @@ python3 .workflow/feature-task/engine.py next-context
 
 GitHub Actions workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
 
-1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%), release-identity script tests
+1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%), Node script tests (`npm run test:node`)
 2. Frontend build + Playwright e2e (Chromium); HTML report uploaded as the `playwright-report` artifact
 
 No repository secrets are required for this workflow. Manual release workflows (Test / Staging / Production) are separate; see **Release stages** above.

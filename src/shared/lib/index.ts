@@ -8,6 +8,9 @@ export {
 } from './i18n'
 export {
   APP_PREFERENCES_STORAGE_KEY,
+  applyDocumentLanguage,
+  applyPersistedLanguageOnStartup,
+  applyPersistedThemeOnStartup,
   applyThemePreference,
   type AppPreferenceConfirmations,
   type AppPreferences,
@@ -21,6 +24,8 @@ export {
   loadAppPreferences,
   mergeAppPreferences,
   type PreferenceConfirmation,
+  resolveSystemColorScheme,
   saveAppPreferences,
+  stopSystemThemeWatch,
   ThemePreference
 } from './preferences'

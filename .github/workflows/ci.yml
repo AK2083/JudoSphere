@@ -44,7 +44,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Release identity scripts
-        run: npm run test:release-identity
+        run: npm run test:node
 
   e2e:
     name: Playwright e2e

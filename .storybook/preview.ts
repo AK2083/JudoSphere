@@ -75,7 +75,10 @@ const preview: Preview = {
       const scheme = (context.globals.colorScheme as string | undefined) ?? 'light'
       const root = document.documentElement
       if (scheme === 'system') {
-        root.removeAttribute('data-color-scheme')
+        const dark =
+          typeof globalThis.matchMedia === 'function' &&
+          globalThis.matchMedia('(prefers-color-scheme: dark)').matches
+        root.setAttribute('data-color-scheme', dark ? 'dark' : 'light')
       } else {
         root.setAttribute('data-color-scheme', scheme)
       }

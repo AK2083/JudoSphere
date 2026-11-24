@@ -1,4 +1,10 @@
-export { applyThemePreference } from './applyTheme'
+export { applyDocumentLanguage, applyPersistedLanguageOnStartup } from './applyLanguage'
+export {
+  applyPersistedThemeOnStartup,
+  applyThemePreference,
+  resolveSystemColorScheme,
+  stopSystemThemeWatch
+} from './applyTheme'
 export {
   APP_PREFERENCES_STORAGE_KEY,
   createDefaultAppPreferences,
