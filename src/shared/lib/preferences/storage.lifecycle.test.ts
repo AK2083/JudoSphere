@@ -66,6 +66,30 @@ describe('preferences seed, merge-on-upgrade, and corrupt recovery', () => {
       expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')).toEqual(prefs)
     })
 
+    it('introduces uiDensity without wiping stored theme/language from an older bag', () => {
+      const legacyBag = {
+        theme: ThemePreference.Light,
+        language: LanguageCode.DE,
+        confirmations: {
+          disclaimer: { version: 'legacy', acceptedAt: '2026-01-01T00:00:00.000Z' }
+        }
+      }
+      localStorage.setItem(APP_PREFERENCES_STORAGE_KEY, JSON.stringify(legacyBag))
+
+      const prefs = loadAppPreferences()
+      const rewritten = JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')
+
+      expect(prefs.theme).toBe(ThemePreference.Light)
+      expect(prefs.language).toBe(LanguageCode.DE)
+      expect(prefs.uiDensity).toBe(DEFAULT_APP_PREFERENCES.uiDensity)
+      expect(prefs.confirmations.disclaimer).toEqual(legacyBag.confirmations.disclaimer)
+      expect(rewritten).toEqual(prefs)
+      expect(rewritten).not.toEqual(legacyBag)
+      expect(Object.keys(rewritten).sort()).toEqual(
+        ['confirmations', 'language', 'theme', 'uiDensity'].sort()
+      )
+    })
+
     it('merges a partial object onto defaults without wiping valid fields', () => {
       expect(
         mergeAppPreferences({

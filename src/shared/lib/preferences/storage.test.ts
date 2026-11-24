@@ -68,6 +68,20 @@ describe('app preferences storage helpers', () => {
     expect(isUiDensityPreference(null)).toBe(false)
   })
 
+  it('fills only missing uiDensity when merging a theme/language bag', () => {
+    expect(
+      mergeAppPreferences({
+        theme: ThemePreference.Dark,
+        language: LanguageCode.EN
+      })
+    ).toEqual({
+      theme: ThemePreference.Dark,
+      language: LanguageCode.EN,
+      uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
+      confirmations: DEFAULT_APP_PREFERENCES.confirmations
+    })
+  })
+
   it('accepts null confirmation fields and rejects non-object or invalid confirmations', () => {
     expect(isPreferenceConfirmation(null)).toBe(false)
     expect(isPreferenceConfirmation('nope')).toBe(false)

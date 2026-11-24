@@ -95,6 +95,7 @@ function mergeAppPreferenceConfirmations(raw: unknown): AppPreferenceConfirmatio
 /**
  * Merges a partial/unknown bag onto current defaults (upgrade-safe).
  * Keeps valid stored values; fills only missing or invalid known keys from defaults.
+ * Adding a new key such as `uiDensity` must not wipe existing theme/language values.
  * @param raw - Parsed JSON or partial object from storage
  * @returns Typed preferences with defaults for missing/invalid fields
  */
