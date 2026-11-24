@@ -25,6 +25,7 @@ describe('preferences seed, merge-on-upgrade, and corrupt recovery', () => {
       expect(prefs).toEqual(DEFAULT_APP_PREFERENCES)
       expect(prefs.theme).toBeDefined()
       expect(prefs.language).toBeDefined()
+      expect(prefs.uiDensity).toBe(DEFAULT_APP_PREFERENCES.uiDensity)
       expect(prefs.confirmations.disclaimer).toEqual({ version: null, acceptedAt: null })
       expect(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY)).toBe(JSON.stringify(prefs))
     })
@@ -59,9 +60,34 @@ describe('preferences seed, merge-on-upgrade, and corrupt recovery', () => {
       expect(prefs).toEqual({
         theme: ThemePreference.Dark,
         language: LanguageCode.EN,
+        uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
         confirmations: DEFAULT_APP_PREFERENCES.confirmations
       })
       expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')).toEqual(prefs)
+    })
+
+    it('introduces uiDensity without wiping stored theme/language from an older bag', () => {
+      const legacyBag = {
+        theme: ThemePreference.Light,
+        language: LanguageCode.DE,
+        confirmations: {
+          disclaimer: { version: 'legacy', acceptedAt: '2026-01-01T00:00:00.000Z' }
+        }
+      }
+      localStorage.setItem(APP_PREFERENCES_STORAGE_KEY, JSON.stringify(legacyBag))
+
+      const prefs = loadAppPreferences()
+      const rewritten = JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '')
+
+      expect(prefs.theme).toBe(ThemePreference.Light)
+      expect(prefs.language).toBe(LanguageCode.DE)
+      expect(prefs.uiDensity).toBe(DEFAULT_APP_PREFERENCES.uiDensity)
+      expect(prefs.confirmations.disclaimer).toEqual(legacyBag.confirmations.disclaimer)
+      expect(rewritten).toEqual(prefs)
+      expect(rewritten).not.toEqual(legacyBag)
+      expect(Object.keys(rewritten).sort()).toEqual(
+        ['confirmations', 'language', 'theme', 'uiDensity'].sort()
+      )
     })
 
     it('merges a partial object onto defaults without wiping valid fields', () => {
@@ -75,6 +101,7 @@ describe('preferences seed, merge-on-upgrade, and corrupt recovery', () => {
       ).toEqual({
         theme: ThemePreference.Light,
         language: DEFAULT_APP_PREFERENCES.language,
+        uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
         confirmations: {
           disclaimer: { version: '2026-02', acceptedAt: null }
         }
@@ -85,6 +112,7 @@ describe('preferences seed, merge-on-upgrade, and corrupt recovery', () => {
       const complete = mergeAppPreferences({
         theme: ThemePreference.Dark,
         language: LanguageCode.EN,
+        uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
         confirmations: {
           disclaimer: { version: 'keep', acceptedAt: '2026-01-01T00:00:00.000Z' }
         }
@@ -124,6 +152,7 @@ describe('preferences seed, merge-on-upgrade, and corrupt recovery', () => {
       expect(prefs).toEqual({
         theme: ThemePreference.Dark,
         language: DEFAULT_APP_PREFERENCES.language,
+        uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
         confirmations: {
           disclaimer: { version: null, acceptedAt: 'ok' }
         }

@@ -2,8 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LanguageCode } from '../i18n'
 import { DEFAULT_APP_PREFERENCES } from './defaults'
-import { isPreferenceConfirmation, mergeAppPreferences, saveAppPreferences } from './storage'
-import { ThemePreference } from './types'
+import {
+  isPreferenceConfirmation,
+  isUiDensityPreference,
+  mergeAppPreferences,
+  saveAppPreferences
+} from './storage'
+import { ThemePreference, UiDensityPreference } from './types'
 
 describe('app preferences storage helpers', () => {
   beforeEach(() => {
@@ -21,15 +26,19 @@ describe('app preferences storage helpers', () => {
       mergeAppPreferences({
         theme: ThemePreference.Dark,
         language: LanguageCode.DE,
+        uiDensity: UiDensityPreference.Compact,
         extra: true
       })
     ).toEqual({
       theme: ThemePreference.Dark,
       language: LanguageCode.DE,
+      uiDensity: UiDensityPreference.Compact,
       confirmations: DEFAULT_APP_PREFERENCES.confirmations
     })
 
-    expect(mergeAppPreferences({ theme: 'neon', language: 'fr' })).toEqual(DEFAULT_APP_PREFERENCES)
+    expect(mergeAppPreferences({ theme: 'neon', language: 'fr', uiDensity: 'dense' })).toEqual(
+      DEFAULT_APP_PREFERENCES
+    )
     expect(mergeAppPreferences(null)).toEqual(DEFAULT_APP_PREFERENCES)
   })
 
@@ -45,9 +54,31 @@ describe('app preferences storage helpers', () => {
     ).toEqual({
       theme: ThemePreference.Light,
       language: LanguageCode.EN,
+      uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
       confirmations: {
         disclaimer: { version: '2026-01', acceptedAt: '2026-01-15T10:00:00.000Z' }
       }
+    })
+  })
+
+  it('recognizes supported uiDensity values', () => {
+    expect(isUiDensityPreference(UiDensityPreference.Comfortable)).toBe(true)
+    expect(isUiDensityPreference(UiDensityPreference.Compact)).toBe(true)
+    expect(isUiDensityPreference('dense')).toBe(false)
+    expect(isUiDensityPreference(null)).toBe(false)
+  })
+
+  it('fills only missing uiDensity when merging a theme/language bag', () => {
+    expect(
+      mergeAppPreferences({
+        theme: ThemePreference.Dark,
+        language: LanguageCode.EN
+      })
+    ).toEqual({
+      theme: ThemePreference.Dark,
+      language: LanguageCode.EN,
+      uiDensity: DEFAULT_APP_PREFERENCES.uiDensity,
+      confirmations: DEFAULT_APP_PREFERENCES.confirmations
     })
   })
 

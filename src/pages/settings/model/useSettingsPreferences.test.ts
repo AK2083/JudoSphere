@@ -3,7 +3,12 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createI18n } from '@shared/api'
-import { APP_PREFERENCES_STORAGE_KEY, LanguageCode, ThemePreference } from '@shared/lib'
+import {
+  APP_PREFERENCES_STORAGE_KEY,
+  LanguageCode,
+  ThemePreference,
+  UiDensityPreference
+} from '@shared/lib'
 
 import { useSettingsPreferences } from './useSettingsPreferences'
 
@@ -61,13 +66,18 @@ describe('useSettingsPreferences', () => {
   it('reflects stored preferences when opened', () => {
     localStorage.setItem(
       APP_PREFERENCES_STORAGE_KEY,
-      JSON.stringify({ theme: ThemePreference.Dark, language: LanguageCode.DE })
+      JSON.stringify({
+        theme: ThemePreference.Dark,
+        language: LanguageCode.DE,
+        uiDensity: UiDensityPreference.Compact
+      })
     )
 
     const { api, wrapper } = mountPreferences()
 
     expect(api.theme.value).toBe(ThemePreference.Dark)
     expect(api.language.value).toBe(LanguageCode.DE)
+    expect(api.uiDensity.value).toBe(UiDensityPreference.Compact)
     expect(localeRef.value).toBe(LanguageCode.DE)
     expect(document.documentElement.getAttribute('data-color-scheme')).toBe('dark')
 
@@ -112,21 +122,49 @@ describe('useSettingsPreferences', () => {
     const first = mountPreferences()
     first.api.setTheme(ThemePreference.Dark)
     first.api.setLanguage(LanguageCode.DE)
+    first.api.setUiDensity(UiDensityPreference.Compact)
     first.wrapper.unmount()
 
     const second = mountPreferences()
 
     expect(second.api.theme.value).toBe(ThemePreference.Dark)
     expect(second.api.language.value).toBe(LanguageCode.DE)
+    expect(second.api.uiDensity.value).toBe(UiDensityPreference.Compact)
     expect(document.documentElement.getAttribute('data-color-scheme')).toBe('dark')
     expect(localeRef.value).toBe(LanguageCode.DE)
 
     second.wrapper.unmount()
   })
 
+  it('reads and writes uiDensity through the same settings API as theme/language', async () => {
+    const { api, wrapper } = mountPreferences()
+
+    expect(api.uiDensity.value).toBe(UiDensityPreference.Comfortable)
+    expect(api.uiDensityOptions).toEqual([
+      UiDensityPreference.Comfortable,
+      UiDensityPreference.Compact
+    ])
+
+    api.setUiDensity(UiDensityPreference.Compact)
+    await nextTick()
+
+    expect(api.uiDensity.value).toBe(UiDensityPreference.Compact)
+    expect(api.persistFeedback.value).toBe('success')
+    expect(JSON.parse(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY) ?? '{}')).toMatchObject({
+      uiDensity: UiDensityPreference.Compact
+    })
+
+    wrapper.unmount()
+  })
+
   it('shows error feedback when storage write fails', async () => {
     vi.stubGlobal('localStorage', {
-      getItem: () => JSON.stringify({ theme: ThemePreference.System, language: LanguageCode.EN }),
+      getItem: () =>
+        JSON.stringify({
+          theme: ThemePreference.System,
+          language: LanguageCode.EN,
+          uiDensity: UiDensityPreference.Comfortable
+        }),
       setItem: () => {
         throw new Error('quota')
       },

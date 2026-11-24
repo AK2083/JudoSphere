@@ -9,6 +9,7 @@ import { APP_PREFERENCES_STORAGE_KEY } from '../src/shared/lib/preferences/defau
 const SEEDED_PREFERENCES = {
   theme: 'dark',
   language: 'de',
+  uiDensity: 'comfortable',
   confirmations: {
     disclaimer: {
       version: null,

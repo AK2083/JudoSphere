@@ -9,11 +9,13 @@ import {
   type AppPreferenceConfirmations,
   type AppPreferences,
   type PreferenceConfirmation,
-  ThemePreference
+  ThemePreference,
+  UiDensityPreference
 } from './types'
 
 const THEME_VALUES = new Set<string>(Object.values(ThemePreference))
 const LANGUAGE_VALUES = new Set<string>(Object.values(LanguageCode))
+const UI_DENSITY_VALUES = new Set<string>(Object.values(UiDensityPreference))
 
 /**
  * Returns whether a value is a supported theme preference.
@@ -31,6 +33,15 @@ export function isThemePreference(value: unknown): value is ThemePreference {
  */
 export function isLanguageCode(value: unknown): value is LanguageCode {
   return typeof value === 'string' && LANGUAGE_VALUES.has(value)
+}
+
+/**
+ * Returns whether a value is a supported UI density preference.
+ * @param value - Unknown candidate from storage
+ * @returns `true` when `value` is a known UI density preference
+ */
+export function isUiDensityPreference(value: unknown): value is UiDensityPreference {
+  return typeof value === 'string' && UI_DENSITY_VALUES.has(value)
 }
 
 /**
@@ -84,6 +95,7 @@ function mergeAppPreferenceConfirmations(raw: unknown): AppPreferenceConfirmatio
 /**
  * Merges a partial/unknown bag onto current defaults (upgrade-safe).
  * Keeps valid stored values; fills only missing or invalid known keys from defaults.
+ * Adding a new key such as `uiDensity` must not wipe existing theme/language values.
  * @param raw - Parsed JSON or partial object from storage
  * @returns Typed preferences with defaults for missing/invalid fields
  */
@@ -99,6 +111,9 @@ export function mergeAppPreferences(raw: unknown): AppPreferences {
   }
   if (isLanguageCode(record.language)) {
     base.language = record.language
+  }
+  if (isUiDensityPreference(record.uiDensity)) {
+    base.uiDensity = record.uiDensity
   }
   base.confirmations = mergeAppPreferenceConfirmations(record.confirmations)
 
