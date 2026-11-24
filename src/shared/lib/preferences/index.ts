@@ -1,3 +1,4 @@
+export { applyDocumentLanguage, applyPersistedLanguageOnStartup } from './applyLanguage'
 export { applyPersistedThemeOnStartup, applyThemePreference } from './applyTheme'
 export {
   APP_PREFERENCES_STORAGE_KEY,
