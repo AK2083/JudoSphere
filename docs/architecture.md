@@ -73,6 +73,12 @@ Details: `.cursor/rules/tauri-slices.mdc`
 - The browser clients of organizers/judges consume the host-served UI; they must not hold privileged host secrets
 - Keep personal competition data local-first and minimize exposure on the LAN
 
+## Local preferences (`localStorage`)
+
+General day-of preferences (theme, language, `uiDensity`, …) use a single
+extensible bag under `src/shared/lib/preferences/`. How to add a new key:
+[`src/shared/lib/preferences/README.md`](../src/shared/lib/preferences/README.md).
+
 ## Design system
 
 Reusable UI primitives live in `src/shared/ui` so a design system (Tailwind-based) can be extracted later without FSD restructuring.

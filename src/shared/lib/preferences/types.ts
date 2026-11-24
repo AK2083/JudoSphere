@@ -53,6 +53,7 @@ export type AppPreferenceConfirmations = {
  * `DEFAULT_APP_PREFERENCES` (and merge/validation in storage). Nested
  * `confirmations` holds versioned acceptances; other day-of options belong
  * as sibling keys on this type (e.g. `uiDensity`).
+ * Step-by-step: see `README.md` in this folder.
  */
 export type AppPreferences = {
   theme: ThemePreference
