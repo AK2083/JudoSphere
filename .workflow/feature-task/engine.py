@@ -1038,9 +1038,8 @@ def cursor_before_prompt(payload: dict[str, Any]) -> dict[str, Any]:
     """Bind Feature from branch (preferred) or prompt.
 
     Cursor `beforeSubmitPrompt` cannot inject `additional_context` (only continue/deny).
-    We set `injectWorkflowContext` so the next `postToolUse` hook injects the same
-    Feature/Task guidance Cline gets on TaskStart / UserPromptSubmit (including
-    “create Tasks first” via skill `create-feature-tasks`).
+    We set `injectWorkflowContext` so the next `postToolUse` hook injects Feature/Task
+    guidance (including “create Tasks first” via skill `create-feature-tasks`).
     """
     prompt = str(payload.get("prompt") or "")
     workflowish = bool(
@@ -1068,105 +1067,6 @@ def cursor_post_tool(_payload: dict[str, Any]) -> dict[str, Any]:
     state["injectWorkflowContext"] = False
     save_state(state)
     return {"additional_context": build_next_task_context()}
-
-
-def prompt_requests_commit(prompt: str) -> bool:
-    return bool(
-        re.search(
-            r"\b(commit|commiten|committen|committe|jetzt\s+committen|create\s+a\s+commit|git\s+commit)\b",
-            prompt,
-            flags=re.I,
-        )
-    )
-
-
-def cline_context_payload(payload: dict[str, Any] | None = None) -> dict[str, Any]:
-    payload = payload or {}
-    prompt = str(((payload.get("userPromptSubmit") or {}).get("prompt")) or "")
-    allow_commit = prompt_requests_commit(prompt)
-    resolve_feature_number(text=prompt, bind=True)
-    context = build_next_task_context()
-    if allow_commit:
-        state = load_state()
-        state["allowCommit"] = True
-        save_state(state)
-    return {"cancel": False, "contextModification": context}
-
-
-def cline_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
-    cfg = load_config()
-    pre = payload.get("preToolUse") or {}
-    tool_name = str(pre.get("toolName") or payload.get("toolName") or "")
-    params = pre.get("parameters") or payload.get("parameters") or payload.get("toolParams") or {}
-    command = ""
-    if isinstance(params, dict):
-        command = str(params.get("command") or params.get("cmd") or "")
-    if "command" in tool_name.lower() or tool_name in {"execute_command", "Bash", "Shell"}:
-        new_branch = extract_new_branch_name(command)
-        if new_branch and not is_valid_feature_branch(new_branch, cfg):
-            return {
-                "cancel": True,
-                "errorMessage": (
-                    f"Branch `{new_branch}` must be `feature/<issueNumber>-<short-description>` "
-                    "(e.g. `feature/7-app-shell-navigation`) so the Feature id is available for Task creation."
-                ),
-                "contextModification": build_next_task_context(),
-            }
-        if new_branch and is_valid_feature_branch(new_branch, cfg):
-            feature = parse_feature_from_branch(new_branch, cfg)
-            if feature is not None:
-                set_feature_context(feature)
-        if is_git_commit_command(command):
-            if not cfg.get("requireCommitApproval", True):
-                return {"cancel": False}
-            state = load_state()
-            allowed = bool(state.get("allowCommit")) or os.environ.get("FEATURE_TASK_ALLOW_GIT_COMMIT") == "1"
-            if allowed:
-                state["allowCommit"] = False
-                save_state(state)
-                return {
-                    "cancel": False,
-                    "contextModification": (
-                        "Commit approved by user for this Feature/Task. "
-                        "Include `Refs #<taskNumber>` in the message."
-                    ),
-                }
-            return {
-                "cancel": True,
-                "errorMessage": (
-                    "Feature/Task workflow: do not create the git commit yet. "
-                    "Stop for user review. After review, ask the user to confirm the commit "
-                    "(or commit in the IDE); Done is applied post-commit."
-                ),
-                "contextModification": build_next_task_context(),
-            }
-    return {"cancel": False}
-
-
-def cline_post_tool(payload: dict[str, Any]) -> dict[str, Any]:
-    post = payload.get("postToolUse") or {}
-    tool_name = str(post.get("toolName") or payload.get("toolName") or "")
-    params = post.get("parameters") or {}
-    command = ""
-    if isinstance(params, dict):
-        command = str(params.get("command") or "")
-    if post.get("success") is False:
-        return {"cancel": False}
-    if ("command" in tool_name.lower() or tool_name in {"execute_command", "Bash", "Shell"}) and is_git_commit_command(
-        command
-    ):
-        message = latest_commit_message()
-        task_number = resolve_active_task_number(message)
-        if task_number:
-            result = mark_task_done(int(task_number))
-            return {
-                "cancel": False,
-                "contextModification": (
-                    f"Marked Task #{task_number} Done ({result.get('status')}). "
-                    "Wait for the user before starting the next Task."
-                ),
-            }
-    return {"cancel": False}
 
 
 def main(argv: list[str]) -> int:
@@ -1227,27 +1127,9 @@ def main(argv: list[str]) -> int:
             emit({})
         return 0
 
-    if len(argv) >= 2 and argv[1] == "cline":
-        mode = argv[2] if len(argv) >= 3 else ""
-        payload = read_stdin_json()
-        hook_name = str(payload.get("hookName") or mode)
-        if hook_name in {"UserPromptSubmit", "TaskStart", "TaskResume"} or mode in {
-            "UserPromptSubmit",
-            "TaskStart",
-            "TaskResume",
-        }:
-            emit(cline_context_payload(payload))
-        elif hook_name == "PreToolUse" or mode == "PreToolUse":
-            emit(cline_pre_tool(payload))
-        elif hook_name == "PostToolUse" or mode == "PostToolUse":
-            emit(cline_post_tool(payload))
-        else:
-            emit({"cancel": False})
-        return 0
-
     print(
         "usage: engine.py [mark-done|set-feature <n>|from-branch|next-context [n]|"
-        "mark-feature-in-progress [n]|start-task [n]|cursor <mode>|cline <mode>]",
+        "mark-feature-in-progress [n]|start-task [n]|cursor <mode>]",
         file=sys.stderr,
     )
     return 2
@@ -1258,10 +1140,8 @@ if __name__ == "__main__":
         raise SystemExit(main(sys.argv))
     except Exception as exc:  # noqa: BLE001
         log(f"unhandled error: {exc}")
-        if len(sys.argv) >= 2 and sys.argv[1] in {"cursor", "cline"}:
-            if sys.argv[1] == "cline":
-                emit({"cancel": False})
-            elif len(sys.argv) >= 3 and sys.argv[2] == "beforeShell":
+        if len(sys.argv) >= 2 and sys.argv[1] == "cursor":
+            if len(sys.argv) >= 3 and sys.argv[2] == "beforeShell":
                 emit({"permission": "allow"})
             elif len(sys.argv) >= 3 and sys.argv[2] == "beforePrompt":
                 emit({"continue": True})

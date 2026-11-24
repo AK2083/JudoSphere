@@ -173,7 +173,7 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 
 To bypass in an emergency only: `git commit --no-verify` / `git push --no-verify` (avoid for normal work).
 
-## Agent Feature / Task workflow (Cursor & Cline)
+## Agent Feature / Task workflow (Cursor)
 
 Generic reusable workflow for GitHub **Feature** issues with ordered **Task** sub-issues:
 
@@ -188,13 +188,12 @@ Runtime active Feature/Task state is **local/feature-specific** (gitignored): `.
 
 **Hooks** = when (policy). **Skill** `create-feature-tasks` = how to create Task issues.
 
-Wiring:
+Supported wiring (Cursor + Husky only):
 
-- Cursor: `.cline/hooks.json` (`.cursor` → `.cline`) → `.workflow/feature-task/integrations/cursor/`
-- Cline: `.clinerules/hooks/*` → `.workflow/feature-task/integrations/cline/` (enable Hooks in Cline settings)
-- Git: `.husky/post-commit` → `engine.py mark-done`
-- Rule: `.cline/rules/feature-task-workflow.md`
-- Skill: `.cline/skills/create-feature-tasks/SKILL.md`
+- Cursor: [`.cursor/hooks.json`](.cursor/hooks.json) → [`.workflow/feature-task/integrations/cursor/`](.workflow/feature-task/integrations/cursor/)
+- Git: [`.husky/post-commit`](.husky/post-commit) → `engine.py mark-done`
+- Rule: [`.cursor/rules/feature-task-workflow.md`](.cursor/rules/feature-task-workflow.md)
+- Skill: [`.cursor/skills/create-feature-tasks/SKILL.md`](.cursor/skills/create-feature-tasks/SKILL.md)
 
 ```bash
 git switch -c feature/7-app-shell-navigation

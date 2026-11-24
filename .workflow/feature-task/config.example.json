@@ -5,7 +5,7 @@
     "issueTypeTask": "GitHub issue type name used for child Task sub-issues.",
     "taskTitlePrefix": "Fallback Task detection when issue type is missing: titles starting with this prefix count as Tasks.",
     "defaultAssignee": "GitHub login assigned on every new Task. null = use `gh api user` (authenticated login).",
-    "projectTitle": "GitHub Projects V2 title to add each new Task to / update Status on. null = skip project membership and project Status updates.",
+    "projectTitle": "GitHub Projects V2 title to add each new Task to / update Status on (this repo: JudoSphere Planning). null = skip project membership and project Status updates. Never add Tasks to JudoSphere Roadmap 2027 or any Roadmap board — Roadmap is Features-only.",
     "projectStatusFieldName": "Projects V2 single-select field name used for Todo / In progress / Done (usually Status).",
     "inProgressStatusName": "Projects V2 option name set when a Task becomes the active implementation Task.",
     "doneStatusName": "Projects V2 option name set when a Task is marked Done after commit.",
@@ -13,7 +13,7 @@
     "inProgressStatusId": "Optional GitHub planning-status node ID for In Progress (issue statuses API). null = use Projects V2 Status only.",
     "doneStatusId": "Optional GitHub planning-status node ID for Done. null = use Projects V2 Status + close with reason completed.",
     "closeTaskOnDone": "If true, close the Task issue after a successful commit (always used when doneStatusId is unset).",
-    "requireCommitApproval": "If true, agents cannot commit alone: Cursor asks for approval; Cline blocks until the user confirms commit intent.",
+    "requireCommitApproval": "If true, agents cannot commit alone: Cursor beforeShell asks for approval before git commit.",
     "stateFile": "Runtime path for the active Feature/Task (local, feature-specific, should be gitignored).",
     "logFile": "Optional workflow log path (local; should be gitignored)."
   },

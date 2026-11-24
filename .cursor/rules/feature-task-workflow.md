@@ -37,7 +37,7 @@ python3 .workflow/feature-task/engine.py from-branch
 When the user asks to implement a **Feature** that should have **Task** sub-issues (GitHub issue types):
 
 1. Ensure you are on (or create) the correct `feature/<n>-…` branch.
-2. **Ensure Tasks exist** for that Feature id. If there are none, create them first with skill **`create-feature-tasks`** — do not start product code yet. Each Task must be a **sub-issue of the Feature**, type **Task**, assignee from config (`defaultAssignee`), and added to config `projectTitle` when set. After creation, set the **Feature** to **In progress**; leave Tasks as Todo.
+2. **Ensure Tasks exist** for that Feature id. If there are none, create them first with skill **`create-feature-tasks`** — do not start product code yet. Each Task must be a **sub-issue of the Feature**, type **Task**, assignee from config (`defaultAssignee`), and added to config `projectTitle` when set (**JudoSphere Planning** only). **Never** add Tasks to **JudoSphere Roadmap 2027** or any other Roadmap project — Roadmap is Features-only; if a Task lands there, remove it. After creation, set the **Feature** to **In progress**; leave Tasks as Todo.
 3. **Inspect Tasks** (sub-issues). Build order = ascending issue number.
 4. **Do one Task only** — the first open / not-done Task. When the user asks to implement it, run `start-task` so that Task’s project Status becomes **In progress**. Do not start later Tasks in the same turn.
 5. Implement that Task’s acceptance criteria; keep the change focused.
