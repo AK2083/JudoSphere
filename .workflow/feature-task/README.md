@@ -53,7 +53,7 @@ Task creation defaults (skill `create-feature-tasks`):
 - Parent = Feature (required)
 - Type = `issueTypeTask` (Task)
 - Assignee = `defaultAssignee` (this repo: `AK2083`)
-- Project = `projectTitle` (this repo: `JudoSphere Planning`) — needs `gh auth` scopes `read:project` + `project`
+- Project = `projectTitle` (this repo: `JudoSphere Planning`) — needs `gh auth` scopes `read:project` + `project`. Do **not** add Tasks to `JudoSphere Roadmap 2027` (Roadmap = Features only).
 - On Task **creation**: Feature project Status → `inProgressStatusName` (`In progress`); Tasks stay Todo
 - On Task **start** (`start-task`): that Task project Status → `inProgressStatusName` (`In progress`)
 - On Task done: project Status → `doneStatusName` (`Done`), then close unless configured otherwise

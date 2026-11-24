@@ -55,18 +55,28 @@ Hooks and this skill use that number as the Feature parent id.
 
 Read defaults from `.workflow/feature-task/config.json` (see `config.example.json` for field comments):
 
-| Field        | Requirement                                                                                            |
-| ------------ | ------------------------------------------------------------------------------------------------------ |
-| **Parent**   | Must be the Feature issue (`parentIssueId` / sub-issue of the Feature)                                 |
-| **Type**     | `issueTypeTask` from config (default **Task**)                                                         |
-| **Assignee** | `defaultAssignee` from config, or authenticated `gh api user` login if null                            |
-| **Project**  | If `projectTitle` is set (this repo: **Judosphere Planning**), add the issue to that Projects V2 board |
-| **Title**    | `Task: …`                                                                                              |
-| **Body**     | Short **User Story** + **Acceptance Criteria** checklist                                               |
+| Field        | Requirement                                                                                         |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| **Parent**   | Must be the Feature issue (`parentIssueId` / sub-issue of the Feature)                              |
+| **Type**     | `issueTypeTask` from config (default **Task**)                                                      |
+| **Assignee** | `defaultAssignee` from config, or authenticated `gh api user` login if null                         |
+| **Project**  | If `projectTitle` is set (this repo: **JudoSphere Planning**), add the issue to **that board only** |
+| **Title**    | `Task: …`                                                                                           |
+| **Body**     | Short **User Story** + **Acceptance Criteria** checklist                                            |
 
 Also copy milestone/labels from the Feature when present.
 
 ### Project scope note
+
+**Never** add Tasks to **JudoSphere Roadmap 2027** (or any other Roadmap project). Roadmap boards are for Features / planning items only. Tasks belong only on `projectTitle` (**JudoSphere Planning**).
+
+If a Task appears on a Roadmap project (GitHub often auto-adds sub-issues when the parent Feature is on Roadmap), remove that project item immediately after creation:
+
+```bash
+# deleteProjectV2Item requires both projectId and itemId
+gh api graphql -f query='mutation($projectId:ID!,$itemId:ID!){deleteProjectV2Item(input:{projectId:$projectId,itemId:$itemId}){deletedItemId}}' \
+  -F projectId='PVT_…' -F itemId='PVTI_…'
+```
 
 Adding to Projects V2 needs `gh` scopes `read:project` and `project`. If `gh project …` fails with insufficient scopes, tell the user to run:
 
@@ -74,7 +84,7 @@ Adding to Projects V2 needs `gh` scopes `read:project` and `project`. If `gh pro
 gh auth refresh -s read:project,project
 ```
 
-Then retry adding the created Tasks to the project. Do not skip parent/type/assignee while waiting on project scopes.
+Then retry adding the created Tasks to **JudoSphere Planning** only. Do not skip parent/type/assignee while waiting on project scopes.
 
 ## Status timing (mandatory)
 
@@ -101,9 +111,10 @@ Right: Feature → In progress on Task creation; Task → In progress only when 
    - `issueTypeId` for Task
    - `parentIssueId` = Feature node id (from the branch)
    - `assigneeIds` = configured default assignee
-   - Then `gh project item-add` (or GraphQL `addProjectV2ItemById`) using `projectTitle`
+   - Then `gh project item-add` (or GraphQL `addProjectV2ItemById`) using `projectTitle` only — never Roadmap
+   - If the Task was auto-added to a Roadmap project, delete that project item (`projectId` + `itemId`)
 8. Order = ascending issue number = build order (create in intended sequence).
-9. Verify each created issue: parent = Feature, type = Task, assignee set, project membership when configured. New Tasks must remain **Todo** (not In progress).
+9. Verify each created issue: parent = Feature, type = Task, assignee set, on `projectTitle` only (not on any Roadmap board). New Tasks must remain **Todo** (not In progress).
 10. Set the **Feature** to In progress and bind workflow state **without** starting a Task:
 
 ```bash
