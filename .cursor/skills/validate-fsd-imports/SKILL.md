@@ -20,7 +20,7 @@ Use this skill before commits/PRs to enforce FSD layering.
 4. Runtime deps (`vue`, `@tauri-apps/*`) only inside `src/shared/api`.
 5. Feature `model/`/`ui/` should call slice `api/`, not `@shared/api` directly when a slice api exists.
 6. Cross-slice imports go through barrels (`index.ts`).
-7. Aliases are `@app`/`@pages`/`@widgets`/`@features`/`@entities`/`@shared` — not `@/`.
+7. Aliases are `@config`/`@app`/`@pages`/`@widgets`/`@features`/`@entities`/`@shared` — not `@/`.
 
 ## Output format
 

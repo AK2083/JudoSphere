@@ -143,7 +143,7 @@ export default defineConfig([
             ['^node:'],
             ['^vue', '^@?\\w'],
             // FSD aliases (DojoSphere still used ^@/ for renderer)
-            ['^@(?:app|pages|widgets|features|entities|shared)(/|$)'],
+            ['^@(?:config|app|pages|widgets|features|entities|shared)(/|$)'],
             ['^\\.'],
             ['^.+\\.?(css|scss)$']
           ]

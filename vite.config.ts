@@ -13,8 +13,11 @@ const host = process.env.TAURI_DEV_HOST || DEV_HOST
 // https://vite.dev/config/
 export default defineConfig(() => ({
   plugins: [vue(), tailwindcss()],
+  // Expose LOG_* to the client (log level SSOT via env; see config/logging.json).
+  envPrefix: ['VITE_', 'LOG_'],
   resolve: {
     alias: {
+      '@config': path.resolve(dirname, 'config'),
       '@shared': path.resolve(dirname, 'src/shared'),
       '@app': path.resolve(dirname, 'src/app'),
       '@features': path.resolve(dirname, 'src/features'),

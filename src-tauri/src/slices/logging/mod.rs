@@ -4,8 +4,7 @@
 //! - **App wiring** (`lib.rs`) uses [`configure_log_builder`] once at startup for durable file sinks.
 //! - Host UI forwards via [`commands::forward_ui_log`] into [`accept_forwarded_ui_record`].
 //!
-//! Additional types (`LogProfile`, `HOST_UI_TARGET`, …) live in submodules and can be
-//! re-exported when a call site needs them — avoid unused root re-exports.
+//! Level vocabulary + env var: repo `config/logging.json` (`LOG_LEVEL`).
 
 pub mod commands;
 

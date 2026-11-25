@@ -4,6 +4,8 @@
 interface ImportMetaEnv {
   /** Per-release designation injected by release workflows (`VITE_APP_VERSION_NAME`). */
   readonly VITE_APP_VERSION_NAME?: string
+  /** Min log level for Vue + host (`config/logging.json` → `envVar`). */
+  readonly LOG_LEVEL?: string
 }
 
 interface ImportMeta {

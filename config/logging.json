@@ -1,0 +1,5 @@
+{
+  "envVar": "LOG_LEVEL",
+  "levels": ["error", "warn", "info", "debug", "trace"],
+  "defaultLevel": "info"
+}

@@ -146,7 +146,7 @@ Abstraction of **swappable** host/runtime dependencies. No feature or page logic
 
 ## Import aliases
 
-`@app`, `@pages`, `@widgets`, `@features`, `@entities`, `@shared` — always import via aliases, never relative paths across layer boundaries. Do not use `@/`.
+`@config`, `@app`, `@pages`, `@widgets`, `@features`, `@entities`, `@shared` — always import via aliases, never relative paths across layer boundaries. Do not use `@/`.
 
 ## Checklist for new files
 

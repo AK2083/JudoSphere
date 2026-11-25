@@ -5,6 +5,7 @@
 use log::Level;
 
 use super::facade::{HostLogger, HOST_UI_TARGET};
+use super::levels::parse_level as parse_configured_level;
 
 /// A log record forwarded from the host UI (no cloud; local host only).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -25,16 +26,9 @@ impl ForwardedUiLogRecord {
         }
     }
 
-    /// Parse a level name from the Vue forward facade (`error` / `warn` / `info` / …).
+    /// Parse a level name using the shared `config/logging.json` vocabulary.
     pub fn parse_level(name: &str) -> Option<Level> {
-        match name.trim().to_ascii_lowercase().as_str() {
-            "error" => Some(Level::Error),
-            "warn" | "warning" => Some(Level::Warn),
-            "info" => Some(Level::Info),
-            "debug" => Some(Level::Debug),
-            "trace" => Some(Level::Trace),
-            _ => None,
-        }
+        parse_configured_level(name)
     }
 
     /// Message written to the host log (source prefix when present and non-empty).

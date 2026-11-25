@@ -21,7 +21,16 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "ignoreDeprecations": "6.0",
+
+    "baseUrl": ".",
+    "paths": {
+      "@config": ["./config"],
+      "@config/*": ["./config/*"],
+      "@shared": ["./src/shared"],
+      "@shared/*": ["./src/shared/*"]
+    }
   },
   "include": [
     "vite.config.ts",
@@ -29,6 +38,9 @@
     "playwright.config.ts",
     "e2e/**/*.ts",
     "config/dev.ts",
-    "config/dev.json"
+    "config/dev.json",
+    "config/logging.ts",
+    "config/logging.json",
+    "src/shared/config/logLevels.ts"
   ]
 }

@@ -20,6 +20,8 @@
 
     "baseUrl": ".",
     "paths": {
+      "@config": ["./config"],
+      "@config/*": ["./config/*"],
       "@shared": ["./src/shared"],
       "@shared/*": ["./src/shared/*"],
       "@app": ["./src/app"],
@@ -34,5 +36,12 @@
       "@entities/*": ["./src/entities/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.d.ts", ".storybook/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    ".storybook/**/*.ts",
+    "config/logging.json"
+  ]
 }

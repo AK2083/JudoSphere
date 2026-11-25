@@ -5,7 +5,7 @@ use tauri_plugin_log::{
     Builder, RotationStrategy, Target, TargetKind, TimezoneStrategy,
 };
 
-use super::levels::LogProfile;
+use super::levels::resolve_level_filter_from_env;
 
 /// Rotate the active log file once it reaches this size (bytes).
 ///
@@ -34,24 +34,22 @@ pub struct FileLoggingPolicy {
     pub rotation_keep_count: usize,
     pub file_stem: &'static str,
     pub level_filter: LevelFilter,
-    pub profile: LogProfile,
 }
 
 impl FileLoggingPolicy {
-    /// Defaults for the current build: local log dir, rolling files, profile-based level.
-    pub const fn defaults() -> Self {
-        Self::for_profile(LogProfile::from_build())
+    /// Defaults: local log dir, rolling files, min level from `LOG_LEVEL`.
+    pub fn defaults() -> Self {
+        Self::with_level(resolve_level_filter_from_env())
     }
 
-    /// Defaults for an explicit development / competition-day profile.
-    pub const fn for_profile(profile: LogProfile) -> Self {
+    /// Defaults with an explicit level filter (tests / overrides).
+    pub const fn with_level(level_filter: LevelFilter) -> Self {
         Self {
             destination: LogDestination::AppLogDir,
             max_file_size_bytes: MAX_FILE_SIZE_BYTES,
             rotation_keep_count: ROTATION_KEEP_COUNT,
             file_stem: LOG_FILE_STEM,
-            level_filter: profile.level_filter(),
-            profile,
+            level_filter,
         }
     }
 
@@ -107,21 +105,18 @@ mod tests {
         assert_eq!(policy.rotation_keep_count, ROTATION_KEEP_COUNT);
         assert!(policy.max_file_size_bytes > 40_000);
         assert!(policy.rotation_keep_count >= 1);
-        assert_eq!(policy.level_filter, LogProfile::from_build().level_filter());
-        assert_eq!(policy.profile, LogProfile::from_build());
     }
 
     #[test]
-    fn development_profile_is_more_verbose_than_competition_day() {
-        let development = FileLoggingPolicy::for_profile(LogProfile::Development);
-        let competition = FileLoggingPolicy::for_profile(LogProfile::CompetitionDay);
+    fn with_level_applies_explicit_filter() {
+        let quiet = FileLoggingPolicy::with_level(LevelFilter::Warn);
+        let verbose = FileLoggingPolicy::with_level(LevelFilter::Debug);
+        assert_eq!(quiet.level_filter, LevelFilter::Warn);
+        assert_eq!(verbose.level_filter, LevelFilter::Debug);
+        assert!(quiet.level_filter < verbose.level_filter);
 
-        assert_eq!(development.level_filter, LevelFilter::Debug);
-        assert_eq!(competition.level_filter, LevelFilter::Info);
-        assert!(competition.level_filter < development.level_filter);
-
-        let _dev_builder = development.apply(Builder::new());
-        let _comp_builder = competition.apply(Builder::new());
+        let _quiet_builder = quiet.apply(Builder::new());
+        let _verbose_builder = verbose.apply(Builder::new());
     }
 
     #[test]
@@ -132,15 +127,12 @@ mod tests {
     #[test]
     fn rotation_strategy_uses_keep_count() {
         let policy = FileLoggingPolicy::defaults();
-        // Exercise the strategy builder; KeepSome(n) is not Eq-comparable across crates,
-        // so assert via the policy field that feeds it.
         let _strategy = policy.rotation_strategy();
         assert_eq!(policy.rotation_keep_count, ROTATION_KEEP_COUNT);
     }
 
     #[test]
     fn configure_log_builder_applies_defaults_without_panic() {
-        // Smoke: builder configuration must succeed offline (no network targets).
         let _builder = configure_log_builder(Builder::new());
         assert!(FileLoggingPolicy::defaults().is_offline_only());
     }
@@ -153,7 +145,6 @@ mod tests {
             rotation_keep_count: 2,
             file_stem: "custom",
             level_filter: LevelFilter::Warn,
-            profile: LogProfile::CompetitionDay,
         };
 
         let _builder = policy.apply(Builder::new());
