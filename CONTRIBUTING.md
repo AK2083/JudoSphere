@@ -155,6 +155,7 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 - `npm run typecheck` — TypeScript project references check
 - `npm run test` — Vitest unit suite (once)
 - `npm run test:coverage` — unit tests + coverage (80% thresholds)
+- `cargo test --locked` (in `src-tauri/`) — Rust host unit tests
 - `npm run test:node` — Node test runner for all `scripts/**/*.test.mjs` (incl. release-identity sync + channel mapping)
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
@@ -206,7 +207,8 @@ python3 .workflow/feature-task/engine.py next-context
 GitHub Actions workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
 
 1. ESLint, Prettier check, typecheck, Vitest unit coverage (80%), Node script tests (`npm run test:node`)
-2. Frontend build + Playwright e2e (Chromium); HTML report uploaded as the `playwright-report` artifact
+2. `cargo test --locked` in `src-tauri` (Rust host unit tests)
+3. Frontend build + Playwright e2e (Chromium); HTML report uploaded as the `playwright-report` artifact
 
 No repository secrets are required for this workflow. Manual release workflows (Test / Staging / Production) are separate; see **Release stages** above.
 

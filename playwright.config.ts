@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-import { DEV_HOST, E2E_BASE_URL, E2E_SERVER_PORT } from './config/dev'
+import { DEV_HOST, E2E_BASE_URL, E2E_SERVER_PORT } from '@config/dev'
 
 /**
  * Playwright e2e configuration for the Vite-served frontend.

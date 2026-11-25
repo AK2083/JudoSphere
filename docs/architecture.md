@@ -28,6 +28,7 @@ app → pages → widgets → features → entities → shared
 
 | Alias                       | Path           |
 | --------------------------- | -------------- |
+| `@config` / `@config/*`     | `config`       |
 | `@app` / `@app/*`           | `src/app`      |
 | `@pages` / `@pages/*`       | `src/pages`    |
 | `@widgets` / `@widgets/*`   | `src/widgets`  |

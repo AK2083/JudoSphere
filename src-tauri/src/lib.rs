@@ -6,14 +6,16 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(
-            tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
-                .build(),
+            slices::logging::configure_log_builder(tauri_plugin_log::Builder::new()).build(),
         )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let db = slices::database::open(app.handle())?;
             app.manage(db);
+            slices::logging::HostLogger::info(
+                slices::logging::HOST_TARGET,
+                "host started (database ready)",
+            );
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -21,6 +23,7 @@ pub fn run() {
             slices::database::commands::get_app_value,
             slices::database::commands::set_app_value,
             slices::database::commands::delete_app_value,
+            slices::logging::commands::forward_ui_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

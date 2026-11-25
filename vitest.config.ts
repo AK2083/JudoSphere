@@ -14,8 +14,10 @@ const includeStorybookProject = process.env.VITEST_STORYBOOK === 'true'
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  envPrefix: ['VITE_', 'LOG_'],
   resolve: {
     alias: {
+      '@config': path.resolve(dirname, 'config'),
       '@shared': path.resolve(dirname, 'src/shared'),
       '@app': path.resolve(dirname, 'src/app'),
       '@features': path.resolve(dirname, 'src/features'),
