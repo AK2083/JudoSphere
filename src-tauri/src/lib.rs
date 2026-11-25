@@ -12,6 +12,10 @@ pub fn run() {
         .setup(|app| {
             let db = slices::database::open(app.handle())?;
             app.manage(db);
+            slices::logging::HostLogger::info(
+                slices::logging::HOST_TARGET,
+                "host started (database ready)",
+            );
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -19,6 +23,7 @@ pub fn run() {
             slices::database::commands::get_app_value,
             slices::database::commands::set_app_value,
             slices::database::commands::delete_app_value,
+            slices::logging::commands::forward_ui_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
