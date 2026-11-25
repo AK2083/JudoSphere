@@ -1,8 +1,11 @@
 //! Rolling local-file logging policy for the Tauri host.
 
+use log::LevelFilter;
 use tauri_plugin_log::{
     Builder, RotationStrategy, Target, TargetKind, TimezoneStrategy,
 };
+
+use super::levels::LogProfile;
 
 /// Rotate the active log file once it reaches this size (bytes).
 ///
@@ -30,16 +33,25 @@ pub struct FileLoggingPolicy {
     pub max_file_size_bytes: u64,
     pub rotation_keep_count: usize,
     pub file_stem: &'static str,
+    pub level_filter: LevelFilter,
+    pub profile: LogProfile,
 }
 
 impl FileLoggingPolicy {
-    /// Competition-day defaults: local log dir, size-based rotation, keep recent files.
+    /// Defaults for the current build: local log dir, rolling files, profile-based level.
     pub const fn defaults() -> Self {
+        Self::for_profile(LogProfile::from_build())
+    }
+
+    /// Defaults for an explicit development / competition-day profile.
+    pub const fn for_profile(profile: LogProfile) -> Self {
         Self {
             destination: LogDestination::AppLogDir,
             max_file_size_bytes: MAX_FILE_SIZE_BYTES,
             rotation_keep_count: ROTATION_KEEP_COUNT,
             file_stem: LOG_FILE_STEM,
+            level_filter: profile.level_filter(),
+            profile,
         }
     }
 
@@ -72,8 +84,7 @@ impl FileLoggingPolicy {
             .max_file_size(u128::from(self.max_file_size_bytes))
             .rotation_strategy(self.rotation_strategy())
             .timezone_strategy(TimezoneStrategy::UseLocal)
-            // Level differentiation (dev vs competition-day) belongs to a later Task.
-            .level(log::LevelFilter::Info)
+            .level(self.level_filter)
     }
 }
 
@@ -96,6 +107,21 @@ mod tests {
         assert_eq!(policy.rotation_keep_count, ROTATION_KEEP_COUNT);
         assert!(policy.max_file_size_bytes > 40_000);
         assert!(policy.rotation_keep_count >= 1);
+        assert_eq!(policy.level_filter, LogProfile::from_build().level_filter());
+        assert_eq!(policy.profile, LogProfile::from_build());
+    }
+
+    #[test]
+    fn development_profile_is_more_verbose_than_competition_day() {
+        let development = FileLoggingPolicy::for_profile(LogProfile::Development);
+        let competition = FileLoggingPolicy::for_profile(LogProfile::CompetitionDay);
+
+        assert_eq!(development.level_filter, LevelFilter::Debug);
+        assert_eq!(competition.level_filter, LevelFilter::Info);
+        assert!(competition.level_filter < development.level_filter);
+
+        let _dev_builder = development.apply(Builder::new());
+        let _comp_builder = competition.apply(Builder::new());
     }
 
     #[test]
@@ -126,6 +152,8 @@ mod tests {
             max_file_size_bytes: 100_000,
             rotation_keep_count: 2,
             file_stem: "custom",
+            level_filter: LevelFilter::Warn,
+            profile: LogProfile::CompetitionDay,
         };
 
         let _builder = policy.apply(Builder::new());
@@ -133,5 +161,6 @@ mod tests {
         assert_eq!(policy.rotation_keep_count, 2);
         assert_eq!(policy.file_stem, "custom");
         assert_eq!(policy.max_file_size_bytes, 100_000);
+        assert_eq!(policy.level_filter, LevelFilter::Warn);
     }
 }
