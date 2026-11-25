@@ -3,12 +3,12 @@
  * via `@shared/config/logLevels`.
  */
 
-export type { LogLevel } from '../../config/logLevels'
-export { LOG_LEVEL_ORDER } from '../../config/logLevels'
+export type { LogLevel } from '@shared/config'
+export { LOG_LEVEL_ORDER } from '@shared/config'
 
 /** One log line handed to a {@link LogSink}. */
 export type LogRecord = {
-  level: import('../../config/logLevels').LogLevel
+  level: import('@shared/config').LogLevel
   message: string
   source?: string
 }

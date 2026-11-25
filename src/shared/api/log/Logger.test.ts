@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { DEFAULT_LOG_LEVEL } from '../../config/logLevels'
+import { DEFAULT_LOG_LEVEL } from '@shared/config'
+
 import { ConsoleSink, formatConsoleLine } from './consoleSink'
 import { createDefaultLogger } from './createDefaultLogger'
 import { Logger } from './Logger'

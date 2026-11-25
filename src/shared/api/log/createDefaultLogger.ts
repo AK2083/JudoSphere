@@ -1,14 +1,13 @@
 import { isTauri } from '@tauri-apps/api/core'
 
-import { type LogLevel, resolveLogLevelFromEnv } from '../../config/logLevels'
+import { type LogLevel, resolveLogLevelFromEnv } from '@shared/config'
+
 import { ConsoleSink } from './consoleSink'
 import { Logger } from './Logger'
 import { TauriSink } from './tauriSink'
 import type { LogSink } from './types'
 
-/**
- *
- */
+/** Options for {@link createDefaultLogger}. */
 export type CreateDefaultLoggerOptions = {
   /** Override sink selection (tests). */
   sink?: LogSink
