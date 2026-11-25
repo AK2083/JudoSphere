@@ -49,7 +49,7 @@ Details: [Contributing](CONTRIBUTING.md).
 
 ### CI (GitHub Actions)
 
-On push/PR, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs ESLint, Prettier, typecheck, Vitest coverage (80%), then Playwright e2e. The Playwright HTML report is uploaded as artifact `playwright-report`.
+On push/PR, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs ESLint, Prettier, typecheck, Vitest coverage (80%), `cargo test` in `src-tauri`, then Playwright e2e. The Playwright HTML report is uploaded as artifact `playwright-report`.
 
 ## Documentation
 
