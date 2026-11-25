@@ -2,3 +2,4 @@
 
 pub mod database;
 pub mod greet;
+pub mod logging;

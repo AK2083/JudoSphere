@@ -6,9 +6,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(
-            tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
-                .build(),
+            slices::logging::configure_log_builder(tauri_plugin_log::Builder::new()).build(),
         )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
