@@ -4,7 +4,23 @@
  */
 
 export { ConsoleSink, formatConsoleLine } from './consoleSink'
-export { createDefaultLogger, type CreateDefaultLoggerOptions } from './createDefaultLogger'
+export { createDefaultLogger, type CreateDefaultLoggerOptions, logger } from './createDefaultLogger'
+export { ownsDurableHostLog, resolveIsHostUi } from './hostUi'
+export {
+  type ErrorForwardLogger,
+  formatErrorEvent,
+  formatUnknownError,
+  installUnhandledErrorForwarding,
+  type InstallUnhandledErrorForwardingOptions,
+  type UnhandledErrorEventTarget
+} from './installUnhandledErrorForwarding'
+export {
+  createVueErrorCapturedHandler,
+  installVueErrorForwarding,
+  type InstallVueErrorForwardingOptions,
+  type VueErrorCapturedHandler,
+  vueErrorSource
+} from './installVueErrorForwarding'
 export { Logger } from './Logger'
 export { TauriSink } from './tauriSink'
 export { LOG_LEVEL_ORDER, type LogLevel, type LogRecord, type LogSink } from './types'
@@ -15,8 +31,3 @@ export {
   parseLogLevel,
   resolveLogLevelFromEnv
 } from '@shared/config'
-
-import { createDefaultLogger } from './createDefaultLogger'
-
-/** Shared app logger — swap sink/level via {@link Logger.setSink} / {@link Logger.setMinLevel}. */
-export const logger = createDefaultLogger()

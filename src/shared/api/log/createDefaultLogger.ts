@@ -1,8 +1,7 @@
-import { isTauri } from '@tauri-apps/api/core'
-
 import { type LogLevel, resolveLogLevelFromEnv } from '@shared/config'
 
 import { ConsoleSink } from './consoleSink'
+import { resolveIsHostUi } from './hostUi'
 import { Logger } from './Logger'
 import { TauriSink } from './tauriSink'
 import type { LogSink } from './types'
@@ -31,9 +30,12 @@ function readViteLogLevelEnv(_key: string): string | undefined {
  * @returns Configured {@link Logger}.
  */
 export function createDefaultLogger(options: CreateDefaultLoggerOptions = {}): Logger {
-  const isHostUi = options.isHostUi ?? isTauri()
+  const isHostUi = resolveIsHostUi(options.isHostUi)
   const sink = options.sink ?? (isHostUi ? new TauriSink() : new ConsoleSink())
   const minLevel =
     options.minLevel ?? resolveLogLevelFromEnv(options.readEnv ?? readViteLogLevelEnv)
   return new Logger(sink, minLevel)
 }
+
+/** Shared app logger — swap sink/level via {@link Logger.setSink} / {@link Logger.setMinLevel}. */
+export const logger = createDefaultLogger()
