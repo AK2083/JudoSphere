@@ -28,9 +28,15 @@ Goal: someone new to the Feature should understand _the system_ and _this step_,
 ### User-visible structure
 
 Write **prose**, not bullet dumps. Short sentences. Everyday words. One idea per sentence.  
-Section 1 sets the tone — sections 2–5 must feel the same: a few clear sentences each, not telegraphic lists.
+Same tone from Summary through section 5 — no telegraphic lists.
 
-1. **Product / problem** (widest)  
+0. **Summary** (program + Feature, before the deep dive)  
+   Two short prose blocks, then name the active step:
+   - **Program:** 2–3 sentences on where this Feature sits in the broader JudoSphere direction / current milestone (offline crash & feedback, tournament host, …). Use Feature Dependencies/Notes and linked work when present; do not invent a fake roadmap.
+   - **Feature:** 2–3 sentences on what this Feature itself is for and what it delivers.
+   - End with one sentence: which Task is active and that it is the next building step inside that Feature.
+
+1. **Product / problem**  
    What hurts today? Who cares? Why local/offline matters?  
    2–4 plain sentences.
 
@@ -69,7 +75,7 @@ Section 1 sets the tone — sections 2–5 must feel the same: a few clear sente
 
 1. Read facts from `start-task` stderr / `orient-task` (do not show raw facts to the user).
 2. Inspect the relevant code (host slice, migrations, `@shared/api`, prior Tasks’ diffs if any).
-3. Write the five sections above in the **user-visible reply**.
+3. Write the Summary + sections 1–5 above in the **user-visible reply**.
 4. Implement **only** the active Task.
 
 ## Guardrails
