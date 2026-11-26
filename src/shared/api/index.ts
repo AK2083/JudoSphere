@@ -27,7 +27,9 @@ export {
   LOG_LEVELS,
   Logger,
   logger,
+  ownsDurableHostLog,
   parseLogLevel,
+  resolveIsHostUi,
   resolveLogLevelFromEnv,
   TauriSink,
   vueErrorSource

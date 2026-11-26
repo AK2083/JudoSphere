@@ -1,4 +1,5 @@
 import { logger } from './createDefaultLogger'
+import { resolveIsHostUi } from './hostUi'
 import type { Logger } from './Logger'
 
 /** Minimal logger surface used by the installer (tests can pass a stub). */
@@ -22,6 +23,11 @@ export type InstallUnhandledErrorForwardingOptions = {
    * (defaults to `globalThis`).
    */
   target?: UnhandledErrorEventTarget
+  /**
+   * Host-UI gate. When false (LAN / browser-only), installation is a no-op —
+   * non-host clients must not claim the durable host log file.
+   */
+  isHostUi?: boolean
 }
 
 const SOURCE_ERROR = 'unhandled-error'
@@ -91,10 +97,15 @@ export function formatErrorEvent(event: ErrorEvent): string {
 export function installUnhandledErrorForwarding(
   options: InstallUnhandledErrorForwardingOptions = {}
 ): () => void {
+  if (!resolveIsHostUi(options.isHostUi)) {
+    return () => undefined
+  }
+
   const log = options.logger ?? logger
   const target = options.target ?? globalThis
 
   const onError = (event: Event): void => {
+    // By design: format the event / thrown value only — never attach DOM/node state.
     if (event instanceof ErrorEvent) {
       log.error(formatErrorEvent(event), SOURCE_ERROR)
       return

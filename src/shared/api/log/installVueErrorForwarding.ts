@@ -1,12 +1,18 @@
 import type { App, ComponentPublicInstance } from 'vue'
 
 import { logger } from './createDefaultLogger'
+import { resolveIsHostUi } from './hostUi'
 import { type ErrorForwardLogger, formatUnknownError } from './installUnhandledErrorForwarding'
 
 /** Options for Vue error forwarding helpers. */
 export type InstallVueErrorForwardingOptions = {
   /** Logger to forward into; defaults to the shared {@link logger}. */
   logger?: ErrorForwardLogger
+  /**
+   * Host-UI gate. When false (LAN / browser-only), installation is a no-op —
+   * non-host clients must not claim the durable host log file.
+   */
+  isHostUi?: boolean
 }
 
 /** `onErrorCaptured`-compatible handler returned by {@link createVueErrorCapturedHandler}. */
@@ -40,14 +46,20 @@ export function vueErrorSource(kind: 'handler' | 'boundary', info?: string): str
  * through the `@shared/api` logging facade (Tauri sink on host UI).
  *
  * @param app - Vue application (or a `config`-compatible stub in tests).
- * @param options - Optional logger override.
+ * @param options - Optional logger / host-UI overrides.
  */
 export function installVueErrorForwarding(
   app: Pick<App, 'config'>,
   options: InstallVueErrorForwardingOptions = {}
 ): void {
+  if (!resolveIsHostUi(options.isHostUi)) {
+    return
+  }
+
   const log = options.logger ?? logger
-  app.config.errorHandler = (err, _instance, info) => {
+  app.config.errorHandler = (err, instance, info) => {
+    // By design: never serialize Vue instance props/state (tokens, PINs, PII).
+    void instance
     log.error(formatUnknownError(err), vueErrorSource('handler', info))
   }
 }
@@ -57,14 +69,20 @@ export function installVueErrorForwarding(
  * facade, then stops further propagation (avoids double-logging with the
  * global errorHandler for the same error).
  *
- * @param options - Optional logger override.
+ * @param options - Optional logger / host-UI overrides.
  * @returns Handler suitable for `onErrorCaptured(...)`.
  */
 export function createVueErrorCapturedHandler(
   options: InstallVueErrorForwardingOptions = {}
 ): VueErrorCapturedHandler {
+  if (!resolveIsHostUi(options.isHostUi)) {
+    return () => false
+  }
+
   const log = options.logger ?? logger
-  return (err, _instance, info) => {
+  return (err, instance, info) => {
+    // By design: never serialize Vue instance props/state (tokens, PINs, PII).
+    void instance
     log.error(formatUnknownError(err), vueErrorSource('boundary', info))
     return false
   }

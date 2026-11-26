@@ -5,6 +5,7 @@
 
 export { ConsoleSink, formatConsoleLine } from './consoleSink'
 export { createDefaultLogger, type CreateDefaultLoggerOptions, logger } from './createDefaultLogger'
+export { ownsDurableHostLog, resolveIsHostUi } from './hostUi'
 export {
   type ErrorForwardLogger,
   formatErrorEvent,

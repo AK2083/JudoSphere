@@ -111,7 +111,7 @@ describe('installUnhandledErrorForwarding', () => {
     const error = vi.fn()
     const log: ErrorForwardLogger = { error }
     const target = createTarget()
-    const dispose = installUnhandledErrorForwarding({ logger: log, target })
+    const dispose = installUnhandledErrorForwarding({ logger: log, target, isHostUi: true })
 
     const nested = new Error('crash')
     nested.stack = 'Error: crash'
@@ -127,7 +127,7 @@ describe('installUnhandledErrorForwarding', () => {
     const error = vi.fn()
     const log: ErrorForwardLogger = { error }
     const target = createTarget()
-    installUnhandledErrorForwarding({ logger: log, target })
+    installUnhandledErrorForwarding({ logger: log, target, isHostUi: true })
 
     const rejection = new Event('unhandledrejection') as Event & { reason: unknown }
     rejection.reason = 'nope'
@@ -142,7 +142,8 @@ describe('installUnhandledErrorForwarding', () => {
     const target = createTarget()
     const dispose = installUnhandledErrorForwarding({
       logger: { error: vi.fn() },
-      target
+      target,
+      isHostUi: true
     })
     expect(target.listenerCount('error')).toBe(1)
     expect(target.listenerCount('unhandledrejection')).toBe(1)
@@ -152,11 +153,25 @@ describe('installUnhandledErrorForwarding', () => {
 
     const spy = vi.spyOn(globalThis, 'addEventListener')
     const removeSpy = vi.spyOn(globalThis, 'removeEventListener')
-    const uninstall = installUnhandledErrorForwarding()
+    const uninstall = installUnhandledErrorForwarding({ isHostUi: true })
     expect(spy).toHaveBeenCalledWith('error', expect.any(Function))
     expect(spy).toHaveBeenCalledWith('unhandledrejection', expect.any(Function))
     uninstall()
     expect(removeSpy).toHaveBeenCalledWith('error', expect.any(Function))
     expect(removeSpy).toHaveBeenCalledWith('unhandledrejection', expect.any(Function))
+  })
+
+  it('is a no-op on non-host UI (LAN / browser-only)', () => {
+    const error = vi.fn()
+    const target = createTarget()
+    const dispose = installUnhandledErrorForwarding({
+      logger: { error },
+      target,
+      isHostUi: false
+    })
+    expect(target.listenerCount('error')).toBe(0)
+    target.dispatch('error', new ErrorEvent('error', { message: 'x' }))
+    expect(error).not.toHaveBeenCalled()
+    dispose()
   })
 })
