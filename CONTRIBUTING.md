@@ -160,7 +160,7 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
-- `npm run docs` — generate API docs from JSDoc comments (`docs/api/`, see `jsdoc.json`)
+- `npm run docs` — interim stub (classic JSDoc removed); unified TypeDoc + rustdoc site lands with Feature #95
 
 ## Git hooks
 

@@ -42,7 +42,7 @@ playwright/.auth/
 *storybook.log
 storybook-static
 
-# Generated API docs (npm run docs)
+# Generated API docs (npm run docs; classic JSDoc removed, path kept for new pipeline)
 docs/api/
 # Feature/Task agent workflow (local)
 
