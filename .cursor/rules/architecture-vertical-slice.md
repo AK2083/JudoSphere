@@ -75,7 +75,7 @@ Use **`rusqlite`** (bundled) in the Tauri host — **not** `tauri-plugin-sql` an
 
 ## Documentation
 
-- Exported TypeScript facades under `src/shared/api` require English JSDoc.
+- Exported TypeScript facades under `src/shared/api` require English public API doc comments.
 - Keep Rust public APIs documented where non-obvious.
 
 ## Frontend (FSD) vs. host (VSA)

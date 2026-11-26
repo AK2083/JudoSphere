@@ -20,7 +20,6 @@
     "test:storybook": "VITEST_STORYBOOK=true vitest --project storybook",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "docs": "node --input-type=module -e \"console.log('API docs: classic JSDoc removed; unified TypeDoc + rustdoc site lands in later #95 tasks.'); process.exit(0)\"",
     "prepare": "husky"
   },
   "dependencies": {

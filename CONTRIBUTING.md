@@ -160,7 +160,6 @@ Prefer the **24/outline** set for shell chrome. Mark decorative icons with `aria
 - `npm run test:e2e` — Playwright e2e (expects a production build in `dist/`, or builds via CI first)
 - `npm run storybook` / `npm run build-storybook` — Storybook UI / static build
 - `npm run test:storybook` — Storybook Vitest (`VITEST_STORYBOOK=true`)
-- `npm run docs` — interim stub (classic JSDoc removed); unified TypeDoc + rustdoc site lands with Feature #95
 
 ## Git hooks
 
@@ -218,7 +217,7 @@ No repository secrets are required for this workflow. Manual release workflows (
 - Let pre-commit fix format/lint on staged files; re-enable pre-push before feature work so types + coverage gate pushes
 - Cover new business logic with unit tests so coverage thresholds stay green
 - Add Storybook stories for new UI under `ui/` folders
-- README / docs / JSDoc are written in English; JSDoc only on exported APIs
+- README / docs / public API comments are written in English; document only exported APIs
 - Public module APIs use barrel files (`index.ts`)
 - Do not store secrets in the repository, frontend, or logs
 - Host/domain logic belongs in Tauri slices; Vue talks to the host only via `@shared/api`

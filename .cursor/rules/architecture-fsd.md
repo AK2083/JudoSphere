@@ -158,4 +158,4 @@ Abstraction of **swappable** host/runtime dependencies. No feature or page logic
 6. Host/runtime deps go through `@shared/api` (and slice `api/` when in a feature); Vue/vue-router imported directly?
 7. Reusable UI without feature affiliation → `shared/ui/` with Tailwind?
 8. New or changed file in `ui/` → colocated `<Name>.stories.ts` added in the same change?
-9. JSDoc policy respected ([project-overview.md](./project-overview.md))?
+9. Public API comment policy respected ([project-overview.md](./project-overview.md))?

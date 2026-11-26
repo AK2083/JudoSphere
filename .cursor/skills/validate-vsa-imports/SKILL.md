@@ -18,4 +18,4 @@ Use this skill to audit the Tauri host architecture (replaces Electron main/prel
 3. **Command cleanliness:** `commands.rs` stays thin; persistence/domain live deeper in the slice.
 4. **Frontend isolation:** Vue never imports Rust paths; host access only via `@shared/api`.
 5. **No Electron leftovers:** Reject preload/`window.api`/`ipcMain` patterns.
-6. **Facade JSDoc:** Exported `@shared/api` functions have English JSDoc.
+6. **Facade docs:** Exported `@shared/api` functions have English public API doc comments.
