@@ -22,7 +22,7 @@ Update these locations in a single operation:
    - Register the command in `invoke_handler`.
 
 3. **Frontend facade** (`src/shared/api/<module>.ts` + barrel):
-   - Wrap `invoke` (or the existing Tauri facade helper) with JSDoc on the exported function.
+   - Wrap `invoke` (or the existing Tauri facade helper) with a public API doc comment on the exported function.
    - Export via `src/shared/api/index.ts`.
 
 4. **Feature usage** (optional, same change if UI needs it):

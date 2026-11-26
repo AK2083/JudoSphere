@@ -7,5 +7,5 @@ alwaysApply: false
 # CSS and style blocks
 
 - Never add comments in `.css` files or SFC `<style>` blocks (`/* … */` or `//`).
-- Do not use CSS comments to explain tokens, media queries, or optical tweaks — keep styles self-explanatory or document in JSDoc/markdown outside CSS.
+- Do not use CSS comments to explain tokens, media queries, or optical tweaks — keep styles self-explanatory or document in public API comments / markdown outside CSS.
 - Decorative and navigation icon SVGs must not use `box-shadow`, `filter`, or `text-shadow`.

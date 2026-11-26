@@ -41,15 +41,15 @@ Milestones are the **product roadmap** for judo competition day roles above (org
 - **Design:** follow **SOLID** for all feature and host work ([solid-principles.md](./solid-principles.md))
 - **Offline-first:** local use must work without cloud or internet
 - **Dependency access:** host/runtime deps (Tauri, Pinia, i18n, …) via `@shared/api` facades; **Vue** and **vue-router** import directly
-- **Docs/comments:** English only. See JSDoc policy below; barrel `index.ts` exposes public APIs
+- **Docs/comments:** English only. See public-API comment policy below; barrel `index.ts` exposes public APIs
 
-## JSDoc and comments
+## Public API comments
 
 - **Language:** English.
-- **JSDoc only on the public API:** exclusively **exported** members — functions, classes, methods, types/interfaces, and exported constants/variables. Require `@param` / `@returns` where applicable. Aligns with ESLint `jsdoc/require-jsdoc` (`publicOnly`).
-- **Do not JSDoc:** non-exported / module-private functions, private helpers, non-exported constants, local variables/`let`/`ref` state, or inline narration of obvious code.
+- **Document only the public API:** exclusively **exported** members — functions, classes, methods, types/interfaces, and exported constants/variables. Require `@param` / `@returns` where applicable. Enforced today by ESLint `eslint-plugin-jsdoc` (`jsdoc/require-jsdoc` with `publicOnly`).
+- **Do not document:** non-exported / module-private functions, private helpers, non-exported constants, local variables/`let`/`ref` state, or inline narration of obvious code.
 - **Do not leave:** `//` or block comments that only restate the next line, TODOs-as-noise, or “ignore error” catch notes. Prefer empty `catch` blocks when ignoring is intentional.
-- **Vue SFCs:** same rules in `<script setup>` — no JSDoc on local helpers; no comments in `<template>`.
+- **Vue SFCs:** same rules in `<script setup>` — no doc comments on local helpers; no comments in `<template>`.
 - **CSS / `<style>`:** no comments at all (`/* … */` or `//`) in `.css` files or SFC `<style>` blocks — neither narration nor “contract” notes.
 
 ## Data storage and sync

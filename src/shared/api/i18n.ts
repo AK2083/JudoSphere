@@ -9,7 +9,7 @@ export const createI18n = createVueI18n
 
 /**
  * Message translator used by features, pages, and widgets.
- * Structural shape stays JSDoc-parseable (no indexed TypeScript access types).
+ * Structural shape stays documentation-tooling-friendly (no indexed TypeScript access types).
  */
 export type TranslateFunction = (key: string, ...args: unknown[]) => string
 
