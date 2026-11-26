@@ -37,3 +37,6 @@ export function createDefaultLogger(options: CreateDefaultLoggerOptions = {}): L
     options.minLevel ?? resolveLogLevelFromEnv(options.readEnv ?? readViteLogLevelEnv)
   return new Logger(sink, minLevel)
 }
+
+/** Shared app logger — swap sink/level via {@link Logger.setSink} / {@link Logger.setMinLevel}. */
+export const logger = createDefaultLogger()

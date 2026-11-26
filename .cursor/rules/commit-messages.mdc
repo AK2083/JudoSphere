@@ -1,0 +1,44 @@
+---
+description: Conventional Commits — short summary only, no bullet lists
+alwaysApply: true
+---
+
+# Commit messages
+
+Use **Conventional Commits**. Keep the message **short**: subject line plus at most one brief prose sentence. **No bullet points**, no file lists, no multi-paragraph bodies.
+
+## Format
+
+```
+<type>(optional-scope): <short summary>
+
+Optional one-sentence why. Refs #<task>
+```
+
+Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`.
+
+For Feature/Task workflow commits, always include `Refs #<taskNumber>` (required for Done hooks).
+
+## Examples
+
+```
+feat(log): forward unhandled JS errors via shared facade
+
+Install window error listeners that call @shared/api logger. Refs #91
+```
+
+```
+fix: recover corrupt preferences without crashing startup
+
+Refs #50
+```
+
+## Avoid
+
+```
+feat: add logging
+
+- Added installUnhandledErrorForwarding
+- Wired main.ts
+- Added tests
+```
