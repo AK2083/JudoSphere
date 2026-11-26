@@ -13,6 +13,13 @@ export {
   type InstallUnhandledErrorForwardingOptions,
   type UnhandledErrorEventTarget
 } from './installUnhandledErrorForwarding'
+export {
+  createVueErrorCapturedHandler,
+  installVueErrorForwarding,
+  type InstallVueErrorForwardingOptions,
+  type VueErrorCapturedHandler,
+  vueErrorSource
+} from './installVueErrorForwarding'
 export { Logger } from './Logger'
 export { TauriSink } from './tauriSink'
 export { LOG_LEVEL_ORDER, type LogLevel, type LogRecord, type LogSink } from './types'
