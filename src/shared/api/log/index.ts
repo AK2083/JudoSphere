@@ -22,6 +22,7 @@ export {
   vueErrorSource
 } from './installVueErrorForwarding'
 export { Logger } from './Logger'
+export { sanitizeLogExtract } from './sanitizeLogExtract'
 export { TauriSink } from './tauriSink'
 export { LOG_LEVEL_ORDER, type LogLevel, type LogRecord, type LogSink } from './types'
 export {

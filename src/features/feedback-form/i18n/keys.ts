@@ -13,7 +13,17 @@ const translationKeys = {
   knownStatusNew: 'feedbackForm.knownStatusNew',
   knownStatusKnown: 'feedbackForm.knownStatusKnown',
   knownStatusInProgress: 'feedbackForm.knownStatusInProgress',
-  knownStatusLoadError: 'feedbackForm.knownStatusLoadError'
+  knownStatusLoadError: 'feedbackForm.knownStatusLoadError',
+  attachmentLabel: 'feedbackForm.attachmentLabel',
+  attachmentHelp: 'feedbackForm.attachmentHelp',
+  attachmentIdle: 'feedbackForm.attachmentIdle',
+  attachmentAttaching: 'feedbackForm.attachmentAttaching',
+  attachmentAttached: 'feedbackForm.attachmentAttached',
+  attachmentError: 'feedbackForm.attachmentError',
+  attachAction: 'feedbackForm.attachAction',
+  prepareAction: 'feedbackForm.prepareAction',
+  prepareSuccess: 'feedbackForm.prepareSuccess',
+  prepareError: 'feedbackForm.prepareError'
 }
 
 export default translationKeys

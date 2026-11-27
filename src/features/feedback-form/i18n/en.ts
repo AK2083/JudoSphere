@@ -10,5 +10,16 @@ export default {
   knownStatusNew: 'New — not marked as a known issue on this host.',
   knownStatusKnown: 'Known — this pattern was seen before on this host.',
   knownStatusInProgress: 'In progress — someone is already looking into this on this host.',
-  knownStatusLoadError: 'Could not load known status from the local cache.'
+  knownStatusLoadError: 'Could not load known status from the local cache.',
+  attachmentLabel: 'Sanitized log extract',
+  attachmentHelp:
+    'A redacted JSON extract is prepared on this host and stored only in the local draft.',
+  attachmentIdle: 'No sanitized extract attached yet.',
+  attachmentAttaching: 'Preparing sanitized extract…',
+  attachmentAttached: 'Sanitized extract attached for the local draft.',
+  attachmentError: 'Could not sanitize the log extract on this host.',
+  attachAction: 'Attach sanitized extract',
+  prepareAction: 'Prepare / save draft',
+  prepareSuccess: 'Draft saved on this device. Nothing was uploaded.',
+  prepareError: 'Could not save the local draft.'
 }

@@ -8,15 +8,26 @@ import { feedbackFormDe, feedbackFormEn } from '../i18n'
 import FeedbackForm from './FeedbackForm.vue'
 
 const fetchKnownFingerprint = vi.hoisted(() => vi.fn())
+const sanitizeAttachedLogExtract = vi.hoisted(() => vi.fn())
+const saveFeedbackDraft = vi.hoisted(() => vi.fn())
 
 vi.mock('../api/fetchKnownFingerprint', () => ({
   fetchKnownFingerprint
+}))
+
+vi.mock('../api/sanitizeAttachedLogExtract', () => ({
+  sanitizeAttachedLogExtract
+}))
+
+vi.mock('../api/saveFeedbackDraft', () => ({
+  saveFeedbackDraft
 }))
 
 function mountForm(
   props: {
     fingerprint?: string | null
     initialNotes?: string
+    logExcerptRaw?: string | null
     knownStatusOverride?: 'new' | 'known' | 'in_progress' | null
   } = {},
   locale: LanguageCode = LanguageCode.EN
@@ -48,8 +59,8 @@ describe('FeedbackForm', () => {
     expect(wrapper.text()).toContain(feedbackFormEn.notesLabel)
     expect(wrapper.text()).toContain(feedbackFormEn.notesHelp)
     expect(wrapper.text()).toContain(feedbackFormEn.knownStatusLabel)
-    expect(wrapper.text()).toContain(feedbackFormEn.knownStatusHelp)
-    expect(wrapper.get('[role="status"]').text()).toBe(feedbackFormEn.knownStatusNew)
+    expect(wrapper.text()).toContain(feedbackFormEn.attachmentLabel)
+    expect(wrapper.get('[role="status"]').text()).toContain(feedbackFormEn.knownStatusNew)
 
     await wrapper.get('#feedback-form-notes').setValue('Assigning mats on court 2')
     expect((wrapper.get('#feedback-form-notes').element as HTMLTextAreaElement).value).toBe(
@@ -67,7 +78,7 @@ describe('FeedbackForm', () => {
 
     expect(wrapper.get('#feedback-form-title').text()).toBe(feedbackFormDe.title)
     expect(wrapper.text()).toContain(feedbackFormDe.notesHelp)
-    expect(wrapper.get('[role="status"]').text()).toBe(feedbackFormDe.knownStatusKnown)
+    expect(wrapper.text()).toContain(feedbackFormDe.knownStatusKnown)
     expect(wrapper.get('[data-known-status]').attributes('data-known-status')).toBe('known')
 
     wrapper.unmount()
@@ -76,7 +87,7 @@ describe('FeedbackForm', () => {
   it('shows none when opened without a fingerprint', () => {
     const wrapper = mountForm()
 
-    expect(wrapper.get('[role="status"]').text()).toBe(feedbackFormEn.knownStatusNone)
+    expect(wrapper.text()).toContain(feedbackFormEn.knownStatusNone)
     expect(wrapper.get('[data-known-status]').attributes('data-known-status')).toBe('none')
 
     wrapper.unmount()
@@ -95,9 +106,7 @@ describe('FeedbackForm', () => {
 
     const wrapper = mountForm({ fingerprint: 'fp-host' })
 
-    await vi.waitFor(() =>
-      expect(wrapper.get('[role="status"]').text()).toBe(feedbackFormEn.knownStatusInProgress)
-    )
+    await vi.waitFor(() => expect(wrapper.text()).toContain(feedbackFormEn.knownStatusInProgress))
     expect(fetchKnownFingerprint).toHaveBeenCalledWith('fp-host')
 
     wrapper.unmount()
@@ -121,7 +130,142 @@ describe('FeedbackForm', () => {
 
     await wrapper.get('form').trigger('submit')
 
-    expect(wrapper.get('[role="status"]').text()).toBe(feedbackFormEn.knownStatusNew)
+    expect(wrapper.text()).toContain(feedbackFormEn.knownStatusNew)
+
+    wrapper.unmount()
+  })
+
+  it('attaches a sanitized extract via the explicit attach action', async () => {
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockResolvedValue('{"pin":"[REDACTED]"}')
+
+    const wrapper = mountForm({ knownStatusOverride: null, initialNotes: 'notes' })
+
+    await wrapper.get('button.feedback-form__button--secondary').trigger('click')
+
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
+        feedbackFormEn.attachmentAttached
+      )
+    )
+    expect(sanitizeAttachedLogExtract).toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
+  it('auto-attaches when logExcerptRaw is provided', async () => {
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockResolvedValue('{"ok":true}')
+
+    const wrapper = mountForm({
+      knownStatusOverride: null,
+      logExcerptRaw: '{"secret":"x"}'
+    })
+
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-attachment-state]').attributes('data-attachment-state')).toBe(
+        'attached'
+      )
+    )
+    expect(sanitizeAttachedLogExtract).toHaveBeenCalledWith('{"secret":"x"}')
+
+    wrapper.unmount()
+  })
+
+  it('prepares and saves a local draft without cloud upload', async () => {
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockResolvedValue('{"ok":true}')
+    saveFeedbackDraft.mockReset()
+    saveFeedbackDraft.mockResolvedValue(undefined)
+
+    const wrapper = mountForm({
+      fingerprint: 'fp-a',
+      knownStatusOverride: 'new',
+      initialNotes: 'pool sheet'
+    })
+
+    await wrapper.get('[data-testid="feedback-form-prepare"]').trigger('click')
+
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="feedback-form-prepare-success"]').text()).toBe(
+        feedbackFormEn.prepareSuccess
+      )
+    )
+    expect(saveFeedbackDraft).toHaveBeenCalledWith(
+      expect.objectContaining({
+        notes: 'pool sheet',
+        fingerprint: 'fp-a',
+        logExcerptJson: '{"ok":true}',
+        status: 'ready'
+      })
+    )
+
+    wrapper.unmount()
+  })
+
+  it('shows prepare error when draft save fails', async () => {
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockResolvedValue('{"ok":true}')
+    saveFeedbackDraft.mockReset()
+    saveFeedbackDraft.mockRejectedValue(new Error('db'))
+
+    const wrapper = mountForm({ knownStatusOverride: null })
+
+    await wrapper.get('[data-testid="feedback-form-prepare"]').trigger('click')
+
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="feedback-form-prepare-error"]').text()).toBe(
+        feedbackFormEn.prepareError
+      )
+    )
+
+    wrapper.unmount()
+  })
+
+  it('shows attachment error when sanitize fails', async () => {
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockRejectedValue(new Error('sanitize failed'))
+
+    const wrapper = mountForm({ knownStatusOverride: null })
+
+    await wrapper.get('button.feedback-form__button--secondary').trigger('click')
+
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
+        feedbackFormEn.attachmentError
+      )
+    )
+    expect(wrapper.get('[data-attachment-state]').attributes('data-attachment-state')).toBe('error')
+
+    wrapper.unmount()
+  })
+
+  it('shows attaching status while sanitize is in flight', async () => {
+    let resolveSanitize: ((value: string) => void) | undefined
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockImplementation(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveSanitize = resolve
+        })
+    )
+
+    const wrapper = mountForm({ knownStatusOverride: null })
+
+    const pending = wrapper.get('button.feedback-form__button--secondary').trigger('click')
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
+        feedbackFormEn.attachmentAttaching
+      )
+    )
+
+    resolveSanitize?.('{"ok":true}')
+    await pending
+    await vi.waitFor(() =>
+      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
+        feedbackFormEn.attachmentAttached
+      )
+    )
 
     wrapper.unmount()
   })

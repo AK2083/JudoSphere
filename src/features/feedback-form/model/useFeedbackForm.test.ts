@@ -149,4 +149,121 @@ describe('useFeedbackForm', () => {
     expect(form.knownDisplay.value).toBe('known')
     expect(form.loadFailed.value).toBe(false)
   })
+
+  it('auto-attaches a sanitized extract when logExcerptRaw is provided', async () => {
+    const sanitize = vi.fn().mockResolvedValue('{"pin":"[REDACTED]"}')
+    const form = useFeedbackForm({
+      logExcerptRaw: '{"pin":"4242"}',
+      sanitizeLogExtract: sanitize,
+      loadKnownFingerprint: vi.fn()
+    })
+
+    await vi.waitFor(() => expect(form.attachmentState.value).toBe('attached'))
+
+    expect(sanitize).toHaveBeenCalledWith('{"pin":"4242"}')
+    expect(form.attachedExcerpt.value).toBe('{"pin":"[REDACTED]"}')
+    expect(form.hasAttachment.value).toBe(true)
+  })
+
+  it('attaches a structured sanitized extract on demand', async () => {
+    const sanitize = vi.fn().mockImplementation(async (raw: string) => `sanitized:${raw}`)
+    const form = useFeedbackForm({
+      fingerprint: 'fp-a',
+      initialNotes: 'desk',
+      sanitizeLogExtract: sanitize,
+      loadKnownFingerprint: vi.fn().mockResolvedValue(null),
+      createDraftId: () => 'draft-fixed'
+    })
+
+    await vi.waitFor(() => expect(form.loadState.value).toBe('ready'))
+
+    const excerpt = await form.attachSanitizedLogExtract()
+
+    expect(excerpt).toContain('sanitized:')
+    expect(sanitize).toHaveBeenCalled()
+    expect(form.attachmentState.value).toBe('attached')
+  })
+
+  it('records attachment error when sanitize fails', async () => {
+    const form = useFeedbackForm({
+      sanitizeLogExtract: vi.fn().mockRejectedValue(new Error('sanitize failed')),
+      loadKnownFingerprint: vi.fn()
+    })
+
+    await expect(form.attachSanitizedLogExtract()).resolves.toBeNull()
+    expect(form.attachmentState.value).toBe('error')
+    expect(form.hasAttachment.value).toBe(false)
+  })
+
+  it('prepares and saves a local ready draft with attached excerpt', async () => {
+    const persist = vi.fn().mockResolvedValue(undefined)
+    const form = useFeedbackForm({
+      fingerprint: 'fp-a',
+      initialNotes: 'mats',
+      sanitizeLogExtract: vi.fn().mockResolvedValue('{"ok":true}'),
+      saveFeedbackDraft: persist,
+      loadKnownFingerprint: vi.fn().mockResolvedValue(null),
+      createDraftId: () => 'draft-1'
+    })
+
+    await vi.waitFor(() => expect(form.loadState.value).toBe('ready'))
+
+    await expect(form.prepareAndSaveDraft()).resolves.toBe('draft-1')
+
+    expect(persist).toHaveBeenCalledWith({
+      id: 'draft-1',
+      notes: 'mats',
+      fingerprint: 'fp-a',
+      logExcerptJson: '{"ok":true}',
+      status: 'ready'
+    })
+    expect(form.draftSaveFeedback.value).toBe('success')
+    expect(form.lastSavedDraftId.value).toBe('draft-1')
+  })
+
+  it('reuses an already attached excerpt when preparing a draft', async () => {
+    const sanitize = vi.fn().mockResolvedValue('{"once":true}')
+    const persist = vi.fn().mockResolvedValue(undefined)
+    const form = useFeedbackForm({
+      sanitizeLogExtract: sanitize,
+      saveFeedbackDraft: persist,
+      loadKnownFingerprint: vi.fn(),
+      createDraftId: () => 'draft-2'
+    })
+
+    await form.attachSanitizedLogExtract()
+    await form.prepareAndSaveDraft()
+
+    expect(sanitize).toHaveBeenCalledTimes(1)
+    expect(persist).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'draft-2',
+        logExcerptJson: '{"once":true}',
+        status: 'ready'
+      })
+    )
+  })
+
+  it('sets prepare error when sanitize fails during save', async () => {
+    const form = useFeedbackForm({
+      sanitizeLogExtract: vi.fn().mockRejectedValue(new Error('nope')),
+      saveFeedbackDraft: vi.fn(),
+      loadKnownFingerprint: vi.fn()
+    })
+
+    await expect(form.prepareAndSaveDraft()).resolves.toBeNull()
+    expect(form.draftSaveFeedback.value).toBe('error')
+  })
+
+  it('sets prepare error when draft persist fails', async () => {
+    const form = useFeedbackForm({
+      sanitizeLogExtract: vi.fn().mockResolvedValue('{"ok":true}'),
+      saveFeedbackDraft: vi.fn().mockRejectedValue(new Error('db')),
+      loadKnownFingerprint: vi.fn(),
+      createDraftId: () => 'draft-x'
+    })
+
+    await expect(form.prepareAndSaveDraft()).resolves.toBeNull()
+    expect(form.draftSaveFeedback.value).toBe('error')
+  })
 })

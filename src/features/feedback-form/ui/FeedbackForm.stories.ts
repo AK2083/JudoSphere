@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { expect, within } from 'storybook/test'
+import { expect, userEvent, within } from 'storybook/test'
 
 import { LanguageCode } from '@shared/lib'
 
@@ -29,7 +29,9 @@ type Story = StoryObj<typeof meta>
 
 /** Default form with notes field and no linked fingerprint. */
 export const Default: Story = {
-  args: {},
+  args: {
+    knownStatusOverride: null
+  },
   globals: {
     locale: LanguageCode.EN,
     viewport: { value: 'desktop', isRotated: false }
@@ -37,7 +39,8 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await expect(canvas.getByRole('heading', { name: feedbackFormEn.title })).toBeInTheDocument()
-    await expect(canvas.getByRole('status')).toHaveTextContent(feedbackFormEn.knownStatusNone)
+    await expect(canvas.getByText(feedbackFormEn.knownStatusNew)).toBeInTheDocument()
+    await expect(canvas.getByText(feedbackFormEn.attachmentIdle)).toBeInTheDocument()
   }
 }
 
@@ -46,7 +49,8 @@ export const KnownStatus: Story = {
   args: {
     fingerprint: 'fp-demo-known',
     knownStatusOverride: 'known',
-    initialNotes: 'Scoreboard froze while updating the pool sheet.'
+    initialNotes: 'Scoreboard froze while updating the pool sheet.',
+    logExcerptRaw: '{"message":"pool sheet freeze","token":"should-redact"}'
   },
   globals: {
     locale: LanguageCode.EN,
@@ -54,11 +58,12 @@ export const KnownStatus: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(canvas.getByRole('status')).toHaveTextContent(feedbackFormEn.knownStatusKnown)
+    await expect(canvas.getByText(feedbackFormEn.knownStatusKnown)).toBeInTheDocument()
+    await expect(canvas.getByRole('button', { name: feedbackFormEn.prepareAction })).toBeEnabled()
   }
 }
 
-/** German chrome for the known-status state. */
+/** German chrome for the known-status + attach affordances. */
 export const KnownStatusGerman: Story = {
   args: {
     fingerprint: 'fp-demo-known',
@@ -71,6 +76,7 @@ export const KnownStatusGerman: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await expect(canvas.getByRole('heading', { name: feedbackFormDe.title })).toBeInTheDocument()
-    await expect(canvas.getByRole('status')).toHaveTextContent(feedbackFormDe.knownStatusInProgress)
+    await expect(canvas.getByText(feedbackFormDe.knownStatusInProgress)).toBeInTheDocument()
+    await userEvent.click(canvas.getByRole('button', { name: feedbackFormDe.attachAction }))
   }
 }

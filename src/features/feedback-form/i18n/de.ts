@@ -11,5 +11,16 @@ export default {
   knownStatusNew: 'Neu — auf diesem Host noch nicht als bekanntes Problem markiert.',
   knownStatusKnown: 'Bekannt — dieses Muster wurde auf diesem Host schon gesehen.',
   knownStatusInProgress: 'In Bearbeitung — auf diesem Host wird das bereits untersucht.',
-  knownStatusLoadError: 'Bekanntheitsstatus konnte aus dem lokalen Cache nicht geladen werden.'
+  knownStatusLoadError: 'Bekanntheitsstatus konnte aus dem lokalen Cache nicht geladen werden.',
+  attachmentLabel: 'Bereinigter Log-Auszug',
+  attachmentHelp:
+    'Ein redigierter JSON-Auszug wird auf diesem Host erstellt und nur im lokalen Entwurf gespeichert.',
+  attachmentIdle: 'Noch kein bereinigter Auszug angehängt.',
+  attachmentAttaching: 'Bereinigten Auszug vorbereiten…',
+  attachmentAttached: 'Bereinigter Auszug für den lokalen Entwurf angehängt.',
+  attachmentError: 'Log-Auszug konnte auf diesem Host nicht bereinigt werden.',
+  attachAction: 'Bereinigten Auszug anhängen',
+  prepareAction: 'Entwurf vorbereiten / speichern',
+  prepareSuccess: 'Entwurf auf diesem Gerät gespeichert. Es wurde nichts hochgeladen.',
+  prepareError: 'Lokaler Entwurf konnte nicht gespeichert werden.'
 }
