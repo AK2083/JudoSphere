@@ -10,6 +10,22 @@ export type ErrorFingerprintInput = {
   frames?: string[] | null
 }
 
+/** Whether preprocess stored a full event or only bumped the gate. */
+export type PreprocessDisposition = 'recorded' | 'gated'
+
+/** Optional overrides for the local preprocess gate. */
+export type PreprocessOptions = {
+  cooldownSeconds?: number | null
+}
+
+/** Result of applying the local preprocess gate. */
+export type PreprocessResult = {
+  disposition: PreprocessDisposition
+  fingerprint: string
+  gate: FingerprintGate
+  event: ErrorEvent | null
+}
+
 /** Local-only feedback draft lifecycle (no upload in this milestone). */
 export type FeedbackDraftStatus = 'pending' | 'ready' | 'discarded'
 
@@ -99,6 +115,23 @@ export type FeedbackDraft = {
  */
 export async function deriveErrorFingerprint(input: ErrorFingerprintInput): Promise<string> {
   return invoke<string>('derive_error_fingerprint', { input })
+}
+
+/**
+ * Applies the local preprocess gate (cooldown/dedup) on the host.
+ * Identical fingerprints inside cooldown bump occurrence only — no full duplicate event.
+ * @param event - Candidate error/report event (includes fingerprint).
+ * @param options - Optional cooldown overrides.
+ * @returns Disposition, gate row, and event when recorded.
+ */
+export async function preprocessErrorReportEvent(
+  event: NewErrorEvent,
+  options?: PreprocessOptions | null
+): Promise<PreprocessResult> {
+  return invoke<PreprocessResult>('preprocess_error_report_event', {
+    event,
+    options: options ?? null
+  })
 }
 
 /**

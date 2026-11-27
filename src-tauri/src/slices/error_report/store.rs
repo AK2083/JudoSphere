@@ -206,6 +206,22 @@ pub fn get_fingerprint_gate(
     .map_err(|error| error.to_string())
 }
 
+/// Returns true when the fingerprint has an active cooldown (`cooldown_until` in the future).
+pub fn is_fingerprint_in_cooldown(conn: &Connection, fingerprint: &str) -> Result<bool, String> {
+    require_non_empty("fingerprint", fingerprint)?;
+    conn.query_row(
+        "SELECT EXISTS(
+            SELECT 1 FROM error_fingerprint_gates
+            WHERE fingerprint = ?1
+              AND cooldown_until IS NOT NULL
+              AND datetime(cooldown_until) > datetime('now')
+         )",
+        [fingerprint],
+        |row| row.get(0),
+    )
+    .map_err(|error| error.to_string())
+}
+
 /// Inserts or updates a known-fingerprint cache entry.
 pub fn upsert_known_fingerprint(
     conn: &Connection,
@@ -455,6 +471,51 @@ mod tests {
         )
         .unwrap_err();
         assert!(err.contains("id"));
+    }
+
+    #[test]
+    fn fingerprint_cooldown_detection() {
+        let conn = open_db();
+        assert!(!is_fingerprint_in_cooldown(&conn, "fp-missing").unwrap());
+
+        upsert_fingerprint_gate(
+            &conn,
+            &FingerprintGateWrite {
+                fingerprint: "fp-cool".into(),
+                occurrence_count: 1,
+                first_seen_at: None,
+                last_seen_at: None,
+                cooldown_until: Some("2099-01-01 00:00:00".into()),
+            },
+        )
+        .unwrap();
+        assert!(is_fingerprint_in_cooldown(&conn, "fp-cool").unwrap());
+
+        upsert_fingerprint_gate(
+            &conn,
+            &FingerprintGateWrite {
+                fingerprint: "fp-cool".into(),
+                occurrence_count: 1,
+                first_seen_at: None,
+                last_seen_at: None,
+                cooldown_until: Some("2000-01-01 00:00:00".into()),
+            },
+        )
+        .unwrap();
+        assert!(!is_fingerprint_in_cooldown(&conn, "fp-cool").unwrap());
+
+        upsert_fingerprint_gate(
+            &conn,
+            &FingerprintGateWrite {
+                fingerprint: "fp-cool".into(),
+                occurrence_count: 1,
+                first_seen_at: None,
+                last_seen_at: None,
+                cooldown_until: None,
+            },
+        )
+        .unwrap();
+        assert!(!is_fingerprint_in_cooldown(&conn, "fp-cool").unwrap());
     }
 
     #[test]

@@ -10,6 +10,7 @@ import {
   insertErrorEvent,
   listErrorEventsByFingerprint,
   listFeedbackDraftsByStatus,
+  preprocessErrorReportEvent,
   upsertFeedbackDraft,
   upsertFingerprintGate,
   upsertKnownFingerprint
@@ -151,5 +152,44 @@ describe('errorReport facade', () => {
     }
     await expect(deriveErrorFingerprint(input)).resolves.toBe('abc123')
     expect(invokeMock).toHaveBeenCalledWith('derive_error_fingerprint', { input })
+  })
+
+  it('preprocesses error reports via the host gate command', async () => {
+    const event = {
+      id: 'evt-1',
+      fingerprint: 'fp-a',
+      source: 'ui',
+      message: 'boom',
+      contextJson: null,
+      occurredAt: null
+    }
+    const result = {
+      disposition: 'gated' as const,
+      fingerprint: 'fp-a',
+      gate: {
+        fingerprint: 'fp-a',
+        occurrenceCount: 2,
+        firstSeenAt: 'a',
+        lastSeenAt: 'b',
+        cooldownUntil: 'c',
+        updatedAt: 'd'
+      },
+      event: null
+    }
+    invokeMock.mockResolvedValueOnce(result)
+    await expect(preprocessErrorReportEvent(event, { cooldownSeconds: 60 })).resolves.toEqual(
+      result
+    )
+    expect(invokeMock).toHaveBeenCalledWith('preprocess_error_report_event', {
+      event,
+      options: { cooldownSeconds: 60 }
+    })
+
+    invokeMock.mockResolvedValueOnce(result)
+    await preprocessErrorReportEvent(event)
+    expect(invokeMock).toHaveBeenCalledWith('preprocess_error_report_event', {
+      event,
+      options: null
+    })
   })
 })

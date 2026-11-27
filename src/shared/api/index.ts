@@ -10,7 +10,10 @@ export type {
   KnownFingerprint,
   KnownFingerprintStatus,
   KnownFingerprintWrite,
-  NewErrorEvent
+  NewErrorEvent,
+  PreprocessDisposition,
+  PreprocessOptions,
+  PreprocessResult
 } from './errorReport'
 export {
   bumpFingerprintOccurrence,
@@ -22,6 +25,7 @@ export {
   insertErrorEvent,
   listErrorEventsByFingerprint,
   listFeedbackDraftsByStatus,
+  preprocessErrorReportEvent,
   upsertFeedbackDraft,
   upsertFingerprintGate,
   upsertKnownFingerprint
