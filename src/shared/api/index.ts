@@ -1,4 +1,29 @@
 export { deleteAppValue, getAppValue, setAppValue } from './db'
+export type {
+  ErrorEvent,
+  FeedbackDraft,
+  FeedbackDraftStatus,
+  FeedbackDraftWrite,
+  FingerprintGate,
+  FingerprintGateWrite,
+  KnownFingerprint,
+  KnownFingerprintStatus,
+  KnownFingerprintWrite,
+  NewErrorEvent
+} from './errorReport'
+export {
+  bumpFingerprintOccurrence,
+  getErrorEvent,
+  getFeedbackDraft,
+  getFingerprintGate,
+  getKnownFingerprint,
+  insertErrorEvent,
+  listErrorEventsByFingerprint,
+  listFeedbackDraftsByStatus,
+  upsertFeedbackDraft,
+  upsertFingerprintGate,
+  upsertKnownFingerprint
+} from './errorReport'
 export type { I18n, TranslationApi } from './i18n'
 export { createI18n, useTranslation } from './i18n'
 export type {
