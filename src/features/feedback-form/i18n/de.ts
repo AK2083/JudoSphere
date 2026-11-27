@@ -5,6 +5,7 @@ export default {
   notesLabel: 'Ihre Notizen',
   notesHelp: 'Kurz, was passiert ist und was Sie getan haben, als das Problem auftrat.',
   notesPlaceholder: 'Ich habe gerade Matten zugewiesen, als…',
+  notesCount: '{current} / {max}',
   knownStatusLabel: 'Bekanntheitsstatus',
   knownStatusHelp: 'Nur aus dem lokalen Cache auf diesem Host — nicht aus der Cloud.',
   knownStatusNone: 'Noch kein Fehler-Fingerprint verknüpft.',
@@ -14,13 +15,19 @@ export default {
   knownStatusLoadError: 'Bekanntheitsstatus konnte aus dem lokalen Cache nicht geladen werden.',
   attachmentLabel: 'Bereinigter Log-Auszug',
   attachmentHelp:
-    'Ein redigierter JSON-Auszug wird auf diesem Host erstellt und nur im lokalen Entwurf gespeichert.',
+    'Ein bereinigter Auszug wird auf diesem Gerät erstellt und nur im lokalen Entwurf gespeichert.',
   attachmentIdle: 'Noch kein bereinigter Auszug angehängt.',
   attachmentAttaching: 'Bereinigten Auszug vorbereiten…',
-  attachmentAttached: 'Bereinigter Auszug für den lokalen Entwurf angehängt.',
   attachmentError: 'Log-Auszug konnte auf diesem Host nicht bereinigt werden.',
+  attachmentMissing: 'Kein Log-Auszug verfügbar, der angehängt werden könnte.',
   attachAction: 'Bereinigten Auszug anhängen',
-  prepareAction: 'Entwurf vorbereiten / speichern',
+  prepareAction: 'Speichern',
   prepareSuccess: 'Entwurf auf diesem Gerät gespeichert. Es wurde nichts hochgeladen.',
-  prepareError: 'Lokaler Entwurf konnte nicht gespeichert werden.'
+  prepareError: 'Lokaler Entwurf konnte nicht gespeichert werden.',
+  statusBarOpen: 'Feedback',
+  panelClose: 'Feedback schließen',
+  recoveryOffer:
+    'Auf diesem Host wurde ein ernstes Problem protokolliert. Sie können einen lokalen Feedback-Entwurf vorbereiten.',
+  recoveryOpen: 'Feedback öffnen',
+  recoveryDismiss: 'Schließen'
 }

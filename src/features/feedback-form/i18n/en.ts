@@ -4,6 +4,7 @@ export default {
   notesLabel: 'Your notes',
   notesHelp: 'Briefly what happened and what you were doing when the problem appeared.',
   notesPlaceholder: 'I was assigning mats when…',
+  notesCount: '{current} / {max}',
   knownStatusLabel: 'Known status',
   knownStatusHelp: 'From the local cache on this host only — not from the cloud.',
   knownStatusNone: 'No error fingerprint linked yet.',
@@ -13,13 +14,19 @@ export default {
   knownStatusLoadError: 'Could not load known status from the local cache.',
   attachmentLabel: 'Sanitized log extract',
   attachmentHelp:
-    'A redacted JSON extract is prepared on this host and stored only in the local draft.',
+    'A cleaned extract is prepared on this device and stored only in the local draft.',
   attachmentIdle: 'No sanitized extract attached yet.',
   attachmentAttaching: 'Preparing sanitized extract…',
-  attachmentAttached: 'Sanitized extract attached for the local draft.',
   attachmentError: 'Could not sanitize the log extract on this host.',
+  attachmentMissing: 'No log extract is available to attach.',
   attachAction: 'Attach sanitized extract',
-  prepareAction: 'Prepare / save draft',
+  prepareAction: 'Save',
   prepareSuccess: 'Draft saved on this device. Nothing was uploaded.',
-  prepareError: 'Could not save the local draft.'
+  prepareError: 'Could not save the local draft.',
+  statusBarOpen: 'Feedback',
+  panelClose: 'Close feedback',
+  recoveryOffer:
+    'A serious problem was logged on this host. You can prepare a local feedback draft.',
+  recoveryOpen: 'Open feedback',
+  recoveryDismiss: 'Dismiss'
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 
+import { FeedbackFormPanel, FeedbackStatusBar } from '@features/feedback-form'
 import { AppNavigation, BrandNotch } from '@widgets'
 </script>
 
@@ -17,9 +18,10 @@ import { AppNavigation, BrandNotch } from '@widgets'
     </div>
 
     <footer class="app-shell__status" role="contentinfo">
-      <div class="app-shell__status-start" />
-      <div class="app-shell__status-end" data-testid="app-shell-status-end" />
+      <FeedbackStatusBar />
     </footer>
+
+    <FeedbackFormPanel />
   </div>
 </template>
 
@@ -71,16 +73,6 @@ import { AppNavigation, BrandNotch } from '@widgets'
   min-height: 2rem;
   border-top: 1px solid var(--app-shell-border);
   background: var(--app-shell-surface);
-}
-
-.app-shell__status-start {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.app-shell__status-end {
-  flex: 0 0 8rem;
-  min-width: 8rem;
 }
 
 @media (min-width: 768px) {

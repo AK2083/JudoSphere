@@ -6,11 +6,14 @@ import { fetchKnownFingerprint } from '../api/fetchKnownFingerprint'
 import { sanitizeAttachedLogExtract } from '../api/sanitizeAttachedLogExtract'
 import { saveFeedbackDraft, type SaveFeedbackDraftInput } from '../api/saveFeedbackDraft'
 import { buildLogExcerptPayload } from './buildLogExcerptPayload'
+import { clampFeedbackNotes, FEEDBACK_NOTES_MAX_LENGTH } from './notesLimits'
 import {
   type KnownStatusDisplay,
   knownStatusLabelKey,
   resolveKnownStatusDisplay
 } from './resolveKnownStatusDisplay'
+
+export { FEEDBACK_NOTES_MAX_LENGTH } from './notesLimits'
 
 /** Loader used by the form to read the local known-fingerprint cache. */
 export type LoadKnownFingerprint = (fingerprint: string) => Promise<KnownFingerprint | null>
@@ -26,6 +29,9 @@ export type DraftSaveFeedback = 'idle' | 'saving' | 'success' | 'error'
 
 /** How the sanitized attachment is currently represented in the form. */
 export type AttachmentState = 'idle' | 'attaching' | 'attached' | 'error'
+
+/** Why the last attach attempt failed (when `attachmentState` is `error`). */
+export type AttachmentErrorReason = 'missing' | 'sanitize'
 
 /**
  *
@@ -61,13 +67,14 @@ export type UseFeedbackFormOptions = {
  * @returns Reactive form state, attachment/save feedback, and actions.
  */
 export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
-  const notes = ref(options.initialNotes ?? '')
+  const notes = ref(clampFeedbackNotes(options.initialNotes ?? ''))
   const knownEntry = ref<KnownFingerprint | null>(null)
   const loadFailed = ref(false)
   const loadState = ref<'idle' | 'loading' | 'ready'>('idle')
 
   const attachedExcerpt = ref<string | null>(null)
   const attachmentState = ref<AttachmentState>('idle')
+  const attachmentErrorReason = ref<AttachmentErrorReason | null>(null)
   const draftSaveFeedback = ref<DraftSaveFeedback>('idle')
   const lastSavedDraftId = ref<string | null>(null)
 
@@ -112,6 +119,11 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
     () => attachedExcerpt.value != null && attachedExcerpt.value.length > 0
   )
 
+  const hasNotes = computed(() => notes.value.trim().length > 0)
+
+  /** Save is allowed only when notes and a sanitized extract are both present. */
+  const canPrepareSave = computed(() => hasNotes.value && hasAttachment.value)
+
   /**
    * Reloads known-status from the host (no-op when an override is active or fingerprint is missing).
    */
@@ -144,16 +156,26 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
   }
 
   /**
-   * Builds a payload, runs it through the host sanitizer, and keeps the sanitized extract attached.
+   * Sanitizes the caller-supplied log extract and keeps it attached.
+   * Fails when no raw extract is available — does not invent a placeholder payload.
    * @returns Sanitized excerpt when attach succeeds, otherwise `null`.
    */
   async function attachSanitizedLogExtract(): Promise<string | null> {
+    const rawSource = logExcerptRaw.value
+    if (!rawSource) {
+      attachedExcerpt.value = null
+      attachmentErrorReason.value = 'missing'
+      attachmentState.value = 'error'
+      return null
+    }
+
     attachmentState.value = 'attaching'
+    attachmentErrorReason.value = null
     try {
       const raw = buildLogExcerptPayload({
         fingerprint: fingerprint.value,
         notes: notes.value,
-        rawExcerpt: logExcerptRaw.value
+        rawExcerpt: rawSource
       })
       const sanitized = await sanitize(raw)
       attachedExcerpt.value = sanitized
@@ -161,27 +183,23 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
       return sanitized
     } catch {
       attachedExcerpt.value = null
+      attachmentErrorReason.value = 'sanitize'
       attachmentState.value = 'error'
       return null
     }
   }
 
   /**
-   * Explicit prepare/save: ensure a sanitized extract is attached, then persist a local SQLite draft.
-   * Never uploads to the cloud.
+   * Explicit prepare/save: persist a local SQLite draft with notes + sanitized extract.
+   * Never uploads to the cloud; does not invent a log extract during save.
    * @returns Saved draft id when successful, otherwise `null`.
    */
   async function prepareAndSaveDraft(): Promise<string | null> {
-    draftSaveFeedback.value = 'saving'
-
-    let excerpt = attachedExcerpt.value
-    if (!excerpt) {
-      excerpt = await attachSanitizedLogExtract()
-      if (!excerpt) {
-        draftSaveFeedback.value = 'error'
-        return null
-      }
+    if (!canPrepareSave.value) {
+      return null
     }
+
+    draftSaveFeedback.value = 'saving'
 
     const id = createDraftId()
     try {
@@ -189,7 +207,7 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
         id,
         notes: notes.value,
         fingerprint: fingerprint.value,
-        logExcerptJson: excerpt,
+        logExcerptJson: attachedExcerpt.value,
         status: 'ready'
       })
       lastSavedDraftId.value = id
@@ -202,7 +220,7 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
   }
 
   function setNotes(value: string): void {
-    notes.value = value
+    notes.value = clampFeedbackNotes(value)
   }
 
   watch(
@@ -225,6 +243,7 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
 
   return {
     notes,
+    notesMaxLength: FEEDBACK_NOTES_MAX_LENGTH,
     fingerprint,
     knownEntry,
     knownDisplay,
@@ -233,7 +252,10 @@ export function useFeedbackForm(options: UseFeedbackFormOptions = {}) {
     loadFailed,
     attachedExcerpt,
     attachmentState,
+    attachmentErrorReason,
     hasAttachment,
+    hasNotes,
+    canPrepareSave,
     draftSaveFeedback,
     lastSavedDraftId,
     refreshKnownStatus,

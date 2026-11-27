@@ -5,6 +5,7 @@ import { createI18n } from '@shared/api'
 import { LanguageCode } from '@shared/lib'
 
 import { feedbackFormDe, feedbackFormEn } from '../i18n'
+import { FEEDBACK_NOTES_MAX_LENGTH } from '../model/notesLimits'
 import FeedbackForm from './FeedbackForm.vue'
 
 const fetchKnownFingerprint = vi.hoisted(() => vi.fn())
@@ -62,10 +63,20 @@ describe('FeedbackForm', () => {
     expect(wrapper.text()).toContain(feedbackFormEn.attachmentLabel)
     expect(wrapper.get('[role="status"]').text()).toContain(feedbackFormEn.knownStatusNew)
 
+    expect(wrapper.get('[data-testid="feedback-form-notes-count"]').text()).toBe(
+      `0 / ${FEEDBACK_NOTES_MAX_LENGTH}`
+    )
+
     await wrapper.get('#feedback-form-notes').setValue('Assigning mats on court 2')
     expect((wrapper.get('#feedback-form-notes').element as HTMLTextAreaElement).value).toBe(
       'Assigning mats on court 2'
     )
+    expect(wrapper.get('[data-testid="feedback-form-notes-count"]').text()).toBe(
+      `25 / ${FEEDBACK_NOTES_MAX_LENGTH}`
+    )
+    expect(
+      (wrapper.get('#feedback-form-notes').element as HTMLTextAreaElement).getAttribute('maxlength')
+    ).toBe(String(FEEDBACK_NOTES_MAX_LENGTH))
 
     wrapper.unmount()
   })
@@ -125,6 +136,44 @@ describe('FeedbackForm', () => {
     wrapper.unmount()
   })
 
+  it('keeps the caret on right-click so paste does not replace the whole word', async () => {
+    const wrapper = mountForm({
+      initialNotes: 'Assigning mats',
+      knownStatusOverride: null
+    })
+    const notes = wrapper.get('#feedback-form-notes')
+    const el = notes.element as HTMLTextAreaElement
+
+    el.focus()
+    el.setSelectionRange(4, 4)
+    await notes.trigger('mousedown', { button: 2 })
+
+    el.setSelectionRange(0, 9)
+    await notes.trigger('contextmenu')
+    await Promise.resolve()
+
+    expect(el.selectionStart).toBe(4)
+    expect(el.selectionEnd).toBe(4)
+
+    el.setSelectionRange(2, 6)
+    await notes.trigger('mousedown', { button: 2 })
+    el.setSelectionRange(0, 9)
+    await notes.trigger('contextmenu')
+    await Promise.resolve()
+    expect(el.selectionStart).toBe(0)
+    expect(el.selectionEnd).toBe(9)
+
+    el.setSelectionRange(1, 1)
+    await notes.trigger('mousedown', { button: 0 })
+    el.setSelectionRange(0, 9)
+    await notes.trigger('contextmenu')
+    await Promise.resolve()
+    expect(el.selectionStart).toBe(0)
+    expect(el.selectionEnd).toBe(9)
+
+    wrapper.unmount()
+  })
+
   it('prevents native form submit without uploading', async () => {
     const wrapper = mountForm({ knownStatusOverride: null })
 
@@ -135,25 +184,27 @@ describe('FeedbackForm', () => {
     wrapper.unmount()
   })
 
-  it('attaches a sanitized extract via the explicit attach action', async () => {
+  it('shows a missing-extract error when attach is pressed without log data', async () => {
     sanitizeAttachedLogExtract.mockReset()
-    sanitizeAttachedLogExtract.mockResolvedValue('{"pin":"[REDACTED]"}')
 
     const wrapper = mountForm({ knownStatusOverride: null, initialNotes: 'notes' })
 
     await wrapper.get('button.feedback-form__button--secondary').trigger('click')
 
     await vi.waitFor(() =>
-      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
-        feedbackFormEn.attachmentAttached
-      )
+      expect(
+        (wrapper.get('[data-testid="feedback-form-attachment-status"]').element as HTMLInputElement)
+          .value
+      ).toBe(feedbackFormEn.attachmentMissing)
     )
-    expect(sanitizeAttachedLogExtract).toHaveBeenCalled()
+    expect(sanitizeAttachedLogExtract).not.toHaveBeenCalled()
+    expect(wrapper.get('[data-attachment-state]').attributes('data-attachment-state')).toBe('error')
+    expect(wrapper.find('[data-testid="feedback-form-attachment-ready"]').exists()).toBe(false)
 
     wrapper.unmount()
   })
 
-  it('auto-attaches when logExcerptRaw is provided', async () => {
+  it('auto-attaches when logExcerptRaw is provided and shows the excerpt preview', async () => {
     sanitizeAttachedLogExtract.mockReset()
     sanitizeAttachedLogExtract.mockResolvedValue('{"ok":true}')
 
@@ -168,8 +219,45 @@ describe('FeedbackForm', () => {
       )
     )
     expect(sanitizeAttachedLogExtract).toHaveBeenCalledWith('{"secret":"x"}')
+    expect(
+      (wrapper.get('[data-testid="feedback-form-attachment-status"]').element as HTMLInputElement)
+        .value
+    ).toBe('{"ok":true}')
+    expect(wrapper.find('[data-testid="feedback-form-attachment-ready"]').exists()).toBe(false)
 
     wrapper.unmount()
+  })
+
+  it('keeps prepare disabled until notes and an attached extract exist', async () => {
+    sanitizeAttachedLogExtract.mockReset()
+    sanitizeAttachedLogExtract.mockResolvedValue('{"ok":true}')
+
+    const wrapper = mountForm({ knownStatusOverride: null })
+
+    expect(
+      (wrapper.get('[data-testid="feedback-form-prepare"]').element as HTMLButtonElement).disabled
+    ).toBe(true)
+
+    await wrapper.get('#feedback-form-notes').setValue('pool sheet')
+    expect(
+      (wrapper.get('[data-testid="feedback-form-prepare"]').element as HTMLButtonElement).disabled
+    ).toBe(true)
+
+    wrapper.unmount()
+
+    const ready = mountForm({
+      knownStatusOverride: null,
+      initialNotes: 'pool sheet',
+      logExcerptRaw: '{"secret":"x"}'
+    })
+
+    await vi.waitFor(() =>
+      expect(
+        (ready.get('[data-testid="feedback-form-prepare"]').element as HTMLButtonElement).disabled
+      ).toBe(false)
+    )
+
+    ready.unmount()
   })
 
   it('prepares and saves a local draft without cloud upload', async () => {
@@ -181,9 +269,15 @@ describe('FeedbackForm', () => {
     const wrapper = mountForm({
       fingerprint: 'fp-a',
       knownStatusOverride: 'new',
-      initialNotes: 'pool sheet'
+      initialNotes: 'pool sheet',
+      logExcerptRaw: '{"secret":"x"}'
     })
 
+    await vi.waitFor(() =>
+      expect(
+        (wrapper.get('[data-testid="feedback-form-prepare"]').element as HTMLButtonElement).disabled
+      ).toBe(false)
+    )
     await wrapper.get('[data-testid="feedback-form-prepare"]').trigger('click')
 
     await vi.waitFor(() =>
@@ -209,8 +303,17 @@ describe('FeedbackForm', () => {
     saveFeedbackDraft.mockReset()
     saveFeedbackDraft.mockRejectedValue(new Error('db'))
 
-    const wrapper = mountForm({ knownStatusOverride: null })
+    const wrapper = mountForm({
+      knownStatusOverride: null,
+      initialNotes: 'pool sheet',
+      logExcerptRaw: '{"secret":"x"}'
+    })
 
+    await vi.waitFor(() =>
+      expect(
+        (wrapper.get('[data-testid="feedback-form-prepare"]').element as HTMLButtonElement).disabled
+      ).toBe(false)
+    )
     await wrapper.get('[data-testid="feedback-form-prepare"]').trigger('click')
 
     await vi.waitFor(() =>
@@ -226,14 +329,18 @@ describe('FeedbackForm', () => {
     sanitizeAttachedLogExtract.mockReset()
     sanitizeAttachedLogExtract.mockRejectedValue(new Error('sanitize failed'))
 
-    const wrapper = mountForm({ knownStatusOverride: null })
+    const wrapper = mountForm({
+      knownStatusOverride: null,
+      logExcerptRaw: '{"pin":"1"}'
+    })
 
     await wrapper.get('button.feedback-form__button--secondary').trigger('click')
 
     await vi.waitFor(() =>
-      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
-        feedbackFormEn.attachmentError
-      )
+      expect(
+        (wrapper.get('[data-testid="feedback-form-attachment-status"]').element as HTMLInputElement)
+          .value
+      ).toBe(feedbackFormEn.attachmentError)
     )
     expect(wrapper.get('[data-attachment-state]').attributes('data-attachment-state')).toBe('error')
 
@@ -250,21 +357,24 @@ describe('FeedbackForm', () => {
         })
     )
 
-    const wrapper = mountForm({ knownStatusOverride: null })
+    const wrapper = mountForm({
+      knownStatusOverride: null,
+      logExcerptRaw: '{"pending":true}'
+    })
 
-    const pending = wrapper.get('button.feedback-form__button--secondary').trigger('click')
     await vi.waitFor(() =>
-      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
-        feedbackFormEn.attachmentAttaching
-      )
+      expect(
+        (wrapper.get('[data-testid="feedback-form-attachment-status"]').element as HTMLInputElement)
+          .value
+      ).toBe(feedbackFormEn.attachmentAttaching)
     )
 
     resolveSanitize?.('{"ok":true}')
-    await pending
     await vi.waitFor(() =>
-      expect(wrapper.get('[data-testid="feedback-form-attachment-status"]').text()).toBe(
-        feedbackFormEn.attachmentAttached
-      )
+      expect(
+        (wrapper.get('[data-testid="feedback-form-attachment-status"]').element as HTMLInputElement)
+          .value
+      ).toBe('{"ok":true}')
     )
 
     wrapper.unmount()

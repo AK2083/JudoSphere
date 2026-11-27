@@ -7,6 +7,7 @@ const translationKeys = {
   notesLabel: 'feedbackForm.notesLabel',
   notesHelp: 'feedbackForm.notesHelp',
   notesPlaceholder: 'feedbackForm.notesPlaceholder',
+  notesCount: 'feedbackForm.notesCount',
   knownStatusLabel: 'feedbackForm.knownStatusLabel',
   knownStatusHelp: 'feedbackForm.knownStatusHelp',
   knownStatusNone: 'feedbackForm.knownStatusNone',
@@ -18,12 +19,17 @@ const translationKeys = {
   attachmentHelp: 'feedbackForm.attachmentHelp',
   attachmentIdle: 'feedbackForm.attachmentIdle',
   attachmentAttaching: 'feedbackForm.attachmentAttaching',
-  attachmentAttached: 'feedbackForm.attachmentAttached',
   attachmentError: 'feedbackForm.attachmentError',
+  attachmentMissing: 'feedbackForm.attachmentMissing',
   attachAction: 'feedbackForm.attachAction',
   prepareAction: 'feedbackForm.prepareAction',
   prepareSuccess: 'feedbackForm.prepareSuccess',
-  prepareError: 'feedbackForm.prepareError'
+  prepareError: 'feedbackForm.prepareError',
+  statusBarOpen: 'feedbackForm.statusBarOpen',
+  panelClose: 'feedbackForm.panelClose',
+  recoveryOffer: 'feedbackForm.recoveryOffer',
+  recoveryOpen: 'feedbackForm.recoveryOpen',
+  recoveryDismiss: 'feedbackForm.recoveryDismiss'
 }
 
 export default translationKeys

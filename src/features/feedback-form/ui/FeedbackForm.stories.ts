@@ -40,7 +40,9 @@ export const Default: Story = {
     const canvas = within(canvasElement)
     await expect(canvas.getByRole('heading', { name: feedbackFormEn.title })).toBeInTheDocument()
     await expect(canvas.getByText(feedbackFormEn.knownStatusNew)).toBeInTheDocument()
-    await expect(canvas.getByText(feedbackFormEn.attachmentIdle)).toBeInTheDocument()
+    await expect(canvas.getByTestId('feedback-form-attachment-status')).toHaveValue(
+      feedbackFormEn.attachmentIdle
+    )
   }
 }
 
@@ -67,7 +69,8 @@ export const KnownStatus: Story = {
 export const KnownStatusGerman: Story = {
   args: {
     fingerprint: 'fp-demo-known',
-    knownStatusOverride: 'in_progress'
+    knownStatusOverride: 'in_progress',
+    logExcerptRaw: '{"message":"court desk"}'
   },
   globals: {
     locale: LanguageCode.DE,

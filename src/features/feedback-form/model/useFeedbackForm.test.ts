@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { KnownFingerprint } from '@shared/api'
 
 import translationKeys from '../i18n/keys'
+import { FEEDBACK_NOTES_MAX_LENGTH } from './notesLimits'
 import { useFeedbackForm } from './useFeedbackForm'
 
 function knownRow(status: KnownFingerprint['status'], fingerprint = 'fp-a'): KnownFingerprint {
@@ -22,8 +23,18 @@ describe('useFeedbackForm', () => {
     const form = useFeedbackForm({ initialNotes: 'mat assignment' })
 
     expect(form.notes.value).toBe('mat assignment')
+    expect(form.notesMaxLength).toBe(FEEDBACK_NOTES_MAX_LENGTH)
     form.setNotes('weigh-in desk')
     expect(form.notes.value).toBe('weigh-in desk')
+  })
+
+  it('clamps notes to the maximum length', () => {
+    const oversized = 'n'.repeat(FEEDBACK_NOTES_MAX_LENGTH + 40)
+    const form = useFeedbackForm({ initialNotes: oversized })
+
+    expect(form.notes.value).toHaveLength(FEEDBACK_NOTES_MAX_LENGTH)
+    form.setNotes(`${oversized}!`)
+    expect(form.notes.value).toHaveLength(FEEDBACK_NOTES_MAX_LENGTH)
   })
 
   it('shows none when no fingerprint is linked and does not call the loader', async () => {
@@ -165,48 +176,102 @@ describe('useFeedbackForm', () => {
     expect(form.hasAttachment.value).toBe(true)
   })
 
-  it('attaches a structured sanitized extract on demand', async () => {
+  it('attaches a sanitized extract on demand when a raw excerpt exists', async () => {
     const sanitize = vi.fn().mockImplementation(async (raw: string) => `sanitized:${raw}`)
     const form = useFeedbackForm({
       fingerprint: 'fp-a',
       initialNotes: 'desk',
+      logExcerptRaw: '{"desk":true}',
       sanitizeLogExtract: sanitize,
       loadKnownFingerprint: vi.fn().mockResolvedValue(null),
       createDraftId: () => 'draft-fixed'
     })
 
     await vi.waitFor(() => expect(form.loadState.value).toBe('ready'))
+    await vi.waitFor(() => expect(form.attachmentState.value).toBe('attached'))
 
     const excerpt = await form.attachSanitizedLogExtract()
 
-    expect(excerpt).toContain('sanitized:')
+    expect(excerpt).toBe('sanitized:{"desk":true}')
     expect(sanitize).toHaveBeenCalled()
     expect(form.attachmentState.value).toBe('attached')
   })
 
+  it('records a missing-extract error when attach is pressed without raw log data', async () => {
+    const sanitize = vi.fn()
+    const form = useFeedbackForm({
+      sanitizeLogExtract: sanitize,
+      loadKnownFingerprint: vi.fn()
+    })
+
+    await expect(form.attachSanitizedLogExtract()).resolves.toBeNull()
+    expect(sanitize).not.toHaveBeenCalled()
+    expect(form.attachmentState.value).toBe('error')
+    expect(form.attachmentErrorReason.value).toBe('missing')
+    expect(form.hasAttachment.value).toBe(false)
+  })
+
   it('records attachment error when sanitize fails', async () => {
     const form = useFeedbackForm({
+      logExcerptRaw: '{"pin":"1"}',
       sanitizeLogExtract: vi.fn().mockRejectedValue(new Error('sanitize failed')),
       loadKnownFingerprint: vi.fn()
     })
 
     await expect(form.attachSanitizedLogExtract()).resolves.toBeNull()
     expect(form.attachmentState.value).toBe('error')
+    expect(form.attachmentErrorReason.value).toBe('sanitize')
     expect(form.hasAttachment.value).toBe(false)
   })
 
-  it('prepares and saves a local ready draft with attached excerpt', async () => {
+  it('disables prepare until notes and an attached extract are present', async () => {
+    const sanitize = vi.fn().mockResolvedValue('{"ok":true}')
+    const form = useFeedbackForm({
+      logExcerptRaw: '{"ok":false}',
+      sanitizeLogExtract: sanitize,
+      loadKnownFingerprint: vi.fn()
+    })
+
+    expect(form.canPrepareSave.value).toBe(false)
+    expect(form.hasNotes.value).toBe(false)
+
+    await vi.waitFor(() => expect(form.hasAttachment.value).toBe(true))
+    expect(form.canPrepareSave.value).toBe(false)
+
+    form.setNotes('   ')
+    expect(form.canPrepareSave.value).toBe(false)
+
+    form.setNotes('mats')
+    expect(form.hasNotes.value).toBe(true)
+    expect(form.canPrepareSave.value).toBe(true)
+  })
+
+  it('rejects prepare when notes or attachment are still missing', async () => {
+    const persist = vi.fn()
+    const form = useFeedbackForm({
+      saveFeedbackDraft: persist,
+      loadKnownFingerprint: vi.fn()
+    })
+
+    await expect(form.prepareAndSaveDraft()).resolves.toBeNull()
+    expect(persist).not.toHaveBeenCalled()
+    expect(form.draftSaveFeedback.value).toBe('idle')
+  })
+
+  it('prepares and saves a local ready draft when notes and extract are present', async () => {
     const persist = vi.fn().mockResolvedValue(undefined)
+    const sanitize = vi.fn().mockResolvedValue('{"ok":true}')
     const form = useFeedbackForm({
       fingerprint: 'fp-a',
       initialNotes: 'mats',
-      sanitizeLogExtract: vi.fn().mockResolvedValue('{"ok":true}'),
+      logExcerptRaw: '{"ok":false}',
+      sanitizeLogExtract: sanitize,
       saveFeedbackDraft: persist,
       loadKnownFingerprint: vi.fn().mockResolvedValue(null),
       createDraftId: () => 'draft-1'
     })
 
-    await vi.waitFor(() => expect(form.loadState.value).toBe('ready'))
+    await vi.waitFor(() => expect(form.canPrepareSave.value).toBe(true))
 
     await expect(form.prepareAndSaveDraft()).resolves.toBe('draft-1')
 
@@ -225,44 +290,39 @@ describe('useFeedbackForm', () => {
     const sanitize = vi.fn().mockResolvedValue('{"once":true}')
     const persist = vi.fn().mockResolvedValue(undefined)
     const form = useFeedbackForm({
+      initialNotes: 'desk',
+      logExcerptRaw: '{"once":false}',
       sanitizeLogExtract: sanitize,
       saveFeedbackDraft: persist,
       loadKnownFingerprint: vi.fn(),
       createDraftId: () => 'draft-2'
     })
 
-    await form.attachSanitizedLogExtract()
+    await vi.waitFor(() => expect(form.canPrepareSave.value).toBe(true))
     await form.prepareAndSaveDraft()
 
     expect(sanitize).toHaveBeenCalledTimes(1)
     expect(persist).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'draft-2',
+        notes: 'desk',
         logExcerptJson: '{"once":true}',
         status: 'ready'
       })
     )
   })
 
-  it('sets prepare error when sanitize fails during save', async () => {
-    const form = useFeedbackForm({
-      sanitizeLogExtract: vi.fn().mockRejectedValue(new Error('nope')),
-      saveFeedbackDraft: vi.fn(),
-      loadKnownFingerprint: vi.fn()
-    })
-
-    await expect(form.prepareAndSaveDraft()).resolves.toBeNull()
-    expect(form.draftSaveFeedback.value).toBe('error')
-  })
-
   it('sets prepare error when draft persist fails', async () => {
     const form = useFeedbackForm({
+      initialNotes: 'mats',
+      logExcerptRaw: '{"ok":true}',
       sanitizeLogExtract: vi.fn().mockResolvedValue('{"ok":true}'),
       saveFeedbackDraft: vi.fn().mockRejectedValue(new Error('db')),
       loadKnownFingerprint: vi.fn(),
       createDraftId: () => 'draft-x'
     })
 
+    await vi.waitFor(() => expect(form.canPrepareSave.value).toBe(true))
     await expect(form.prepareAndSaveDraft()).resolves.toBeNull()
     expect(form.draftSaveFeedback.value).toBe('error')
   })
