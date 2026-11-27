@@ -1,6 +1,6 @@
-//! Tauri commands for host-UI → durable log intake.
+//! Tauri commands for host-UI → durable log intake and sanitized extracts.
 
-use super::{accept_forwarded_ui_record, ForwardedUiLogRecord};
+use super::{accept_forwarded_ui_record, sanitize_structured_extract, ForwardedUiLogRecord};
 
 /// Forward a host-UI log line into the local rolling log files (offline only).
 ///
@@ -17,9 +17,18 @@ pub fn forward_ui_log(
     Ok(())
 }
 
+/// Export path: return a sanitized log extract (same engine as feedback attach).
+///
+/// JSON payloads are walked with the shared redact rules; plain text uses the same rules.
+#[tauri::command]
+pub fn sanitize_log_extract(raw: String) -> String {
+    sanitize_structured_extract(&raw)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::sanitize::REDACTED;
 
     #[test]
     fn forward_ui_log_accepts_known_level() {
@@ -36,5 +45,22 @@ mod tests {
     fn forward_ui_log_rejects_unknown_level() {
         let err = forward_ui_log("loud".into(), "x".into(), None).unwrap_err();
         assert!(err.contains("unknown log level"));
+    }
+
+    #[test]
+    fn sanitize_log_extract_redacts_secrets_via_shared_engine() {
+        let out = sanitize_log_extract(r#"{"pin":"4242","note":"mat-1"}"#.into());
+        assert!(!out.contains("4242"));
+        assert!(out.contains(REDACTED));
+        assert!(out.contains("mat-1"));
+    }
+
+    #[test]
+    fn export_and_attach_helpers_share_the_same_sanitizer() {
+        let raw = r#"{"password":"hall-secret","ok":true}"#;
+        let exported = sanitize_log_extract(raw.into());
+        let attached = crate::slices::error_report::sanitize_attached_log_excerpt(raw);
+        assert_eq!(exported, attached);
+        assert!(!exported.contains("hall-secret"));
     }
 }
