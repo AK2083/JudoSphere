@@ -273,8 +273,16 @@ pub fn get_known_fingerprint(
 }
 
 /// Inserts or updates a local feedback draft.
+///
+/// `log_excerpt_json` is sanitized with the shared logging redact rules before persist
+/// so attach never stores a raw unsanitized dump.
 pub fn upsert_feedback_draft(conn: &Connection, draft: &FeedbackDraftWrite) -> Result<(), String> {
     require_non_empty("id", &draft.id)?;
+
+    let log_excerpt_json = draft
+        .log_excerpt_json
+        .as_ref()
+        .map(|raw| super::sanitize_attached_log_excerpt(raw));
 
     conn.execute(
         "INSERT INTO feedback_drafts (
@@ -290,7 +298,7 @@ pub fn upsert_feedback_draft(conn: &Connection, draft: &FeedbackDraftWrite) -> R
             draft.id,
             draft.fingerprint,
             draft.notes,
-            draft.log_excerpt_json,
+            log_excerpt_json,
             draft.status.as_str()
         ],
     )
@@ -571,5 +579,31 @@ mod tests {
         assert_eq!(draft.status, FeedbackDraftStatus::Discarded);
         assert_eq!(draft.notes, "updated");
         assert!(get_feedback_draft(&conn, "missing").unwrap().is_none());
+    }
+
+    #[test]
+    fn feedback_draft_attach_persists_sanitized_log_excerpt_only() {
+        let conn = open_db();
+        upsert_feedback_draft(
+            &conn,
+            &FeedbackDraftWrite {
+                id: "draft-secret".into(),
+                fingerprint: Some("fp-s".into()),
+                notes: "organizer note without secrets".into(),
+                log_excerpt_json: Some(
+                    r#"{"pin":"4242","token":"leak","message":"mat-2 boom"}"#.into(),
+                ),
+                status: FeedbackDraftStatus::Pending,
+            },
+        )
+        .unwrap();
+
+        let draft = get_feedback_draft(&conn, "draft-secret").unwrap().unwrap();
+        let excerpt = draft.log_excerpt_json.expect("excerpt stored");
+        assert!(!excerpt.contains("4242"));
+        assert!(!excerpt.contains("leak"));
+        assert!(excerpt.contains("mat-2 boom"));
+        assert!(excerpt.contains("[REDACTED]"));
+        assert_eq!(draft.notes, "organizer note without secrets");
     }
 }

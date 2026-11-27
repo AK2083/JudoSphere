@@ -89,6 +89,8 @@ pub fn get_known_fingerprint(
 }
 
 /// Upserts a local feedback draft (not uploaded in this milestone).
+///
+/// `log_excerpt_json` is sanitized on the host before persist (same rules as export).
 #[tauri::command]
 pub fn upsert_feedback_draft(
     state: State<'_, DbState>,

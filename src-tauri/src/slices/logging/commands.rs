@@ -17,7 +17,7 @@ pub fn forward_ui_log(
     Ok(())
 }
 
-/// Return a sanitized log extract for UI display / later attach (never the raw dump).
+/// Export path: return a sanitized log extract (same engine as feedback attach).
 ///
 /// JSON payloads are walked with the shared redact rules; plain text uses the same rules.
 #[tauri::command]
@@ -53,5 +53,14 @@ mod tests {
         assert!(!out.contains("4242"));
         assert!(out.contains(REDACTED));
         assert!(out.contains("mat-1"));
+    }
+
+    #[test]
+    fn export_and_attach_helpers_share_the_same_sanitizer() {
+        let raw = r#"{"password":"hall-secret","ok":true}"#;
+        let exported = sanitize_log_extract(raw.into());
+        let attached = crate::slices::error_report::sanitize_attached_log_excerpt(raw);
+        assert_eq!(exported, attached);
+        assert!(!exported.contains("hall-secret"));
     }
 }
