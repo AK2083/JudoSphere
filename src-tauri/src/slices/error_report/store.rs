@@ -249,6 +249,30 @@ pub fn upsert_known_fingerprint(
     Ok(())
 }
 
+/// Ensures a local known-fingerprint row exists; seeds `new` when missing.
+///
+/// Existing `known` / `in_progress` rows are left unchanged (no cloud refresh here).
+pub fn ensure_local_known_fingerprint(
+    conn: &Connection,
+    fingerprint: &str,
+) -> Result<KnownFingerprint, String> {
+    require_non_empty("fingerprint", fingerprint)?;
+    if let Some(existing) = get_known_fingerprint(conn, fingerprint)? {
+        return Ok(existing);
+    }
+    upsert_known_fingerprint(
+        conn,
+        &KnownFingerprintWrite {
+            fingerprint: fingerprint.to_string(),
+            status: KnownFingerprintStatus::New,
+            remote_ref: None,
+            notes: None,
+        },
+    )?;
+    get_known_fingerprint(conn, fingerprint)?
+        .ok_or_else(|| "known fingerprint missing after ensure".into())
+}
+
 /// Loads a known-fingerprint cache entry.
 pub fn get_known_fingerprint(
     conn: &Connection,
@@ -592,6 +616,27 @@ mod tests {
         assert_eq!(entry.status, KnownFingerprintStatus::InProgress);
         assert_eq!(entry.remote_ref.as_deref(), Some("GH-12"));
         assert!(get_known_fingerprint(&conn, "missing").unwrap().is_none());
+    }
+
+    #[test]
+    fn ensure_local_known_fingerprint_seeds_new_and_preserves() {
+        let conn = open_db();
+        let seeded = ensure_local_known_fingerprint(&conn, "fp-ensure").unwrap();
+        assert_eq!(seeded.status, KnownFingerprintStatus::New);
+
+        upsert_known_fingerprint(
+            &conn,
+            &KnownFingerprintWrite {
+                fingerprint: "fp-ensure".into(),
+                status: KnownFingerprintStatus::Known,
+                remote_ref: Some("GH-9".into()),
+                notes: None,
+            },
+        )
+        .unwrap();
+        let kept = ensure_local_known_fingerprint(&conn, "fp-ensure").unwrap();
+        assert_eq!(kept.status, KnownFingerprintStatus::Known);
+        assert_eq!(kept.remote_ref.as_deref(), Some("GH-9"));
     }
 
     #[test]

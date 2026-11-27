@@ -174,6 +174,14 @@ describe('errorReport facade', () => {
         cooldownUntil: 'c',
         updatedAt: 'd'
       },
+      known: {
+        fingerprint: 'fp-a',
+        status: 'new' as const,
+        remoteRef: null,
+        notes: null,
+        createdAt: 't',
+        updatedAt: 't'
+      },
       event: null
     }
     invokeMock.mockResolvedValueOnce(result)

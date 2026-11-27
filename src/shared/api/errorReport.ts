@@ -23,6 +23,7 @@ export type PreprocessResult = {
   disposition: PreprocessDisposition
   fingerprint: string
   gate: FingerprintGate
+  known: KnownFingerprint
   event: ErrorEvent | null
 }
 
@@ -122,7 +123,7 @@ export async function deriveErrorFingerprint(input: ErrorFingerprintInput): Prom
  * Identical fingerprints inside cooldown bump occurrence only — no full duplicate event.
  * @param event - Candidate error/report event (includes fingerprint).
  * @param options - Optional cooldown overrides.
- * @returns Disposition, gate row, and event when recorded.
+ * @returns Disposition, gate row, local known status, and event when recorded.
  */
 export async function preprocessErrorReportEvent(
   event: NewErrorEvent,

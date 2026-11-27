@@ -6,10 +6,10 @@
 use rusqlite::{Connection, params};
 
 use super::store::{
-    bump_fingerprint_occurrence, get_error_event, get_fingerprint_gate, insert_error_event,
-    is_fingerprint_in_cooldown,
+    bump_fingerprint_occurrence, ensure_local_known_fingerprint, get_error_event,
+    get_fingerprint_gate, insert_error_event, is_fingerprint_in_cooldown,
 };
-use super::types::{ErrorEvent, FingerprintGate, NewErrorEvent};
+use super::types::{ErrorEvent, FingerprintGate, KnownFingerprint, NewErrorEvent};
 use serde::{Deserialize, Serialize};
 
 /// Default local cooldown window (5 minutes) for duplicate fingerprint gating.
@@ -32,6 +32,8 @@ pub struct PreprocessResult {
     pub disposition: PreprocessDisposition,
     pub fingerprint: String,
     pub gate: FingerprintGate,
+    /// Local known-fingerprint cache row (`new` | `known` | `in_progress`).
+    pub known: KnownFingerprint,
     /// Present when [`PreprocessDisposition::Recorded`].
     pub event: Option<ErrorEvent>,
 }
@@ -63,16 +65,19 @@ pub fn preprocess_error_report(
 
     if is_fingerprint_in_cooldown(conn, &event.fingerprint)? {
         let gate = refresh_gate_cooldown(conn, &event.fingerprint, cooldown_seconds)?;
+        let known = ensure_local_known_fingerprint(conn, &event.fingerprint)?;
         return Ok(PreprocessResult {
             disposition: PreprocessDisposition::Gated,
             fingerprint: event.fingerprint.clone(),
             gate,
+            known,
             event: None,
         });
     }
 
     insert_error_event(conn, event)?;
     let gate = refresh_gate_cooldown(conn, &event.fingerprint, cooldown_seconds)?;
+    let known = ensure_local_known_fingerprint(conn, &event.fingerprint)?;
     let stored = get_error_event(conn, &event.id)?
         .ok_or_else(|| "error event missing after insert".to_string())?;
 
@@ -80,6 +85,7 @@ pub fn preprocess_error_report(
         disposition: PreprocessDisposition::Recorded,
         fingerprint: event.fingerprint.clone(),
         gate,
+        known,
         event: Some(stored),
     })
 }
@@ -109,9 +115,11 @@ mod tests {
     use super::*;
     use crate::slices::database::migrations;
     use crate::slices::error_report::store::{
-        list_error_events_by_fingerprint, upsert_fingerprint_gate,
+        list_error_events_by_fingerprint, upsert_fingerprint_gate, upsert_known_fingerprint,
     };
-    use crate::slices::error_report::types::FingerprintGateWrite;
+    use crate::slices::error_report::types::{
+        FingerprintGateWrite, KnownFingerprintStatus, KnownFingerprintWrite,
+    };
 
     fn open_db() -> Connection {
         let conn = Connection::open_in_memory().expect("in-memory sqlite");
@@ -147,6 +155,7 @@ mod tests {
         assert_eq!(result.disposition, PreprocessDisposition::Recorded);
         assert_eq!(result.gate.occurrence_count, 1);
         assert!(result.gate.cooldown_until.is_some());
+        assert_eq!(result.known.status, KnownFingerprintStatus::New);
         assert_eq!(result.event.as_ref().map(|e| e.id.as_str()), Some("evt-1"));
         assert_eq!(list_error_events_by_fingerprint(&conn, "fp-a").unwrap().len(), 1);
     }
@@ -228,5 +237,52 @@ mod tests {
         assert_eq!(result.disposition, PreprocessDisposition::Recorded);
         assert_eq!(result.gate.occurrence_count, 1);
         assert!(DEFAULT_COOLDOWN_SECONDS > 0);
+    }
+
+    #[test]
+    fn preprocess_preserves_existing_known_and_in_progress_status() {
+        let conn = open_db();
+        upsert_known_fingerprint(
+            &conn,
+            &KnownFingerprintWrite {
+                fingerprint: "fp-known".into(),
+                status: KnownFingerprintStatus::Known,
+                remote_ref: Some("GH-1".into()),
+                notes: None,
+            },
+        )
+        .unwrap();
+        upsert_known_fingerprint(
+            &conn,
+            &KnownFingerprintWrite {
+                fingerprint: "fp-wip".into(),
+                status: KnownFingerprintStatus::InProgress,
+                remote_ref: None,
+                notes: Some("staff looking".into()),
+            },
+        )
+        .unwrap();
+
+        let known = preprocess_error_report(
+            &conn,
+            &sample_event("evt-k", "fp-known"),
+            &PreprocessOptions {
+                cooldown_seconds: Some(30),
+            },
+        )
+        .unwrap();
+        assert_eq!(known.known.status, KnownFingerprintStatus::Known);
+        assert_eq!(known.known.remote_ref.as_deref(), Some("GH-1"));
+
+        let wip = preprocess_error_report(
+            &conn,
+            &sample_event("evt-w", "fp-wip"),
+            &PreprocessOptions {
+                cooldown_seconds: Some(30),
+            },
+        )
+        .unwrap();
+        assert_eq!(wip.known.status, KnownFingerprintStatus::InProgress);
+        assert_eq!(wip.known.notes.as_deref(), Some("staff looking"));
     }
 }

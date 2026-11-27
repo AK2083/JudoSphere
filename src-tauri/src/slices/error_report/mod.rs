@@ -7,4 +7,7 @@ pub mod preprocess;
 pub mod store;
 pub mod types;
 
+#[cfg(test)]
+mod pipeline_tests;
+
 pub use log_excerpt::sanitize_attached_log_excerpt;
