@@ -62,6 +62,7 @@ export {
   parseLogLevel,
   resolveIsHostUi,
   resolveLogLevelFromEnv,
+  sanitizeLogExtract,
   TauriSink,
   vueErrorSource
 } from './log'
