@@ -4,11 +4,30 @@ use tauri::State;
 
 use crate::slices::database::connection::DbState;
 
+use super::fingerprint::{derive_fingerprint, ErrorFingerprintInput};
+use super::preprocess::{preprocess_error_report, PreprocessOptions, PreprocessResult};
 use super::store;
 use super::types::{
     ErrorEvent, FeedbackDraft, FeedbackDraftStatus, FeedbackDraftWrite, FingerprintGate,
     FingerprintGateWrite, KnownFingerprint, KnownFingerprintWrite, NewErrorEvent,
 };
+
+/// Derives a stable error fingerprint on the host (sanitized + normalized SHA-256).
+#[tauri::command]
+pub fn derive_error_fingerprint(input: ErrorFingerprintInput) -> String {
+    derive_fingerprint(&input)
+}
+
+/// Applies the local preprocess gate (cooldown/dedup) before storing a full report event.
+#[tauri::command]
+pub fn preprocess_error_report_event(
+    state: State<'_, DbState>,
+    event: NewErrorEvent,
+    options: Option<PreprocessOptions>,
+) -> Result<PreprocessResult, String> {
+    let conn = state.0.lock().map_err(|error| error.to_string())?;
+    preprocess_error_report(&conn, &event, &options.unwrap_or_default())
+}
 
 /// Inserts an error/report event into the local SQLite database.
 #[tauri::command]

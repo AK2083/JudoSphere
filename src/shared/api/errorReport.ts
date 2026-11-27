@@ -3,6 +3,30 @@ import { invoke } from '@tauri-apps/api/core'
 /** Allowed statuses for the local known-fingerprint cache. */
 export type KnownFingerprintStatus = 'new' | 'known' | 'in_progress'
 
+/** Input for host-side stable error fingerprint derivation. */
+export type ErrorFingerprintInput = {
+  message: string
+  errorType?: string | null
+  frames?: string[] | null
+}
+
+/** Whether preprocess stored a full event or only bumped the gate. */
+export type PreprocessDisposition = 'recorded' | 'gated'
+
+/** Optional overrides for the local preprocess gate. */
+export type PreprocessOptions = {
+  cooldownSeconds?: number | null
+}
+
+/** Result of applying the local preprocess gate. */
+export type PreprocessResult = {
+  disposition: PreprocessDisposition
+  fingerprint: string
+  gate: FingerprintGate
+  known: KnownFingerprint
+  event: ErrorEvent | null
+}
+
 /** Local-only feedback draft lifecycle (no upload in this milestone). */
 export type FeedbackDraftStatus = 'pending' | 'ready' | 'discarded'
 
@@ -82,6 +106,33 @@ export type FeedbackDraft = {
   status: FeedbackDraftStatus
   createdAt: string
   updatedAt: string
+}
+
+/**
+ * Derives a stable error fingerprint on the host (sanitized + normalized).
+ * Vue must not reimplement fingerprint rules.
+ * @param input - Message, optional error type, and optional key stack frames.
+ * @returns Hex SHA-256 fingerprint string.
+ */
+export async function deriveErrorFingerprint(input: ErrorFingerprintInput): Promise<string> {
+  return invoke<string>('derive_error_fingerprint', { input })
+}
+
+/**
+ * Applies the local preprocess gate (cooldown/dedup) on the host.
+ * Identical fingerprints inside cooldown bump occurrence only — no full duplicate event.
+ * @param event - Candidate error/report event (includes fingerprint).
+ * @param options - Optional cooldown overrides.
+ * @returns Disposition, gate row, local known status, and event when recorded.
+ */
+export async function preprocessErrorReportEvent(
+  event: NewErrorEvent,
+  options?: PreprocessOptions | null
+): Promise<PreprocessResult> {
+  return invoke<PreprocessResult>('preprocess_error_report_event', {
+    event,
+    options: options ?? null
+  })
 }
 
 /**

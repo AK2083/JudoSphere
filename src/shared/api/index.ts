@@ -1,6 +1,7 @@
 export { deleteAppValue, getAppValue, setAppValue } from './db'
 export type {
   ErrorEvent,
+  ErrorFingerprintInput,
   FeedbackDraft,
   FeedbackDraftStatus,
   FeedbackDraftWrite,
@@ -9,10 +10,14 @@ export type {
   KnownFingerprint,
   KnownFingerprintStatus,
   KnownFingerprintWrite,
-  NewErrorEvent
+  NewErrorEvent,
+  PreprocessDisposition,
+  PreprocessOptions,
+  PreprocessResult
 } from './errorReport'
 export {
   bumpFingerprintOccurrence,
+  deriveErrorFingerprint,
   getErrorEvent,
   getFeedbackDraft,
   getFingerprintGate,
@@ -20,6 +25,7 @@ export {
   insertErrorEvent,
   listErrorEventsByFingerprint,
   listFeedbackDraftsByStatus,
+  preprocessErrorReportEvent,
   upsertFeedbackDraft,
   upsertFingerprintGate,
   upsertKnownFingerprint

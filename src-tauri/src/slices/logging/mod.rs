@@ -20,4 +20,4 @@ mod sanitize;
 pub use config::configure_log_builder;
 pub use facade::{HostLogger, HOST_TARGET};
 pub use intake::{accept_forwarded_ui_record, ForwardedUiLogRecord};
-pub use sanitize::sanitize_structured_extract;
+pub use sanitize::{sanitize_log_text, sanitize_structured_extract};

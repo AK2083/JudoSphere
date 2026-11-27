@@ -23,6 +23,8 @@ pub fn run() {
             slices::database::commands::delete_app_value,
             slices::logging::commands::forward_ui_log,
             slices::logging::commands::sanitize_log_extract,
+            slices::error_report::commands::derive_error_fingerprint,
+            slices::error_report::commands::preprocess_error_report_event,
             slices::error_report::commands::insert_error_event,
             slices::error_report::commands::get_error_event,
             slices::error_report::commands::list_error_events_by_fingerprint,

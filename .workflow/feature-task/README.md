@@ -6,20 +6,20 @@ Reusable agent/git workflow for GitHub **Feature** issues with ordered **Task** 
 
 0. Feature work uses branch **`feature/<issueNumber>-<short-description>`**; Feature id for Task creation comes from the branch.
 1. If the Feature has no Task sub-issues yet, **create them first** (skill `create-feature-tasks`). Creating Tasks sets the **Feature** project **Status → In progress**; new Tasks stay Todo.
-2. Work Tasks in ascending issue-number order (one at a time). **Only when implementation of a Task begins**, set that Task **Status → In progress** (`engine.py start-task`). Context / `from-branch` must not flip Task status.
-3. Right after `start-task`, write a **top-down knowledge briefing** (skill `brief-active-task`; facts from `engine.py orient-task`) before product code — wide product/Feature context first, then this step in concrete repo detail.
+2. **In the same turn as Task creation**, write a **top-down knowledge briefing** (skill `brief-active-task`; facts from `mark-feature-in-progress` / `orient-task`) — wide product/Feature context first, then ordered Tasks and repo starting point. Do **not** defer this to implementation start.
+3. Work Tasks in ascending issue-number order (one at a time). **Only when implementation of a Task begins**, set that Task **Status → In progress** (`engine.py start-task`). Context / `from-branch` must not flip Task status. No second mandatory briefing at `start-task`.
 4. Before review, touched modules must have **100%** unit coverage (statements/branches/functions/lines).
 5. Do not commit alone — stop for human review.
 6. After an approved/successful commit, mark that Task done (project **Status → Done**, then close).
-7. Start the next Task only when asked (then `start-task` + orientation again).
+7. Start the next Task only when asked (then `start-task`).
 
 ### Hook vs skill
 
-| Layer                                            | Role                                                                                                         |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| **Hooks** (`integrations/`, `engine.py` context) | Short, generic _when_: remind to create Tasks if missing; orient after `start-task`; gate commits; mark Done |
-| **Skill** `.cursor/skills/create-feature-tasks`  | _How_: read Feature, draft User Stories, create Task sub-issues                                              |
-| **Skill** `.cursor/skills/brief-active-task`     | _How_: brief the active Task in Feature context for a newcomer                                               |
+| Layer                                            | Role                                                                                                                  |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Hooks** (`integrations/`, `engine.py` context) | Short, generic _when_: remind to create Tasks if missing; queue orientation at Task creation; gate commits; mark Done |
+| **Skill** `.cursor/skills/create-feature-tasks`  | _How_: read Feature, draft User Stories, create Task sub-issues, then require the briefing                            |
+| **Skill** `.cursor/skills/brief-active-task`     | _How_: brief the Feature and its ordered Tasks for a newcomer                                                         |
 
 Cursor `beforeSubmitPrompt` can only continue/deny (no context injection) — it binds the Feature and flags a one-shot inject. The same Task-creation guidance is then injected on Cursor **sessionStart** / **postToolUse**, plus the always-on rule.
 
@@ -40,12 +40,12 @@ Cursor `beforeSubmitPrompt` can only continue/deny (no context injection) — it
 git switch -c feature/7-app-shell-navigation
 python3 .workflow/feature-task/engine.py from-branch
 python3 .workflow/feature-task/engine.py next-context
-# after creating Tasks:
+# after creating Tasks (queues briefing facts; skill writes the prose):
 # python3 .workflow/feature-task/engine.py mark-feature-in-progress
-# when starting implementation of the next Task:
-# python3 .workflow/feature-task/engine.py start-task
 # optional reprint of the pedagogical briefing:
 # python3 .workflow/feature-task/engine.py orient-task
+# when starting implementation of the next Task:
+# python3 .workflow/feature-task/engine.py start-task
 # fallback if needed:
 # python3 .workflow/feature-task/engine.py set-feature <feature-issue-number>
 ```

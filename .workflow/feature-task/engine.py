@@ -31,9 +31,9 @@ branch shape for Feature work.
 When implementing that Feature:
 
 0. **Ensure Tasks exist** for the Feature id from the branch (GitHub Task sub-issues in build order). If none exist yet, **create them first** before writing product code — follow the project skill `create-feature-tasks` (hook = when/why; skill = how). Creating Tasks sets the **Feature** project Status to **In progress**; do **not** set any Task to In progress yet.
-1. Load the Feature and its Task sub-issues (order = ascending issue number).
-2. Work on **exactly one** Task at a time: the first open / not-done Task. **Only when you begin implementing that Task**, set its project Status to **In progress** (`engine.py start-task`). Creating Tasks or loading context must not mark a Task In progress.
-3. **Immediately after `start-task`**, before any product code: follow skill `brief-active-task`. Write a **top-down knowledge briefing** in the user-visible reply (wide product/Feature context → roadmap as building steps → this Task in concrete detail with real repo facts). No buzzword checklists. Then implement only that Task. Do not start the next Task in the same turn.
+1. **Immediately after Tasks are created** (same turn): follow skill `brief-active-task`. Write a **top-down knowledge briefing** in the user-visible reply (wide product/Feature context → ordered Tasks as building steps → repo starting point). No buzzword checklists. Do **not** wait until implementation starts; do **not** call `start-task` here.
+2. Load the Feature and its Task sub-issues (order = ascending issue number).
+3. Work on **exactly one** Task at a time: the first open / not-done Task. **Only when you begin implementing that Task**, set its project Status to **In progress** (`engine.py start-task`). Creating Tasks or loading context must not mark a Task In progress. No mandatory briefing at `start-task` — that already happened at Task creation.
 4. Before review, unit coverage on every source file touched by the Task must be **100%** (statements/branches/functions/lines); fix gaps before stopping.
 5. **Do not create a git commit on your own.** Stop and ask the user to review the diff.
 6. Only after the user has reviewed and explicitly asks to commit, create the commit (include `Refs #<task>` in the message).
@@ -376,7 +376,8 @@ def build_next_task_context(feature_number: int | None = None) -> str:
             "No Task sub-issues found for this Feature (or `gh` unavailable). "
             "**Do not start product implementation yet.** "
             "Create ordered Task sub-issues first using skill `create-feature-tasks` "
-            "(that sets the **Feature** to In progress). Do not mark any Task In progress "
+            "(that sets the **Feature** to In progress), then write the top-down briefing "
+            "(`brief-active-task`) in the same turn. Do not mark any Task In progress "
             "until the user asks to implement the first Task."
         )
         return "\n".join(lines)
@@ -489,43 +490,49 @@ def _plain_user_story(body: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def build_task_orientation_briefing(
+def build_feature_orientation_briefing(
     feature_number: int,
-    task: dict[str, Any],
     *,
     tasks: list[dict[str, Any]] | None = None,
 ) -> str:
-    """Facts + composition brief for a top-down knowledge orientation (skill fills prose)."""
+    """Facts + composition brief after Task creation (skill fills prose; no start-task yet)."""
     all_tasks = tasks if tasks is not None else fetch_feature_tasks(feature_number)
-    task_number = int(task.get("number") or 0)
-    ordered_numbers = [int(t.get("number") or 0) for t in all_tasks]
-    try:
-        index = ordered_numbers.index(task_number) + 1
-    except ValueError:
-        index = 0
-    total = len(all_tasks)
+    open_tasks = [t for t in all_tasks if task_is_open(t)]
+    next_task = open_tasks[0] if open_tasks else None
+    next_number = int(next_task.get("number") or 0) if next_task else 0
 
     feature = fetch_issue_fields(feature_number)
-    task_fields = fetch_issue_fields(task_number)
     feature_title = str(feature.get("title") or f"Feature #{feature_number}")
     feature_body = str(feature.get("body") or "")
     feature_url = str(feature.get("url") or "")
-    task_title = str(task_fields.get("title") or task.get("title") or f"Task #{task_number}")
-    task_body = str(task_fields.get("body") or "")
-    task_url = str(task_fields.get("url") or task.get("url") or "")
 
     feature_story = _plain_user_story(feature_body)
-    task_story = _plain_user_story(task_body) or feature_story
     feature_acs = _extract_checklist(feature_body, "Acceptance Criteria")
-    task_acs = _extract_checklist(task_body, "Acceptance Criteria")
     deps = _section_body(feature_body, "Dependencies")
     notes = _section_body(feature_body, "Notes")
 
     roadmap_lines: list[str] = []
     for i, t in enumerate(all_tasks, start=1):
         n = int(t.get("number") or 0)
-        marker = "DONE" if not task_is_open(t) else ("ACTIVE" if n == task_number else "TODO")
+        if not task_is_open(t):
+            marker = "DONE"
+        elif next_number and n == next_number:
+            marker = "NEXT"
+        else:
+            marker = "TODO"
         roadmap_lines.append(f"{i}. [{marker}] #{n} — {t.get('title')}")
+
+    next_story = ""
+    next_acs: list[str] = []
+    next_title = ""
+    next_url = ""
+    if next_task is not None:
+        next_fields = fetch_issue_fields(next_number)
+        next_title = str(next_fields.get("title") or next_task.get("title") or f"Task #{next_number}")
+        next_url = str(next_fields.get("url") or next_task.get("url") or "")
+        next_body = str(next_fields.get("body") or "")
+        next_story = _plain_user_story(next_body) or feature_story
+        next_acs = _extract_checklist(next_body, "Acceptance Criteria")
 
     def bullets(items: list[str]) -> str:
         return "\n".join(f"  - {item}" for item in items) if items else "  - (none listed)"
@@ -533,16 +540,22 @@ def build_task_orientation_briefing(
     lines = [
         "## Orientation facts (for skill `brief-active-task`)",
         "",
+        "Timing: **right after Task creation** — not at `start-task`.",
         "Do **not** paste this block verbatim to the user.",
         "Compose a **top-down knowledge briefing** (wide → narrow) using these facts",
         "plus what you learn by reading the real codebase. Teach; do not recite buzzwords.",
+        "Do **not** call `start-task` or implement product code in this turn.",
         "",
         "### Identifiers",
         f"- Feature #{feature_number}: {feature_title}"
         + (f" — {feature_url}" if feature_url else ""),
-        f"- Active Task #{task_number}: {task_title}"
-        + (f" — {task_url}" if task_url else ""),
-        f"- Position: step {index} of {total} (ascending issue number = build order)",
+        (
+            f"- First open Task #{next_number}: {next_title}"
+            + (f" — {next_url}" if next_url else "")
+            if next_task is not None
+            else "- First open Task: (none — all Tasks done or missing)"
+        ),
+        f"- Build order: {len(all_tasks)} Task(s) (ascending issue number)",
         "",
         "### Feature user story (raw)",
         feature_story or "(missing — infer carefully from title + ACs)",
@@ -556,25 +569,34 @@ def build_task_orientation_briefing(
         "### Build order (all Tasks)",
         *roadmap_lines,
         "",
-        "### This Task user story (raw)",
-        task_story or "(missing)",
+        "### First open Task user story (raw)",
+        next_story or "(missing)",
         "",
-        "### This Task acceptance criteria",
-        bullets(task_acs if task_acs else feature_acs),
+        "### First open Task acceptance criteria",
+        bullets(next_acs if next_acs else feature_acs),
         "",
         "### Required user-visible shape (Summary + top-down prose)",
-        "0. **Summary** — program (2–3 sentences) + Feature (2–3 sentences) + name active Task",
+        "0. **Summary** — program (2–3 sentences) + Feature (2–3 sentences) + name first open Task as next",
         "1. **Product / problem** — 2–4 short plain sentences (this tone is the model)",
         "2. **Feature when finished** — 3–5 sentences of outcomes (not a bullet dump)",
         "3. **How we build it** — for each Task, 2–3 full sentences (what we add → what that enables)",
-        "4. **This step** — three short paragraphs: already there / we add now / not yet",
-        "5. **Done when** — 2–4 full sentences of hand-checkable outcomes",
+        "4. **Starting point** — three short paragraphs: already there / first Task will add / later Tasks",
+        "5. **Done when (Feature)** — 2–4 full sentences of hand-checkable end-state checks",
         "",
         "Prose over stubs. Short sentences. Do not paste this facts block to the user.",
-        "",
-        "Then implement **only** this Task.",
+        "Stop after the briefing; wait for the user to ask to implement the first Task.",
     ]
     return "\n".join(lines)
+
+
+def build_task_orientation_briefing(
+    feature_number: int,
+    task: dict[str, Any],
+    *,
+    tasks: list[dict[str, Any]] | None = None,
+) -> str:
+    """Optional reprint via `orient-task`; primary briefing runs at Task creation."""
+    return build_feature_orientation_briefing(feature_number, tasks=tasks)
 
 
 def current_branch() -> str:
@@ -947,9 +969,29 @@ def mark_issue_in_progress(issue_number: int) -> dict[str, Any]:
 
 
 def mark_feature_in_progress(feature_number: int) -> dict[str, Any]:
-    """Set Feature project Status to In progress (used when Tasks are created)."""
+    """Set Feature project Status to In progress (used when Tasks are created).
+
+    Also queues a one-shot Feature orientation briefing for the next Cursor inject —
+    the pedagogical briefing belongs to Task *creation*, not to `start-task`.
+    """
     result = mark_issue_in_progress(int(feature_number))
     result["feature"] = int(feature_number)
+    tasks = fetch_feature_tasks(int(feature_number))
+    orientation = build_feature_orientation_briefing(int(feature_number), tasks=tasks)
+    state = load_state()
+    state.update(
+        {
+            "featureIssue": int(feature_number),
+            "pendingFeatureOrientation": True,
+            "taskOrientationBriefing": orientation,
+            "injectWorkflowContext": True,
+            # Clear any stale start-task orientation flag.
+            "pendingTaskOrientation": False,
+        }
+    )
+    save_state(state)
+    result["orientationQueued"] = True
+    result["orientation"] = orientation
     return result
 
 
@@ -1016,14 +1058,14 @@ def start_task(task_number: int | None = None) -> dict[str, Any]:
 
     previous_active = _coerce_issue_number(state.get("activeTaskIssue"))
     activated = activate_task(task, previous_active=previous_active)
-    orientation = build_task_orientation_briefing(int(feature), task, tasks=tasks)
     new_state = {
         "featureIssue": int(feature),
         "allowCommit": bool(state.get("allowCommit")),
         **activated,
-        # One-shot: next Cursor postToolUse injects the pedagogical briefing.
-        "pendingTaskOrientation": True,
-        "taskOrientationBriefing": orientation,
+        # Briefing already happened at Task creation; do not re-queue here.
+        "pendingTaskOrientation": False,
+        "pendingFeatureOrientation": False,
+        "taskOrientationBriefing": None,
         "injectWorkflowContext": True,
     }
     save_state(new_state)
@@ -1032,7 +1074,6 @@ def start_task(task_number: int | None = None) -> dict[str, Any]:
         "featureIssue": int(feature),
         "allowCommit": bool(state.get("allowCommit")),
         **activated,
-        "orientation": orientation,
     }
 
 
@@ -1217,19 +1258,16 @@ def cursor_post_tool(_payload: dict[str, Any]) -> dict[str, Any]:
     state = load_state()
     parts: list[str] = []
     want_workflow = bool(state.get("injectWorkflowContext"))
-    if state.get("pendingTaskOrientation"):
+    if state.get("pendingFeatureOrientation") or state.get("pendingTaskOrientation"):
         briefing = str(state.get("taskOrientationBriefing") or "").strip()
         if not briefing:
             feature = _coerce_issue_number(state.get("featureIssue"))
-            task_n = _coerce_issue_number(state.get("activeTaskIssue"))
-            if feature is not None and task_n is not None:
-                tasks = fetch_feature_tasks(int(feature))
-                task = next((t for t in tasks if int(t.get("number") or 0) == int(task_n)), None)
-                if task is not None:
-                    briefing = build_task_orientation_briefing(int(feature), task, tasks=tasks)
+            if feature is not None:
+                briefing = build_feature_orientation_briefing(int(feature))
         if briefing:
             parts.append(briefing)
         # Clear one-shot flags on disk before other builders rewrite state.
+        state["pendingFeatureOrientation"] = False
         state["pendingTaskOrientation"] = False
         state["taskOrientationBriefing"] = None
         state["injectWorkflowContext"] = False
@@ -1295,16 +1333,11 @@ def main(argv: list[str]) -> int:
         feature = _coerce_issue_number(state.get("featureIssue"))
         if feature is None:
             feature = parse_feature_from_branch(current_branch())
-        task_n = int(argv[2]) if len(argv) >= 3 else _coerce_issue_number(state.get("activeTaskIssue"))
-        if feature is None or task_n is None:
-            print("feature-task-workflow: need Feature + Task (start-task or orient-task <n>)", file=sys.stderr)
+        if feature is None:
+            print("feature-task-workflow: need Feature (orient-task after Task creation)", file=sys.stderr)
             return 1
         tasks = fetch_feature_tasks(int(feature))
-        task = next((t for t in tasks if int(t.get("number") or 0) == int(task_n)), None)
-        if task is None:
-            print(f"feature-task-workflow: task #{task_n} not found under Feature #{feature}", file=sys.stderr)
-            return 1
-        print(build_task_orientation_briefing(int(feature), task, tasks=tasks))
+        print(build_feature_orientation_briefing(int(feature), tasks=tasks))
         return 0
 
     if len(argv) >= 2 and argv[1] == "cursor":

@@ -2,9 +2,10 @@
 name: create-feature-tasks
 description: >-
   Creates ordered GitHub Task sub-issues for a Feature issue (user stories +
-  acceptance criteria) before implementation. Use when a Feature has no Tasks
-  yet, when the Feature/Task workflow hook says to create tasks first, or when
-  the user asks to break a Feature into Tasks.
+  acceptance criteria) before implementation, then writes the top-down Feature
+  briefing in the same turn. Use when a Feature has no Tasks yet, when the
+  Feature/Task workflow hook says to create tasks first, or when the user asks
+  to break a Feature into Tasks.
 modeSlugs:
   - architect
   - code
@@ -124,7 +125,8 @@ python3 .workflow/feature-task/engine.py from-branch
 
 Do **not** run `start-task` or mark any Task In progress here. Prefer not to rely on `next-context` for Status flips — context listing must not start a Task.
 
-11. Tell the user which Tasks were created, that the **Feature** is In progress, and that implementation of the **first open** Task (via `start-task`) starts only after they ask.
+11. **Same turn, mandatory:** follow skill `brief-active-task`. Write the top-down Feature briefing in the user-visible reply (program → Feature → ordered Tasks → repo starting point). Use facts from `mark-feature-in-progress` / `orient-task` plus a quick repo look. Do **not** defer this briefing until implementation starts.
+12. Tell the user which Tasks were created, that the **Feature** is In progress, that the briefing above is the orientation for this Feature, and that implementation of the **first open** Task (via `start-task`) starts only after they ask.
 
 ## Guardrails
 
@@ -133,4 +135,5 @@ Do **not** run `start-task` or mark any Task In progress here. Prefer not to rel
 - Generic drafting only — no product-domain hardcoding in titles beyond the Feature text and config defaults
 - One Feature at a time
 - Do not start coding the Feature until Tasks exist (unless the user explicitly waives that)
+- The knowledge briefing is part of Task **creation**, not of `start-task`
 - Do not mark Tasks In progress or Done here — In progress happens on `start-task` when implementation begins; Done happens after commit via the workflow hooks
