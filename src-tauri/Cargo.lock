@@ -1982,6 +1982,7 @@ name = "judosphere"
 version = "0.0.0"
 dependencies = [
  "log",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
