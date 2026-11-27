@@ -40,19 +40,20 @@ When the user asks to implement a **Feature** that should have **Task** sub-issu
 2. **Ensure Tasks exist** for that Feature id. If there are none, create them first with skill **`create-feature-tasks`** — do not start product code yet. Each Task must be a **sub-issue of the Feature**, type **Task**, assignee from config (`defaultAssignee`), and added to config `projectTitle` when set (**JudoSphere Planning** only). **Never** add Tasks to **JudoSphere Roadmap 2027** or any other Roadmap project — Roadmap is Features-only; if a Task lands there, remove it. After creation, set the **Feature** to **In progress**; leave Tasks as Todo.
 3. **Inspect Tasks** (sub-issues). Build order = ascending issue number.
 4. **Do one Task only** — the first open / not-done Task. When the user asks to implement it, run `start-task` so that Task’s project Status becomes **In progress**. Do not start later Tasks in the same turn.
-5. Implement that Task’s acceptance criteria; keep the change focused.
-6. **Quality gate (mandatory before review):** run the checks below on the change; fix failures before stopping. Do not stop for review until this gate is green (or the user explicitly waives it). Prefer skill **`run-ui-completion-pipeline`** for the frontend steps.
+5. **Orient before coding (mandatory):** right after `start-task`, follow skill **`brief-active-task`**. Write a **top-down** briefing in plain language: problem → Feature outcome → build steps → this step (already / add now / not yet) → done-when checks. Short sentences; teach the system; no buzzword checklists; do not paste raw issue/engine dumps.
+6. Implement that Task’s acceptance criteria; keep the change focused.
+7. **Quality gate (mandatory before review):** run the checks below on the change; fix failures before stopping. Do not stop for review until this gate is green (or the user explicitly waives it). Prefer skill **`run-ui-completion-pipeline`** for the frontend steps.
    - **ESLint:** `npm run lint` (`eslint .`) — always; use `--fix` on touched files only when safe, then re-run full lint
    - **Prettier:** `npx prettier --write` on touched files (or `npm run format` when appropriate)
    - **Typecheck:** `npm run typecheck` (`vue-tsc --build --noEmit`)
    - **Coverage 100%** statements/branches/functions/lines on every source file touched by the Task (Vitest `--coverage` scoped to those modules; example below)
    - **Tauri / Rust:** `cargo test --locked` in `src-tauri/` whenever host code was touched **or** the Task depends on / forwards into the host (default for this repo’s Feature work — run it unless the Task is clearly frontend-only with no host boundary)
-7. **Stop for review** — do **not** create a git commit on your own. Summarize the diff and quality-gate results; ask the user to review.
-8. Commit **only** after the user explicitly asks. Use **Conventional Commits** with a **short summary only** (no bullet lists) — see rule `commit-messages`. Include `Refs #<taskNumber>` in the commit message.
-9. After a successful commit, hooks / Husky `post-commit` mark that Task **Done** (project Status **Done**, then close).
-10. Start the **next** open Task only when the user asks (then `start-task` for that next Task).
+8. **Stop for review** — do **not** create a git commit on your own. Summarize the diff and quality-gate results; ask the user to review.
+9. Commit **only** after the user explicitly asks. Use **Conventional Commits** with a **short summary only** (no bullet lists) — see rule `commit-messages`. Include `Refs #<taskNumber>` in the commit message.
+10. After a successful commit, hooks / Husky `post-commit` mark that Task **Done** (project Status **Done**, then close).
+11. Start the **next** open Task only when the user asks (then `start-task` + orientation briefing again for that next Task).
 
-**Hook vs skill:** hooks enforce _when_ (branch/Feature id, Tasks first, one-at-a-time, no solo commit, Done after commit). Skill `create-feature-tasks` teaches _how_ to draft/create Task issues and to mark the Feature In progress on creation.
+**Hook vs skill:** hooks enforce _when_ (branch/Feature id, Tasks first, one-at-a-time, orient after `start-task`, no solo commit, Done after commit). Skill `create-feature-tasks` teaches _how_ to draft/create Task issues. Skill `brief-active-task` teaches _how_ to brief the active Task in Feature context.
 
 Shared engine: `.workflow/feature-task/`  
 Runtime state (gitignored): `.workflow/feature-task/state.json`
@@ -62,6 +63,7 @@ python3 .workflow/feature-task/engine.py from-branch
 python3 .workflow/feature-task/engine.py mark-feature-in-progress   # after Task creation
 python3 .workflow/feature-task/engine.py next-context               # lists next Task; does not start it
 python3 .workflow/feature-task/engine.py start-task                 # when implementation begins
+python3 .workflow/feature-task/engine.py orient-task                # reprint pedagogical briefing
 
 npm run lint
 npx prettier --write <touched-files>
