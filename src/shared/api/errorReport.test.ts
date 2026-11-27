@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   bumpFingerprintOccurrence,
+  deriveErrorFingerprint,
   getErrorEvent,
   getFeedbackDraft,
   getFingerprintGate,
@@ -139,5 +140,16 @@ describe('errorReport facade', () => {
       fingerprint: 'fp-a',
       cooldownUntil: null
     })
+  })
+
+  it('derives fingerprints via the host command', async () => {
+    invokeMock.mockResolvedValueOnce('abc123')
+    const input = {
+      message: 'boom',
+      errorType: 'TypeError',
+      frames: ['at score (App.vue:10)']
+    }
+    await expect(deriveErrorFingerprint(input)).resolves.toBe('abc123')
+    expect(invokeMock).toHaveBeenCalledWith('derive_error_fingerprint', { input })
   })
 })

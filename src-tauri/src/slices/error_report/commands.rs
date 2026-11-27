@@ -4,11 +4,18 @@ use tauri::State;
 
 use crate::slices::database::connection::DbState;
 
+use super::fingerprint::{derive_fingerprint, ErrorFingerprintInput};
 use super::store;
 use super::types::{
     ErrorEvent, FeedbackDraft, FeedbackDraftStatus, FeedbackDraftWrite, FingerprintGate,
     FingerprintGateWrite, KnownFingerprint, KnownFingerprintWrite, NewErrorEvent,
 };
+
+/// Derives a stable error fingerprint on the host (sanitized + normalized SHA-256).
+#[tauri::command]
+pub fn derive_error_fingerprint(input: ErrorFingerprintInput) -> String {
+    derive_fingerprint(&input)
+}
 
 /// Inserts an error/report event into the local SQLite database.
 #[tauri::command]

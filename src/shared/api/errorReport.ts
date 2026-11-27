@@ -3,6 +3,13 @@ import { invoke } from '@tauri-apps/api/core'
 /** Allowed statuses for the local known-fingerprint cache. */
 export type KnownFingerprintStatus = 'new' | 'known' | 'in_progress'
 
+/** Input for host-side stable error fingerprint derivation. */
+export type ErrorFingerprintInput = {
+  message: string
+  errorType?: string | null
+  frames?: string[] | null
+}
+
 /** Local-only feedback draft lifecycle (no upload in this milestone). */
 export type FeedbackDraftStatus = 'pending' | 'ready' | 'discarded'
 
@@ -82,6 +89,16 @@ export type FeedbackDraft = {
   status: FeedbackDraftStatus
   createdAt: string
   updatedAt: string
+}
+
+/**
+ * Derives a stable error fingerprint on the host (sanitized + normalized).
+ * Vue must not reimplement fingerprint rules.
+ * @param input - Message, optional error type, and optional key stack frames.
+ * @returns Hex SHA-256 fingerprint string.
+ */
+export async function deriveErrorFingerprint(input: ErrorFingerprintInput): Promise<string> {
+  return invoke<string>('derive_error_fingerprint', { input })
 }
 
 /**

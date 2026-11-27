@@ -1,6 +1,7 @@
 export { deleteAppValue, getAppValue, setAppValue } from './db'
 export type {
   ErrorEvent,
+  ErrorFingerprintInput,
   FeedbackDraft,
   FeedbackDraftStatus,
   FeedbackDraftWrite,
@@ -13,6 +14,7 @@ export type {
 } from './errorReport'
 export {
   bumpFingerprintOccurrence,
+  deriveErrorFingerprint,
   getErrorEvent,
   getFeedbackDraft,
   getFingerprintGate,
