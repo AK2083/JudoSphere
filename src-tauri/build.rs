@@ -8,6 +8,7 @@ const LOG_LEVEL_ENV: &str = "LOG_LEVEL";
 fn main() {
     embed_log_level_env();
     println!("cargo:rerun-if-changed=../config/logging.json");
+    println!("cargo:rerun-if-changed=../config/log-redact.json");
     tauri_build::build();
 }
 

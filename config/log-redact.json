@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "labels": {
+    "secret": [
+      "password",
+      "passwd",
+      "secret",
+      "token",
+      "api_key",
+      "api-key",
+      "apikey",
+      "auth_token",
+      "auth-token",
+      "access_token",
+      "access-token",
+      "refresh_token",
+      "refresh-token",
+      "session_id",
+      "session-id",
+      "session",
+      "pin"
+    ],
+    "name": [
+      "full_name",
+      "full-name",
+      "first_name",
+      "first-name",
+      "last_name",
+      "last-name",
+      "member_name",
+      "member-name",
+      "competitor_name",
+      "competitor-name",
+      "competitor",
+      "member",
+      "athlete",
+      "judoka",
+      "name"
+    ],
+    "phone": ["phone", "mobile", "tel"],
+    "dob": ["birth_date", "birth-date", "birthdate", "date_of_birth", "date-of-birth", "dob"],
+    "email": ["email"]
+  },
+  "jsonOnlyKeys": ["authorization"]
+}

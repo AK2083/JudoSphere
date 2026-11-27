@@ -1,26 +1,18 @@
 //! Central host-side sanitize/redact for log text and structured extracts.
 //!
 //! Display and export/attach paths must call these functions — do not reimplement
-//! redaction rules in Vue. Agreed PII patterns: labeled person names, emails,
-//! phones, and birthdates; plus secrets, tokens, and PINs.
+//! redaction rules in Vue. Log field labels are English-only (host logs stay EN);
+//! synonyms live in `config/log-redact.json` via [`catalog`].
 
+mod catalog;
+
+use catalog::catalog;
 use regex::Regex;
 use serde_json::{Map, Value};
 use std::sync::LazyLock;
 
 /// Placeholder written in place of secrets, tokens, PINs, and unnecessary PII.
 pub const REDACTED: &str = "[REDACTED]";
-
-/// Labeled secret / credential keys (password, token, PIN, session, …).
-static LABELED_SECRET: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        // `authorization:` is covered by BEARER_TOKEN / JWT — avoid eating `Bearer`.
-        r#"(?i)\b(password|passwd|secret|token|api[_-]?key|"#,
-        r#"auth[_-]?token|access[_-]?token|refresh[_-]?token|session[_-]?id|session|pin)\b"#,
-        r#"(\s*[:=]\s*)(?:"([^"]*)"|'([^']*)'|([^\s"',;}\]]+))"#,
-    ))
-    .expect("labeled secret regex")
-});
 
 /// `Bearer <token>` credentials in free text or headers.
 static BEARER_TOKEN: LazyLock<Regex> = LazyLock::new(|| {
@@ -32,79 +24,10 @@ static JWT: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b").expect("jwt regex")
 });
 
-/// Labeled person-name fields (competitor / member / athlete / …).
-static LABELED_NAME: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r#"(?i)\b(full[_-]?name|first[_-]?name|last[_-]?name|member[_-]?name|"#,
-        r#"competitor[_-]?name|competitor|member|athlete|judoka|name)\b"#,
-        r#"(\s*[:=]\s*)(?:"([^"]*)"|'([^']*)'|"#,
-        r#"([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ'\-]*(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ'\-]*){0,3}))"#,
-    ))
-    .expect("labeled name regex")
+/// Bare email addresses in log lines (shape-based, not a label synonym).
+static EMAIL_SHAPE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b").expect("email shape regex")
 });
-
-/// Bare email addresses in log lines.
-static EMAIL: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b").expect("email regex")
-});
-
-/// Labeled phone / mobile fields (avoids eating unrelated digit runs such as timestamps).
-static LABELED_PHONE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r#"(?i)\b(phone|mobile|tel|telefon)\b"#,
-        r#"(\s*[:=]\s*)(?:"([^"]*)"|'([^']*)'|([+\d][\d\s./()-]{5,}))"#,
-    ))
-    .expect("labeled phone regex")
-});
-
-/// Labeled birthdate / DOB fields.
-static LABELED_DOB: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r#"(?i)\b(birth[_-]?date|birthdate|date[_-]?of[_-]?birth|dob|geboren)\b"#,
-        r#"(\s*[:=]\s*)(?:"([^"]*)"|'([^']*)'|([^\s"',;}\]]+))"#,
-    ))
-    .expect("labeled dob regex")
-});
-
-/// JSON object keys that must never leave the host in clear text.
-fn is_sensitive_key(key: &str) -> bool {
-    matches!(
-        key.to_ascii_lowercase().replace('-', "_").as_str(),
-        "password"
-            | "passwd"
-            | "secret"
-            | "token"
-            | "api_key"
-            | "apikey"
-            | "authorization"
-            | "auth_token"
-            | "access_token"
-            | "refresh_token"
-            | "session_id"
-            | "session"
-            | "pin"
-            | "email"
-            | "phone"
-            | "mobile"
-            | "tel"
-            | "telefon"
-            | "birth_date"
-            | "birthdate"
-            | "date_of_birth"
-            | "dob"
-            | "geboren"
-            | "name"
-            | "full_name"
-            | "first_name"
-            | "last_name"
-            | "member_name"
-            | "competitor_name"
-            | "competitor"
-            | "member"
-            | "athlete"
-            | "judoka"
-    )
-}
 
 /// Replace a labeled `key[:=]value` match, preserving quote style when present.
 fn redact_labeled(re: &Regex, input: &str) -> String {
@@ -124,26 +47,29 @@ fn redact_labeled(re: &Regex, input: &str) -> String {
 
 /// Apply centralized redact rules to plain log text.
 pub fn sanitize_log_text(input: &str) -> String {
+    let cat = catalog();
     let mut out = input.to_string();
     out = BEARER_TOKEN
         .replace_all(&out, format!("Bearer {REDACTED}"))
         .into_owned();
     out = JWT.replace_all(&out, REDACTED).into_owned();
-    out = redact_labeled(&LABELED_SECRET, &out);
-    out = redact_labeled(&LABELED_NAME, &out);
-    out = EMAIL.replace_all(&out, REDACTED).into_owned();
-    out = redact_labeled(&LABELED_PHONE, &out);
-    out = redact_labeled(&LABELED_DOB, &out);
+    out = redact_labeled(&cat.labeled_secret, &out);
+    out = redact_labeled(&cat.labeled_name, &out);
+    out = redact_labeled(&cat.labeled_email, &out);
+    out = EMAIL_SHAPE.replace_all(&out, REDACTED).into_owned();
+    out = redact_labeled(&cat.labeled_phone, &out);
+    out = redact_labeled(&cat.labeled_dob, &out);
     out
 }
 
 /// Sanitize a structured JSON extract (objects, arrays, and string leaves).
 pub fn sanitize_json_value(value: &Value) -> Value {
+    let cat = catalog();
     match value {
         Value::Object(map) => {
             let mut out = Map::new();
             for (key, child) in map {
-                if is_sensitive_key(key) {
+                if cat.is_sensitive_key(key) {
                     out.insert(key.clone(), Value::String(REDACTED.to_string()));
                 } else {
                     out.insert(key.clone(), sanitize_json_value(child));
@@ -257,13 +183,15 @@ mod tests {
     }
 
     #[test]
-    fn is_sensitive_key_normalizes_separators() {
-        assert!(is_sensitive_key("api-key"));
-        assert!(is_sensitive_key("API_KEY"));
-        assert!(is_sensitive_key("first_name"));
-        assert!(is_sensitive_key("member-name"));
-        assert!(!is_sensitive_key("level"));
-        assert!(!is_sensitive_key("message"));
+    fn is_sensitive_key_uses_catalog_synonyms() {
+        let cat = catalog();
+        assert!(cat.is_sensitive_key("api-key"));
+        assert!(cat.is_sensitive_key("API_KEY"));
+        assert!(cat.is_sensitive_key("first_name"));
+        assert!(cat.is_sensitive_key("member-name"));
+        assert!(cat.is_sensitive_key("authorization"));
+        assert!(!cat.is_sensitive_key("level"));
+        assert!(!cat.is_sensitive_key("message"));
     }
 
     #[test]

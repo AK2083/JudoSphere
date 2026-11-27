@@ -7,6 +7,7 @@
 //!   [`sanitize_structured_extract`] (via [`commands::sanitize_log_extract`]).
 //!
 //! Level vocabulary + env var: repo `config/logging.json` (`LOG_LEVEL`).
+//! Redact label synonyms: repo `config/log-redact.json`.
 
 pub mod commands;
 
