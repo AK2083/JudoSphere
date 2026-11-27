@@ -1,5 +1,6 @@
 import type { App } from 'vue'
 
+import { feedbackFormDe, feedbackFormEn } from '@features/feedback-form'
 import { greetDe, greetEn } from '@features/greet'
 import { homeDe, homeEn } from '@pages/home'
 import { settingsDe, settingsEn } from '@pages/settings'
@@ -27,7 +28,8 @@ export const i18n = createI18n({
       appNavigation: appNavigationDe,
       home: homeDe,
       settings: settingsDe,
-      greet: greetDe
+      greet: greetDe,
+      feedbackForm: feedbackFormDe
     },
     en: {
       app: appEn,
@@ -36,7 +38,8 @@ export const i18n = createI18n({
       appNavigation: appNavigationEn,
       home: homeEn,
       settings: settingsEn,
-      greet: greetEn
+      greet: greetEn,
+      feedbackForm: feedbackFormEn
     }
   }
 })
